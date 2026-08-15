@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 
+import { isAdmin } from "@/lib/access";
 import { getCurrentMember } from "@/lib/queries";
 import { notifyChanged } from "@/lib/realtime";
 import { getSupabase } from "@/lib/supabase";
@@ -30,7 +31,7 @@ async function requireAdmin(): Promise<
 > {
   const current = await getCurrentMember();
   if (!current) return { ok: false, error: "Najprv sa prihlás." };
-  if (current.role !== "admin") {
+  if (!isAdmin(current)) {
     return { ok: false, error: "Členov rodiny môže spravovať len správca." };
   }
   return { ok: true };

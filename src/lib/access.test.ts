@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { resolveAccess } from "@/lib/access";
+import { isAdmin, resolveAccess } from "@/lib/access";
 import type { Member, MemberStatus } from "@/lib/types";
 
 const AUTH_USER_ID = "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa";
@@ -56,5 +56,19 @@ describe("resolveAccess", () => {
     expect(access.kind === "active" && Object.keys(access.member)).not.toContain(
       "status",
     );
+  });
+});
+
+describe("isAdmin", () => {
+  it("recognises an admin", () => {
+    const { status, ...member } = memberRow("active");
+    expect(status).toBe("active");
+    expect(isAdmin(member)).toBe(true);
+  });
+
+  it("refuses an ordinary member", () => {
+    const { status, ...member } = memberRow("active");
+    expect(status).toBe("active");
+    expect(isAdmin({ ...member, role: "member" })).toBe(false);
   });
 });

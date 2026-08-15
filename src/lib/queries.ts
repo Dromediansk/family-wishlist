@@ -117,6 +117,25 @@ export const getMemberAccounts = cache(async (): Promise<MemberAccount[]> => {
 });
 
 /**
+ * How many people are waiting to be let in — a number, nothing more.
+ *
+ * The header badges this on every page an admin loads, and `getMemberAccounts`
+ * would be the wrong tool for it: that one carries email addresses, which have
+ * no business travelling with the layout. `head: true` asks Postgres for the
+ * count without returning a single row.
+ */
+export const countPendingAccounts = cache(async (): Promise<number> => {
+  const supabase = getSupabase();
+  const { count, error } = await supabase
+    .from("family_members")
+    .select("id", { count: "exact", head: true })
+    .eq("status", "pending");
+
+  if (error) throw error;
+  return count ?? 0;
+});
+
+/**
  * Who is looking, resolved once per render.
  *
  * Two clients, on purpose: the session comes from Supabase Auth, running as the

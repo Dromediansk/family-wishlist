@@ -50,7 +50,9 @@ Reachable by direct POST, so each one must, in order:
 1. `const current = await getCurrentMember()` — re-derive the caller; never trust
    a client-supplied id. Returns only **approved** members, so `pending` users
    are refused without any action knowing that state exists.
-2. Admin-only work: `await requireAdmin()`.
+2. Admin-only work: `await requireAdmin()`. An admin-only **page** re-checks with
+   `isAdmin()` (`src/lib/access.ts`) in its own body and redirects — `/family` is
+   the first. A menu item you hid is not a guard; the URL is guessable.
 3. Validate input with Zod. **Error messages are Slovak.**
 4. Put ownership in the `WHERE` clause (`.eq("member_id", current.id)`) and check
    `data.length === 0` rather than pre-checking with a separate read.
@@ -70,7 +72,8 @@ Return `ActionResult`, never throw for expected failures.
   prerendered or cached between visitors.
 - **No service worker**, deliberately — cached HTML could show an owner their own
   claims. `experimental.useOffline` in `next.config.ts` covers offline instead.
-- Tests cover **pure functions only** (`access`, `live`, `wishes`, `manifest`) —
+- Tests cover **pure functions only** (`access`, `live`, `wishes`, `manifest`,
+  `utils`) —
   no mocks, no DB. Keep new logic pure enough to test that way.
 - `AGENTS.md` is written by `next dev`, not by you. It reappears after every dev
   run; commit it with your work rather than fighting it.

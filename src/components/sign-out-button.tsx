@@ -7,18 +7,12 @@ import { Button } from "@/components/ui/button";
  * A plain form posting to a Server Action, so signing out works with JavaScript
  * disabled and needs no client component.
  */
-export function SignOutButton({
-  variant = "outline",
-  fullWidth = false,
-}: {
-  variant?: "outline" | "ghost";
-  fullWidth?: boolean;
-}) {
+export function SignOutButton({ fullWidth = false }: { fullWidth?: boolean }) {
   return (
     <form action={signOut}>
       <Button
         type="submit"
-        variant={variant}
+        variant="outline"
         size="sm"
         className={fullWidth ? "w-full" : undefined}
       >

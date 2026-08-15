@@ -1,11 +1,10 @@
 import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
-import Link from "next/link";
-import { GiftIcon } from "lucide-react";
 
 import { InstallPrompt } from "@/components/install-prompt";
 import { LiveRefresh } from "@/components/live-refresh";
 import { OfflineBanner } from "@/components/offline-banner";
+import { SiteHeader } from "@/components/site-header";
 import { THEME_COLORS } from "@/lib/theme-colors";
 
 import "./globals.css";
@@ -67,21 +66,9 @@ export default function RootLayout({
         <LiveRefresh />
         <div className="mx-auto flex min-h-dvh w-full max-w-5xl flex-col px-4 pt-[max(1.5rem,env(safe-area-inset-top))] pb-[max(1.5rem,env(safe-area-inset-bottom))] sm:px-6 sm:pt-10 sm:pb-10">
           <OfflineBanner />
-          <header className="mb-8 flex items-center justify-between gap-4">
-            <Link
-              href="/"
-              className="flex items-center gap-2 text-lg font-semibold"
-            >
-              <GiftIcon className="text-primary size-5" />
-              Rodinný zoznam želaní
-            </Link>
-          </header>
+          <SiteHeader />
           <main className="flex-1">{children}</main>
           <InstallPrompt />
-          <footer className="text-muted-foreground mt-12 text-xs">
-            Každý vidí, čo si ostatní rezervovali — okrem toho, komu zoznam
-            patrí.
-          </footer>
         </div>
       </body>
     </html>

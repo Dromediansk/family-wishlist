@@ -30,3 +30,16 @@ export function resolveAccess(input: {
     ? { kind: "active", member }
     : { kind: "pending", member };
 }
+
+/**
+ * May this member manage the family?
+ *
+ * One spelling of the check, so the admin-only page, the header that decides
+ * whether to offer the link to it, and the Server Actions behind it cannot drift
+ * apart. Deliberately takes a `Member` rather than an `Access`: a caller has to
+ * have established that someone is signed in and approved before the question
+ * even makes sense.
+ */
+export function isAdmin(member: Member): boolean {
+  return member.role === "admin";
+}
