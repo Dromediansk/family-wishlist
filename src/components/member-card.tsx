@@ -29,7 +29,18 @@ export function MemberCard({
 
   return (
     <Card className="hover:border-ring/60 hover:bg-accent/20 active:bg-accent/30 relative min-h-40 gap-4 p-5 transition">
-      <div className="flex flex-1 flex-col items-center justify-center gap-2 text-center">
+      {member.role === "admin" ? (
+        <Badge
+          variant="secondary"
+          title="Môže spravovať členov rodiny"
+          className="pointer-events-none absolute top-3 right-3"
+        >
+          <ShieldIcon />
+          správca
+        </Badge>
+      ) : null}
+
+      <div className="flex flex-1 flex-col items-center justify-center gap-2 px-6 text-center">
         <h2 className="text-2xl leading-tight font-semibold tracking-tight text-balance break-words">
           <Link
             href={`/member/${member.id}`}
@@ -38,17 +49,6 @@ export function MemberCard({
             {member.name}
           </Link>
         </h2>
-        {isCurrentMember || member.role === "admin" ? (
-          <div className="flex flex-wrap items-center justify-center gap-1.5">
-            {isCurrentMember ? <Badge variant="accent">To si ty</Badge> : null}
-            {member.role === "admin" ? (
-              <Badge variant="secondary" title="Môže spravovať členov rodiny">
-                <ShieldIcon />
-                správca
-              </Badge>
-            ) : null}
-          </div>
-        ) : null}
       </div>
 
       <div className="pointer-events-none relative flex items-center gap-2">
