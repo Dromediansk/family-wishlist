@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 
 import { getCurrentMember } from "@/lib/queries";
+import { notifyChanged } from "@/lib/realtime";
 import { getSupabase } from "@/lib/supabase";
 import type { ActionResult } from "@/lib/types";
 
@@ -64,6 +65,7 @@ export async function addWish(input: WishInput): Promise<ActionResult> {
   if (error) return { ok: false, error: error.message };
 
   revalidatePath("/", "layout");
+  await notifyChanged();
   return { ok: true };
 }
 
@@ -100,6 +102,7 @@ export async function updateWish(
   }
 
   revalidatePath("/", "layout");
+  await notifyChanged();
   return { ok: true };
 }
 
@@ -124,6 +127,7 @@ export async function deleteWish(wishId: string): Promise<ActionResult> {
   }
 
   revalidatePath("/", "layout");
+  await notifyChanged();
   return { ok: true };
 }
 
@@ -158,6 +162,7 @@ export async function claimWish(wishId: string): Promise<ActionResult> {
   }
 
   revalidatePath("/", "layout");
+  await notifyChanged();
   return { ok: true };
 }
 
@@ -183,5 +188,6 @@ export async function unclaimWish(wishId: string): Promise<ActionResult> {
   }
 
   revalidatePath("/", "layout");
+  await notifyChanged();
   return { ok: true };
 }

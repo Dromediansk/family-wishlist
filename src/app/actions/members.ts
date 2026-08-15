@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 
 import { countMembers, getCurrentMember } from "@/lib/queries";
+import { notifyChanged } from "@/lib/realtime";
 import { getSupabase } from "@/lib/supabase";
 import { writeMemberIdCookie } from "@/lib/session";
 import type { ActionResult } from "@/lib/types";
@@ -83,6 +84,7 @@ export async function addMember(input: {
   }
 
   revalidatePath("/", "layout");
+  await notifyChanged();
   return { ok: true };
 }
 
@@ -113,6 +115,7 @@ export async function renameMember(
   }
 
   revalidatePath("/", "layout");
+  await notifyChanged();
   return { ok: true };
 }
 
@@ -153,6 +156,7 @@ export async function setMemberRole(
   if (error) return { ok: false, error: error.message };
 
   revalidatePath("/", "layout");
+  await notifyChanged();
   return { ok: true };
 }
 
@@ -200,5 +204,6 @@ export async function removeMember(memberId: string): Promise<ActionResult> {
   if (error) return { ok: false, error: error.message };
 
   revalidatePath("/", "layout");
+  await notifyChanged();
   return { ok: true };
 }

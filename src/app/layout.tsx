@@ -4,6 +4,7 @@ import Link from "next/link";
 import { GiftIcon } from "lucide-react";
 
 import { InstallPrompt } from "@/components/install-prompt";
+import { LiveRefresh } from "@/components/live-refresh";
 import { OfflineBanner } from "@/components/offline-banner";
 import { THEME_COLORS } from "@/lib/theme-colors";
 
@@ -62,6 +63,8 @@ export default function RootLayout({
   return (
     <html lang="sk">
       <body className={`${geistSans.variable} ${geistMono.variable} font-sans`}>
+        {/* Mounted once here so it survives navigation between routes. */}
+        <LiveRefresh />
         <div className="mx-auto flex min-h-dvh w-full max-w-5xl flex-col px-4 pt-[max(1.5rem,env(safe-area-inset-top))] pb-[max(1.5rem,env(safe-area-inset-bottom))] sm:px-6 sm:pt-10 sm:pb-10">
           <OfflineBanner />
           <header className="mb-8 flex items-center justify-between gap-4">
