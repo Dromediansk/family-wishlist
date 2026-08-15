@@ -48,7 +48,7 @@ function DialogContent({
         {showCloseButton ? (
           <DialogPrimitive.Close className="absolute top-4 right-4 cursor-pointer rounded-sm opacity-70 transition-opacity hover:opacity-100">
             <XIcon className="size-4" />
-            <span className="sr-only">Close</span>
+            <span className="sr-only">Zavrieť</span>
           </DialogPrimitive.Close>
         ) : null}
       </DialogPrimitive.Content>

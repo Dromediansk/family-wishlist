@@ -57,12 +57,12 @@ export function WishForm({
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-4">
       <div className="flex flex-col gap-2">
-        <Label htmlFor="wish-title">Title</Label>
+        <Label htmlFor="wish-title">Názov</Label>
         <Input
           id="wish-title"
           value={values.title}
           onChange={(event) => update("title", event.target.value)}
-          placeholder="e.g. Wool socks, size 42"
+          placeholder="napr. Vlnené ponožky, veľkosť 42"
           maxLength={120}
           autoFocus
           required
@@ -71,20 +71,20 @@ export function WishForm({
 
       <div className="flex flex-col gap-2">
         <Label htmlFor="wish-description">
-          Description <span className="text-muted-foreground">(optional)</span>
+          Popis <span className="text-muted-foreground">(nepovinné)</span>
         </Label>
         <Textarea
           id="wish-description"
           value={values.description}
           onChange={(event) => update("description", event.target.value)}
-          placeholder="Colour, size, or anything else worth knowing."
+          placeholder="Farba, veľkosť alebo čokoľvek iné, čo je dobré vedieť."
           maxLength={1000}
         />
       </div>
 
       <div className="flex flex-col gap-2">
         <Label htmlFor="wish-url">
-          Link <span className="text-muted-foreground">(optional)</span>
+          Odkaz <span className="text-muted-foreground">(nepovinné)</span>
         </Label>
         <Input
           id="wish-url"

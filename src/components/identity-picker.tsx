@@ -66,11 +66,11 @@ export function IdentityPicker({
         showCloseButton={!forced}
       >
         <DialogHeader>
-          <DialogTitle>Who are you?</DialogTitle>
+          <DialogTitle>Kto si?</DialogTitle>
           <DialogDescription>
             {forced
-              ? "Pick your name so we know whose list is whose."
-              : "Switch to a different family member."}
+              ? "Vyber si svoje meno, nech vieme, komu ktorý zoznam patrí."
+              : "Prepni sa na iného člena rodiny."}
           </DialogDescription>
         </DialogHeader>
         <div className="flex flex-col gap-2">
@@ -85,7 +85,7 @@ export function IdentityPicker({
               <UserRoundIcon />
               {member.name}
               {member.id === currentMemberId ? (
-                <span className="ml-auto text-xs opacity-80">that&apos;s you</span>
+                <span className="ml-auto text-xs opacity-80">to si ty</span>
               ) : null}
             </Button>
           ))}

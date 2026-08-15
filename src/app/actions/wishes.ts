@@ -7,14 +7,14 @@ import { getCurrentMember } from "@/lib/queries";
 import { getSupabase } from "@/lib/supabase";
 import type { ActionResult } from "@/lib/types";
 
-const idSchema = z.uuid("Invalid wish.");
+const idSchema = z.uuid("Neplatné želanie.");
 
 /** Empty optional fields arrive from forms as "" — treat those as absent. */
 const optionalText = (max: number, label: string) =>
   z
     .string()
     .trim()
-    .max(max, `${label} must be ${max} characters or fewer.`)
+    .max(max, `${label} môže mať najviac ${max} znakov.`)
     .transform((value) => (value === "" ? null : value))
     .nullable()
     .optional();
@@ -23,9 +23,9 @@ const wishInputSchema = z.object({
   title: z
     .string()
     .trim()
-    .min(1, "Title is required.")
-    .max(120, "Title must be 120 characters or fewer."),
-  description: optionalText(1000, "Description"),
+    .min(1, "Názov je povinný.")
+    .max(120, "Názov môže mať najviac 120 znakov."),
+  description: optionalText(1000, "Popis"),
   url: z
     .string()
     .trim()
@@ -35,20 +35,20 @@ const wishInputSchema = z.object({
     .refine(
       (value) =>
         value == null || /^https?:\/\/\S+$/i.test(value),
-      "Link must start with http:// or https://",
+      "Odkaz musí začínať na http:// alebo https://",
     ),
 });
 
 export type WishInput = z.input<typeof wishInputSchema>;
 
 function firstIssue(error: z.ZodError): string {
-  return error.issues[0]?.message ?? "That doesn't look right.";
+  return error.issues[0]?.message ?? "Toto nevyzerá správne.";
 }
 
 /** Add a wish to your OWN list. The owner is always the caller. */
 export async function addWish(input: WishInput): Promise<ActionResult> {
   const current = await getCurrentMember();
-  if (!current) return { ok: false, error: "Pick who you are first." };
+  if (!current) return { ok: false, error: "Najprv si vyber, kto si." };
 
   const parsed = wishInputSchema.safeParse(input);
   if (!parsed.success) return { ok: false, error: firstIssue(parsed.error) };
@@ -72,10 +72,10 @@ export async function updateWish(
   input: WishInput,
 ): Promise<ActionResult> {
   const current = await getCurrentMember();
-  if (!current) return { ok: false, error: "Pick who you are first." };
+  if (!current) return { ok: false, error: "Najprv si vyber, kto si." };
 
   const id = idSchema.safeParse(wishId);
-  if (!id.success) return { ok: false, error: "Invalid wish." };
+  if (!id.success) return { ok: false, error: "Neplatné želanie." };
 
   const parsed = wishInputSchema.safeParse(input);
   if (!parsed.success) return { ok: false, error: firstIssue(parsed.error) };
@@ -96,7 +96,7 @@ export async function updateWish(
 
   if (error) return { ok: false, error: error.message };
   if (!data || data.length === 0) {
-    return { ok: false, error: "You can only edit your own wishes." };
+    return { ok: false, error: "Upravovať môžeš len vlastné želania." };
   }
 
   revalidatePath("/", "layout");
@@ -105,10 +105,10 @@ export async function updateWish(
 
 export async function deleteWish(wishId: string): Promise<ActionResult> {
   const current = await getCurrentMember();
-  if (!current) return { ok: false, error: "Pick who you are first." };
+  if (!current) return { ok: false, error: "Najprv si vyber, kto si." };
 
   const id = idSchema.safeParse(wishId);
-  if (!id.success) return { ok: false, error: "Invalid wish." };
+  if (!id.success) return { ok: false, error: "Neplatné želanie." };
 
   const supabase = getSupabase();
   const { data, error } = await supabase
@@ -120,7 +120,7 @@ export async function deleteWish(wishId: string): Promise<ActionResult> {
 
   if (error) return { ok: false, error: error.message };
   if (!data || data.length === 0) {
-    return { ok: false, error: "You can only delete your own wishes." };
+    return { ok: false, error: "Mazať môžeš len vlastné želania." };
   }
 
   revalidatePath("/", "layout");
@@ -135,10 +135,10 @@ export async function deleteWish(wishId: string): Promise<ActionResult> {
  */
 export async function claimWish(wishId: string): Promise<ActionResult> {
   const current = await getCurrentMember();
-  if (!current) return { ok: false, error: "Pick who you are first." };
+  if (!current) return { ok: false, error: "Najprv si vyber, kto si." };
 
   const id = idSchema.safeParse(wishId);
-  if (!id.success) return { ok: false, error: "Invalid wish." };
+  if (!id.success) return { ok: false, error: "Neplatné želanie." };
 
   const supabase = getSupabase();
   const { data, error } = await supabase
@@ -153,7 +153,7 @@ export async function claimWish(wishId: string): Promise<ActionResult> {
   if (!data || data.length === 0) {
     return {
       ok: false,
-      error: "Someone got there first — that item is already taken.",
+      error: "Niekto bol rýchlejší — táto položka je už rezervovaná.",
     };
   }
 
@@ -164,10 +164,10 @@ export async function claimWish(wishId: string): Promise<ActionResult> {
 /** Release a wish you claimed, so someone else can take it. */
 export async function unclaimWish(wishId: string): Promise<ActionResult> {
   const current = await getCurrentMember();
-  if (!current) return { ok: false, error: "Pick who you are first." };
+  if (!current) return { ok: false, error: "Najprv si vyber, kto si." };
 
   const id = idSchema.safeParse(wishId);
-  if (!id.success) return { ok: false, error: "Invalid wish." };
+  if (!id.success) return { ok: false, error: "Neplatné želanie." };
 
   const supabase = getSupabase();
   const { data, error } = await supabase
@@ -179,7 +179,7 @@ export async function unclaimWish(wishId: string): Promise<ActionResult> {
 
   if (error) return { ok: false, error: error.message };
   if (!data || data.length === 0) {
-    return { ok: false, error: "You can only release an item you claimed." };
+    return { ok: false, error: "Uvoľniť môžeš len vlastné rezervácie." };
   }
 
   revalidatePath("/", "layout");

@@ -37,20 +37,20 @@ export function AddWishDialog({
       <DialogTrigger asChild>
         <Button variant={variant} size={size} className={className}>
           <PlusIcon />
-          Add wish
+          Pridať želanie
         </Button>
       </DialogTrigger>
       <DialogContent className="max-w-md">
         <DialogHeader>
-          <DialogTitle>Add a wish</DialogTitle>
+          <DialogTitle>Pridať želanie</DialogTitle>
           <DialogDescription>
-            This goes on your own list. You won&apos;t be told if someone claims
-            it.
+            Pridá sa do tvojho vlastného zoznamu. Nedozvieš sa, či si ho niekto
+            rezervoval.
           </DialogDescription>
         </DialogHeader>
         <WishForm
-          submitLabel="Add wish"
-          pendingLabel="Adding…"
+          submitLabel="Pridať želanie"
+          pendingLabel="Pridávam…"
           onSubmit={(values) => addWish(values)}
           onDone={() => setOpen(false)}
         />

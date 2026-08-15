@@ -34,14 +34,14 @@ export function EditWishDialog({ wish }: { wish: OwnerWish }) {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="ghost" size="icon" aria-label={`Edit ${wish.title}`}>
+        <Button variant="ghost" size="icon" aria-label={`Upraviť ${wish.title}`}>
           <PencilIcon />
         </Button>
       </DialogTrigger>
       <DialogContent className="max-w-md">
         <DialogHeader>
-          <DialogTitle>Edit wish</DialogTitle>
-          <DialogDescription>Change the details of this wish.</DialogDescription>
+          <DialogTitle>Upraviť želanie</DialogTitle>
+          <DialogDescription>Zmeň podrobnosti tohto želania.</DialogDescription>
         </DialogHeader>
         <WishForm
           initial={{
@@ -49,8 +49,8 @@ export function EditWishDialog({ wish }: { wish: OwnerWish }) {
             description: wish.description ?? "",
             url: wish.url ?? "",
           }}
-          submitLabel="Save changes"
-          pendingLabel="Saving…"
+          submitLabel="Uložiť zmeny"
+          pendingLabel="Ukladám…"
           onSubmit={(values) => updateWish(wish.id, values)}
           onDone={() => setOpen(false)}
         />
@@ -69,7 +69,7 @@ export function DeleteWishButton({ wish }: { wish: OwnerWish }) {
         <Button
           variant="ghost"
           size="icon"
-          aria-label={`Delete ${wish.title}`}
+          aria-label={`Vymazať ${wish.title}`}
           className="text-muted-foreground hover:text-destructive"
         >
           <Trash2Icon />
@@ -77,9 +77,9 @@ export function DeleteWishButton({ wish }: { wish: OwnerWish }) {
       </AlertDialogTrigger>
       <AlertDialogContent className="max-w-md">
         <AlertDialogHeader>
-          <AlertDialogTitle>Delete “{wish.title}”?</AlertDialogTitle>
+          <AlertDialogTitle>Vymazať „{wish.title}“?</AlertDialogTitle>
           <AlertDialogDescription>
-            This removes it from your list for good.
+            Natrvalo sa odstráni z tvojho zoznamu.
           </AlertDialogDescription>
         </AlertDialogHeader>
         {error ? (
@@ -88,7 +88,7 @@ export function DeleteWishButton({ wish }: { wish: OwnerWish }) {
           </p>
         ) : null}
         <AlertDialogFooter>
-          <AlertDialogCancel>Keep it</AlertDialogCancel>
+          <AlertDialogCancel>Ponechať</AlertDialogCancel>
           <AlertDialogAction
             disabled={pending}
             onClick={(event) => {
@@ -100,7 +100,7 @@ export function DeleteWishButton({ wish }: { wish: OwnerWish }) {
               });
             }}
           >
-            {pending ? "Deleting…" : "Delete"}
+            {pending ? "Mažem…" : "Vymazať"}
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>

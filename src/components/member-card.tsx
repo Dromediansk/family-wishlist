@@ -5,13 +5,14 @@ import { AddWishDialog } from "@/components/add-wish-dialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { wishCount } from "@/lib/utils";
 import type { MemberWithCount } from "@/lib/types";
 
 /**
  * One family member.
  *
- * "Add wish" only appears on your own card — adding to someone else's list
- * isn't a thing — and "Pick from list" only on everyone else's.
+ * "Pridať želanie" only appears on your own card — adding to someone else's
+ * list isn't a thing — and "Vybrať zo zoznamu" only on everyone else's.
  */
 export function MemberCard({
   member,
@@ -28,17 +29,17 @@ export function MemberCard({
             {member.name}
           </h2>
           {member.role === "admin" ? (
-            <Badge variant="secondary" title="Can manage family members">
+            <Badge variant="secondary" title="Môže spravovať členov rodiny">
               <ShieldIcon />
-              admin
+              správca
             </Badge>
           ) : null}
         </div>
         <p className="text-muted-foreground text-sm">
-          {isCurrentMember ? "This is you · " : null}
+          {isCurrentMember ? "To si ty · " : null}
           {member.wishCount === 0
-            ? "No wishes yet"
-            : `${member.wishCount} ${member.wishCount === 1 ? "wish" : "wishes"}`}
+            ? "Zatiaľ žiadne želania"
+            : wishCount(member.wishCount)}
         </p>
       </div>
 
@@ -49,7 +50,7 @@ export function MemberCard({
             <Button variant="outline" size="sm" asChild>
               <Link href={`/member/${member.id}`}>
                 <ListIcon />
-                My list
+                Môj zoznam
               </Link>
             </Button>
           </>
@@ -57,7 +58,7 @@ export function MemberCard({
           <Button variant="outline" size="sm" asChild>
             <Link href={`/member/${member.id}`}>
               <ListIcon />
-              Pick from list
+              Vybrať zo zoznamu
             </Link>
           </Button>
         )}

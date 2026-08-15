@@ -36,7 +36,7 @@ export default async function MemberPage({
         <Button variant="ghost" size="sm" asChild className="-ml-3">
           <Link href="/">
             <ArrowLeftIcon />
-            Everyone
+            Všetci
           </Link>
         </Button>
       </div>
@@ -44,12 +44,14 @@ export default async function MemberPage({
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h1 className="text-2xl font-semibold">
-            {list.viewerIsOwner ? "My wish list" : `${owner.name}’s wish list`}
+            {list.viewerIsOwner
+              ? "Môj zoznam želaní"
+              : `Zoznam želaní – ${owner.name}`}
           </h1>
           <p className="text-muted-foreground text-sm">
             {list.viewerIsOwner
-              ? "Add anything you'd like. You won't be told who picks what."
-              : "Claim something so nobody else buys the same thing."}
+              ? "Pridaj si čokoľvek, čo by si chcel. Nedozvieš sa, kto si čo vybral."
+              : "Rezervuj si niečo, aby to isté nekúpil ešte niekto ďalší."}
           </p>
         </div>
         {list.viewerIsOwner ? <AddWishDialog size="default" /> : null}
@@ -58,15 +60,15 @@ export default async function MemberPage({
       {list.viewerIsOwner ? (
         <p className="text-muted-foreground flex items-center gap-2 text-xs">
           <EyeOffIcon className="size-3.5 shrink-0" />
-          Claims are hidden on your own list — that&apos;s the whole point.
+          Vo vlastnom zozname sú rezervácie skryté — o to práve ide.
         </p>
       ) : null}
 
       {list.wishes.length === 0 ? (
         <Card className="text-muted-foreground items-center py-12 text-center text-sm">
           {list.viewerIsOwner
-            ? "Your list is empty. Add your first wish above."
-            : `${owner.name} hasn’t added anything yet.`}
+            ? "Tvoj zoznam je prázdny. Pridaj si vyššie prvé želanie."
+            : "V tomto zozname zatiaľ nie sú žiadne želania."}
         </Card>
       ) : (
         <Card className="py-2">

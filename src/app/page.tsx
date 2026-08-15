@@ -25,7 +25,9 @@ export default async function HomePage() {
     return (
       <>
         <IdentityPicker members={members} forced />
-        <p className="text-muted-foreground">Pick your name to get started.</p>
+        <p className="text-muted-foreground">
+          Vyber si svoje meno a môžeme začať.
+        </p>
       </>
     );
   }
@@ -34,17 +36,17 @@ export default async function HomePage() {
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-semibold">The family</h1>
+          <h1 className="text-2xl font-semibold">Rodina</h1>
           <p className="text-muted-foreground text-sm">
-            Add to your own list, or pick something to buy from someone
-            else&apos;s.
+            Pridaj si niečo do vlastného zoznamu alebo si vyber, čo kúpiš
+            niekomu inému.
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
           <Button variant="outline" size="sm" asChild>
             <Link href="/buying">
               <ShoppingBagIcon />
-              What I&apos;m buying
+              Čo kupujem
             </Link>
           </Button>
           {currentMember.role === "admin" ? (

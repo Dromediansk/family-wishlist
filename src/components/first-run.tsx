@@ -38,21 +38,21 @@ export function FirstRun() {
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <SparklesIcon className="text-primary size-5" />
-          Set up your family
+          Nastav svoju rodinu
         </CardTitle>
         <CardDescription>
-          Start with your own name. You&apos;ll be the admin, so you can add
-          everyone else afterwards.
+          Začni vlastným menom. Budeš správca, takže potom môžeš pridať všetkých
+          ostatných.
         </CardDescription>
       </CardHeader>
       <form onSubmit={onSubmit} className="flex flex-col gap-4">
         <div className="flex flex-col gap-2">
-          <Label htmlFor="first-member-name">Your name</Label>
+          <Label htmlFor="first-member-name">Tvoje meno</Label>
           <Input
             id="first-member-name"
             value={name}
             onChange={(event) => setName(event.target.value)}
-            placeholder="e.g. Miroslav"
+            placeholder="napr. Miroslav"
             maxLength={50}
             autoFocus
             required
@@ -64,7 +64,7 @@ export function FirstRun() {
           </p>
         ) : null}
         <Button type="submit" disabled={pending || name.trim() === ""}>
-          {pending ? "Creating…" : "Create family"}
+          {pending ? "Vytváram…" : "Vytvoriť rodinu"}
         </Button>
       </form>
     </Card>

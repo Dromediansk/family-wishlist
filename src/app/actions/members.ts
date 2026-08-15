@@ -11,10 +11,10 @@ import type { ActionResult } from "@/lib/types";
 const nameSchema = z
   .string()
   .trim()
-  .min(1, "Name is required.")
-  .max(50, "Name must be 50 characters or fewer.");
+  .min(1, "Meno je povinné.")
+  .max(50, "Meno môže mať najviac 50 znakov.");
 
-const idSchema = z.uuid("Invalid member.");
+const idSchema = z.uuid("Neplatný člen.");
 const roleSchema = z.enum(["admin", "member"]);
 
 /**
@@ -26,9 +26,9 @@ async function requireAdmin(): Promise<
   { ok: true } | { ok: false; error: string }
 > {
   const current = await getCurrentMember();
-  if (!current) return { ok: false, error: "Pick who you are first." };
+  if (!current) return { ok: false, error: "Najprv si vyber, kto si." };
   if (current.role !== "admin") {
-    return { ok: false, error: "Only an admin can manage family members." };
+    return { ok: false, error: "Členov rodiny môže spravovať len správca." };
   }
   return { ok: true };
 }
@@ -60,7 +60,7 @@ export async function addMember(input: {
 
   const role = isBootstrap ? "admin" : (input.role ?? "member");
   const parsedRole = roleSchema.safeParse(role);
-  if (!parsedRole.success) return { ok: false, error: "Invalid role." };
+  if (!parsedRole.success) return { ok: false, error: "Neplatná rola." };
 
   const supabase = getSupabase();
   const { data, error } = await supabase
@@ -71,7 +71,7 @@ export async function addMember(input: {
 
   if (error) {
     if (error.code === "23505") {
-      return { ok: false, error: `There is already someone called ${name.data}.` };
+      return { ok: false, error: `Niekto s menom ${name.data} už existuje.` };
     }
     return { ok: false, error: error.message };
   }
@@ -94,7 +94,7 @@ export async function renameMember(
   if (!permitted.ok) return permitted;
 
   const id = idSchema.safeParse(memberId);
-  if (!id.success) return { ok: false, error: "Invalid member." };
+  if (!id.success) return { ok: false, error: "Neplatný člen." };
 
   const name = nameSchema.safeParse(newName);
   if (!name.success) return { ok: false, error: name.error.issues[0].message };
@@ -107,7 +107,7 @@ export async function renameMember(
 
   if (error) {
     if (error.code === "23505") {
-      return { ok: false, error: `There is already someone called ${name.data}.` };
+      return { ok: false, error: `Niekto s menom ${name.data} už existuje.` };
     }
     return { ok: false, error: error.message };
   }
@@ -124,10 +124,10 @@ export async function setMemberRole(
   if (!permitted.ok) return permitted;
 
   const id = idSchema.safeParse(memberId);
-  if (!id.success) return { ok: false, error: "Invalid member." };
+  if (!id.success) return { ok: false, error: "Neplatný člen." };
 
   const parsedRole = roleSchema.safeParse(role);
-  if (!parsedRole.success) return { ok: false, error: "Invalid role." };
+  if (!parsedRole.success) return { ok: false, error: "Neplatná rola." };
 
   const supabase = getSupabase();
 
@@ -141,7 +141,7 @@ export async function setMemberRole(
 
     if (countError) return { ok: false, error: countError.message };
     if ((count ?? 0) <= 1) {
-      return { ok: false, error: "There must be at least one admin." };
+      return { ok: false, error: "Musí existovať aspoň jeden správca." };
     }
   }
 
@@ -161,7 +161,7 @@ export async function removeMember(memberId: string): Promise<ActionResult> {
   if (!permitted.ok) return permitted;
 
   const id = idSchema.safeParse(memberId);
-  if (!id.success) return { ok: false, error: "Invalid member." };
+  if (!id.success) return { ok: false, error: "Neplatný člen." };
 
   const supabase = getSupabase();
 
@@ -173,7 +173,7 @@ export async function removeMember(memberId: string): Promise<ActionResult> {
     .maybeSingle();
 
   if (targetError) return { ok: false, error: targetError.message };
-  if (!target) return { ok: false, error: "That family member no longer exists." };
+  if (!target) return { ok: false, error: "Tento člen rodiny už neexistuje." };
 
   if (target.role === "admin") {
     const { count, error: countError } = await supabase
@@ -185,7 +185,7 @@ export async function removeMember(memberId: string): Promise<ActionResult> {
     if ((count ?? 0) <= 1) {
       return {
         ok: false,
-        error: "There must be at least one admin. Promote someone else first.",
+        error: "Musí existovať aspoň jeden správca. Najprv povýš niekoho iného.",
       };
     }
   }

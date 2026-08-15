@@ -11,12 +11,12 @@ const idSchema = z.uuid();
 
 export async function setCurrentMember(memberId: string): Promise<ActionResult> {
   const parsed = idSchema.safeParse(memberId);
-  if (!parsed.success) return { ok: false, error: "Invalid member." };
+  if (!parsed.success) return { ok: false, error: "Neplatný člen." };
 
   // Only accept an id that actually exists, so a stale or hand-crafted cookie
   // can't put the app into a broken state.
   const member = await getMemberById(parsed.data);
-  if (!member) return { ok: false, error: "That family member no longer exists." };
+  if (!member) return { ok: false, error: "Tento člen rodiny už neexistuje." };
 
   await writeMemberIdCookie(member.id);
   revalidatePath("/", "layout");

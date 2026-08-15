@@ -20,6 +20,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { wishCount } from "@/lib/utils";
 import type { ActionResult, MemberWithCount } from "@/lib/types";
 
 /** Admin-only. Rendered by the home page only when the current member is admin. */
@@ -43,14 +44,15 @@ export function ManageMembers({ members }: { members: MemberWithCount[] }) {
       <DialogTrigger asChild>
         <Button variant="outline" size="sm">
           <SettingsIcon />
-          Manage family
+          Spravovať rodinu
         </Button>
       </DialogTrigger>
       <DialogContent className="max-h-[85dvh] max-w-lg overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Manage family members</DialogTitle>
+          <DialogTitle>Správa členov rodiny</DialogTitle>
           <DialogDescription>
-            Add people, rename them, or change who can manage this list.
+            Pridávaj ľudí, premenúvaj ich alebo meň, kto môže spravovať tento
+            zoznam.
           </DialogDescription>
         </DialogHeader>
 
@@ -62,18 +64,18 @@ export function ManageMembers({ members }: { members: MemberWithCount[] }) {
           }}
         >
           <div className="flex flex-1 flex-col gap-2">
-            <Label htmlFor="new-member-name">Add someone</Label>
+            <Label htmlFor="new-member-name">Pridať člena</Label>
             <Input
               id="new-member-name"
               value={newName}
               onChange={(event) => setNewName(event.target.value)}
-              placeholder="Name"
+              placeholder="Meno"
               maxLength={50}
             />
           </div>
           <Button type="submit" disabled={pending || newName.trim() === ""}>
             <PlusIcon />
-            Add
+            Pridať
           </Button>
         </form>
 
@@ -119,7 +121,7 @@ function MemberAdminRow({
           value={name}
           onChange={(event) => setName(event.target.value)}
           maxLength={50}
-          aria-label={`Name for ${member.name}`}
+          aria-label={`Meno pre ${member.name}`}
         />
         {renamed ? (
           <Button
@@ -127,7 +129,7 @@ function MemberAdminRow({
             disabled={pending}
             onClick={() => run(() => renameMember(member.id, name))}
           >
-            Save
+            Uložiť
           </Button>
         ) : null}
         <Button
@@ -136,8 +138,8 @@ function MemberAdminRow({
           disabled={pending}
           title={
             member.role === "admin"
-              ? "Make an ordinary member"
-              : "Let them manage family members"
+              ? "Zmeniť na bežného člena"
+              : "Umožniť spravovať členov rodiny"
           }
           onClick={() =>
             run(() =>
@@ -149,13 +151,13 @@ function MemberAdminRow({
           }
         >
           {member.role === "admin" ? <ShieldIcon /> : <UserRoundIcon />}
-          {member.role === "admin" ? "Admin" : "Member"}
+          {member.role === "admin" ? "Správca" : "Člen"}
         </Button>
         <Button
           variant="ghost"
           size="icon"
           className="text-muted-foreground hover:text-destructive"
-          aria-label={`Remove ${member.name}`}
+          aria-label={`Odstrániť ${member.name}`}
           disabled={pending}
           onClick={() => setConfirmingRemove((previous) => !previous)}
         >
@@ -166,9 +168,9 @@ function MemberAdminRow({
       {confirmingRemove ? (
         <div className="bg-muted flex flex-col gap-2 rounded-md p-3 text-sm">
           <p>
-            Remove <strong>{member.name}</strong>? Their {member.wishCount}{" "}
-            {member.wishCount === 1 ? "wish is" : "wishes are"} deleted, and
-            anything they had claimed on other lists goes back to unclaimed.
+            Odstrániť <strong>{member.name}</strong>? Vymažú sa aj všetky
+            želania v tomto zozname ({wishCount(member.wishCount)}) a
+            rezervácie, ktoré boli urobené v cudzích zoznamoch, sa uvoľnia.
           </p>
           <div className="flex gap-2">
             <Button
@@ -181,14 +183,14 @@ function MemberAdminRow({
                 )
               }
             >
-              Remove
+              Odstrániť
             </Button>
             <Button
               variant="outline"
               size="sm"
               onClick={() => setConfirmingRemove(false)}
             >
-              Cancel
+              Zrušiť
             </Button>
           </div>
         </div>

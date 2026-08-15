@@ -26,7 +26,7 @@ export function ClaimButton({
     setError(null);
     startTransition(async () => {
       const result = await action();
-      if (!result.ok) setError(result.error ?? "Something went wrong.");
+      if (!result.ok) setError(result.error ?? "Niečo sa pokazilo.");
     });
   }
 
@@ -40,7 +40,7 @@ export function ClaimButton({
           onClick={() => run(() => unclaimWish(wishId))}
         >
           <UndoIcon />
-          {pending ? "Releasing…" : "I'm not buying this"}
+          {pending ? "Ruším…" : "Toto nekupujem"}
         </Button>
         {error ? (
           <p className="text-destructive text-xs" role="alert">
@@ -55,7 +55,7 @@ export function ClaimButton({
   if (claimedByName) {
     return (
       <span className="text-muted-foreground shrink-0 text-sm">
-        {claimedByName} is buying this
+        Toto kupuje {claimedByName}
       </span>
     );
   }
@@ -68,7 +68,7 @@ export function ClaimButton({
         onClick={() => run(() => claimWish(wishId))}
       >
         <GiftIcon />
-        {pending ? "Claiming…" : "I'll buy this"}
+        {pending ? "Rezervujem…" : "Toto kúpim"}
       </Button>
       {error ? (
         <p className="text-destructive text-xs" role="alert">

@@ -12,15 +12,15 @@ export function SetupRequired() {
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <DatabaseIcon className="text-primary size-5" />
-          Almost there — connect a database
+          Ešte krok — pripoj databázu
         </CardTitle>
         <CardDescription>
-          This app needs a Supabase project before it can store anything.
+          Aplikácia potrebuje projekt v Supabase, aby mohla čokoľvek ukladať.
         </CardDescription>
       </CardHeader>
       <ol className="text-muted-foreground list-decimal space-y-3 pl-5 text-sm">
         <li>
-          Create a free project at{" "}
+          Vytvor si bezplatný projekt na{" "}
           <a
             className="text-primary underline underline-offset-4"
             href="https://supabase.com/dashboard"
@@ -32,28 +32,28 @@ export function SetupRequired() {
           .
         </li>
         <li>
-          Open the SQL editor and run{" "}
+          Otvor SQL editor a spusti{" "}
           <code className="bg-muted rounded px-1.5 py-0.5 font-mono text-xs">
             supabase/migrations/0001_init.sql
           </code>{" "}
-          from this repository.
+          z tohto repozitára.
         </li>
         <li>
-          Copy{" "}
+          Skopíruj{" "}
           <code className="bg-muted rounded px-1.5 py-0.5 font-mono text-xs">
             .env.example
           </code>{" "}
-          to{" "}
+          do{" "}
           <code className="bg-muted rounded px-1.5 py-0.5 font-mono text-xs">
             .env.local
           </code>{" "}
-          and fill in your project URL and{" "}
-          <strong className="text-foreground">service_role</strong> key.
+          a doplň URL svojho projektu a kľúč{" "}
+          <strong className="text-foreground">service_role</strong>.
         </li>
-        <li>Restart the dev server.</li>
+        <li>Reštartuj vývojový server.</li>
       </ol>
       <p className="text-muted-foreground text-xs">
-        Full instructions are in the README.
+        Kompletný návod nájdeš v súbore README.
       </p>
     </Card>
   );

@@ -16,8 +16,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Family Wish List",
-  description: "What everyone would like, and who is quietly buying what.",
+  title: "Rodinný zoznam želaní",
+  description: "Čo by si kto želal a kto potichu kupuje čo.",
 };
 
 /**
@@ -32,7 +32,7 @@ export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en">
+    <html lang="sk">
       <body className={`${geistSans.variable} ${geistMono.variable} font-sans`}>
         <div className="mx-auto flex min-h-dvh w-full max-w-5xl flex-col px-4 py-6 sm:px-6 sm:py-10">
           <header className="mb-8 flex items-center justify-between gap-4">
@@ -41,13 +41,13 @@ export default function RootLayout({
               className="flex items-center gap-2 text-lg font-semibold"
             >
               <GiftIcon className="text-primary size-5" />
-              Family Wish List
+              Rodinný zoznam želaní
             </Link>
           </header>
           <main className="flex-1">{children}</main>
           <footer className="text-muted-foreground mt-12 text-xs">
-            Everyone can see what others have claimed — except the person whose
-            list it is.
+            Každý vidí, čo si ostatní rezervovali — okrem toho, komu zoznam
+            patrí.
           </footer>
         </div>
       </body>
