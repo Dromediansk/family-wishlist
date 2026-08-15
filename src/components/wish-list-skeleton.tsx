@@ -1,0 +1,35 @@
+import { Card } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
+
+/**
+ * Shared shell for the two routes that render a list of wishes in a card —
+ * `/buying` and `/member/[id]`. Both open with a back link, a heading and a
+ * subtitle, then the list itself.
+ */
+export function WishListSkeleton() {
+  return (
+    <div className="space-y-6">
+      <Skeleton className="h-8 w-24" />
+
+      <div className="space-y-2">
+        <Skeleton className="h-8 w-56 max-w-full" />
+        <Skeleton className="h-4 w-80 max-w-full" />
+      </div>
+
+      <Card className="gap-0 py-2">
+        {Array.from({ length: 4 }, (_, i) => (
+          <div
+            key={i}
+            className="flex items-center justify-between gap-4 border-b py-4 last:border-b-0"
+          >
+            <div className="flex-1 space-y-2">
+              <Skeleton className="h-4 w-48 max-w-full" />
+              <Skeleton className="h-3 w-32 max-w-full" />
+            </div>
+            <Skeleton className="h-8 w-24 shrink-0" />
+          </div>
+        ))}
+      </Card>
+    </div>
+  );
+}

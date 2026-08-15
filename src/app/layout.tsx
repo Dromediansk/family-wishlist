@@ -1,7 +1,11 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import Link from "next/link";
 import { GiftIcon } from "lucide-react";
+
+import { InstallPrompt } from "@/components/install-prompt";
+import { OfflineBanner } from "@/components/offline-banner";
+import { THEME_COLORS } from "@/lib/theme-colors";
 
 import "./globals.css";
 
@@ -18,6 +22,30 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "Rodinný zoznam želaní",
   description: "Čo by si kto želal a kto potichu kupuje čo.",
+  applicationName: "Rodinný zoznam želaní",
+  appleWebApp: {
+    capable: true,
+    // The home screen label. Matches `short_name` in manifest.ts.
+    title: "Želania",
+    statusBarStyle: "default",
+  },
+};
+
+/**
+ * `viewportFit: "cover"` lets the installed app draw under the notch and the
+ * home indicator; the safe-area padding on the container below keeps content
+ * out from under them.
+ */
+export const viewport: Viewport = {
+  themeColor: [
+    {
+      media: "(prefers-color-scheme: light)",
+      color: THEME_COLORS.backgroundLight,
+    },
+    { media: "(prefers-color-scheme: dark)", color: THEME_COLORS.backgroundDark },
+  ],
+  colorScheme: "light dark",
+  viewportFit: "cover",
 };
 
 /**
@@ -34,7 +62,8 @@ export default function RootLayout({
   return (
     <html lang="sk">
       <body className={`${geistSans.variable} ${geistMono.variable} font-sans`}>
-        <div className="mx-auto flex min-h-dvh w-full max-w-5xl flex-col px-4 py-6 sm:px-6 sm:py-10">
+        <div className="mx-auto flex min-h-dvh w-full max-w-5xl flex-col px-4 pt-[max(1.5rem,env(safe-area-inset-top))] pb-[max(1.5rem,env(safe-area-inset-bottom))] sm:px-6 sm:pt-10 sm:pb-10">
+          <OfflineBanner />
           <header className="mb-8 flex items-center justify-between gap-4">
             <Link
               href="/"
@@ -45,6 +74,7 @@ export default function RootLayout({
             </Link>
           </header>
           <main className="flex-1">{children}</main>
+          <InstallPrompt />
           <footer className="text-muted-foreground mt-12 text-xs">
             Každý vidí, čo si ostatní rezervovali — okrem toho, komu zoznam
             patrí.
