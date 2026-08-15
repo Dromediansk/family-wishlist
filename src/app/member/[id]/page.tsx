@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { ArrowLeftIcon, EyeOffIcon } from "lucide-react";
 
 import { AddWishDialog } from "@/components/add-wish-dialog";
@@ -9,7 +9,7 @@ import { SetupRequired } from "@/components/setup-required";
 import { WishRow } from "@/components/wish-row";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { getCurrentMember, getMemberById, getWishListFor } from "@/lib/queries";
+import { getAccess, getMemberById, getWishListFor } from "@/lib/queries";
 import { isConfigured } from "@/lib/supabase";
 
 export default async function MemberPage({
@@ -19,16 +19,19 @@ export default async function MemberPage({
 }) {
   if (!isConfigured()) return <SetupRequired />;
 
-  const { id } = await params;
+  const [{ id }, access] = await Promise.all([params, getAccess()]);
 
-  const [owner, currentMember] = await Promise.all([
-    getMemberById(id),
-    getCurrentMember(),
-  ]);
+  // Nobody reads a list without being in the family. Guessing this URL used to
+  // be enough; now it is checked here, not just on the way in.
+  if (access.kind === "anonymous") redirect("/login");
+  if (access.kind === "pending") redirect("/pending");
+
+  const currentMember = access.member;
+  const owner = await getMemberById(id);
 
   if (!owner) notFound();
 
-  const list = await getWishListFor(owner.id, currentMember?.id ?? null);
+  const list = await getWishListFor(owner.id, currentMember.id);
 
   return (
     <div className="space-y-6">
@@ -92,18 +95,16 @@ export default async function MemberPage({
                     wish={wish}
                     dimmed={
                       wish.claimedBy !== null &&
-                      wish.claimedBy.id !== currentMember?.id
+                      wish.claimedBy.id !== currentMember.id
                     }
                     action={
-                      currentMember ? (
-                        <ClaimButton
-                          wishId={wish.id}
-                          claimedByCurrentMember={
-                            wish.claimedBy?.id === currentMember.id
-                          }
-                          claimedByName={wish.claimedBy?.name ?? null}
-                        />
-                      ) : null
+                      <ClaimButton
+                        wishId={wish.id}
+                        claimedByCurrentMember={
+                          wish.claimedBy?.id === currentMember.id
+                        }
+                        claimedByName={wish.claimedBy?.name ?? null}
+                      />
                     }
                   />
                 ))}

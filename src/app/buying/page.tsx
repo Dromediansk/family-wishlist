@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { ArrowLeftIcon } from "lucide-react";
 
 import { ClaimButton } from "@/components/claim-button";
@@ -6,26 +7,18 @@ import { SetupRequired } from "@/components/setup-required";
 import { WishRow } from "@/components/wish-row";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { getClaimedBy, getCurrentMember } from "@/lib/queries";
+import { getAccess, getClaimedBy } from "@/lib/queries";
 import { isConfigured } from "@/lib/supabase";
 
 export default async function BuyingPage() {
   if (!isConfigured()) return <SetupRequired />;
 
-  const currentMember = await getCurrentMember();
+  const access = await getAccess();
 
-  if (!currentMember) {
-    return (
-      <p className="text-muted-foreground">
-        Najprv si na{" "}
-        <Link href="/" className="text-primary underline underline-offset-4">
-          hlavnej stránke
-        </Link>{" "}
-        vyber, kto si.
-      </p>
-    );
-  }
+  if (access.kind === "anonymous") redirect("/login");
+  if (access.kind === "pending") redirect("/pending");
 
+  const currentMember = access.member;
   const claimed = await getClaimedBy(currentMember.id);
 
   return (

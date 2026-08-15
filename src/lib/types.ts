@@ -1,5 +1,14 @@
 export type Role = "admin" | "member";
 
+/**
+ * Anyone with a Google account can complete the sign-in flow — Supabase does
+ * not restrict that — so everyone lands as `pending` and an admin lets them in.
+ * The one exception is the first person ever to sign in, who becomes an active
+ * admin, because otherwise there is nobody to approve anybody. See
+ * `handle_new_auth_user` in supabase/migrations/0003_auth.sql.
+ */
+export type MemberStatus = "pending" | "active";
+
 export type Member = {
   id: string;
   name: string;
@@ -9,6 +18,18 @@ export type Member = {
 
 export type MemberWithCount = Member & {
   wishCount: number;
+};
+
+/**
+ * A member plus the fields only an admin has any business seeing.
+ *
+ * Kept separate from `Member` so that email addresses reach the browser on one
+ * screen — the admin's approval dialog — rather than being handed to everyone
+ * with every member card.
+ */
+export type MemberAccount = Member & {
+  status: MemberStatus;
+  email: string | null;
 };
 
 /**
