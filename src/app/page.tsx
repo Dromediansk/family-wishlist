@@ -1,36 +1,35 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { ShoppingBagIcon, UserRoundIcon } from "lucide-react";
 
-import { FirstRun } from "@/components/first-run";
-import { IdentityPicker } from "@/components/identity-picker";
 import { ManageMembers } from "@/components/manage-members";
 import { MemberCard } from "@/components/member-card";
 import { SetupRequired } from "@/components/setup-required";
+import { SignOutButton } from "@/components/sign-out-button";
 import { Button } from "@/components/ui/button";
-import { getCurrentMember, getMembers } from "@/lib/queries";
+import { getAccess, getMemberAccounts, getMembers } from "@/lib/queries";
 import { isConfigured } from "@/lib/supabase";
 
 export default async function HomePage() {
   if (!isConfigured()) return <SetupRequired />;
 
-  const [members, currentMember] = await Promise.all([
+  const access = await getAccess();
+
+  // proxy.ts sends signed-out visitors to /login before a render ever starts.
+  // This is the check that actually decides, though — the proxy is an
+  // optimisation, and the pending case needs the database anyway.
+  if (access.kind === "anonymous") redirect("/login");
+  if (access.kind === "pending") redirect("/pending");
+
+  const currentMember = access.member;
+  const isAdmin = currentMember.role === "admin";
+
+  const [members, accounts] = await Promise.all([
     getMembers(),
-    getCurrentMember(),
+    // Only an admin has an approval queue to look at, so only an admin pays for
+    // the query — and nobody else's browser receives the email addresses in it.
+    isAdmin ? getMemberAccounts() : Promise.resolve([]),
   ]);
-
-  if (members.length === 0) return <FirstRun />;
-
-  // Cookie missing, or pointing at someone who has since been removed.
-  if (!currentMember) {
-    return (
-      <>
-        <IdentityPicker members={members} forced />
-        <p className="text-muted-foreground">
-          Vyber si svoje meno a môžeme začať.
-        </p>
-      </>
-    );
-  }
 
   return (
     <div className="space-y-6">
@@ -42,26 +41,21 @@ export default async function HomePage() {
             niekomu inému.
           </p>
         </div>
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <Button variant="outline" size="sm" asChild>
             <Link href="/buying">
               <ShoppingBagIcon />
               Čo kupujem
             </Link>
           </Button>
-          {currentMember.role === "admin" ? (
-            <ManageMembers members={members} />
+          {isAdmin ? (
+            <ManageMembers members={members} accounts={accounts} />
           ) : null}
-          <IdentityPicker
-            members={members}
-            currentMemberId={currentMember.id}
-            trigger={
-              <Button variant="ghost" size="sm">
-                <UserRoundIcon />
-                {currentMember.name}
-              </Button>
-            }
-          />
+          <span className="text-muted-foreground flex items-center gap-1.5 text-sm">
+            <UserRoundIcon className="size-4" />
+            {currentMember.name}
+          </span>
+          <SignOutButton variant="ghost" />
         </div>
       </div>
 

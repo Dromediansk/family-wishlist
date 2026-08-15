@@ -3,10 +3,9 @@
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 
-import { countMembers, getCurrentMember } from "@/lib/queries";
+import { getCurrentMember } from "@/lib/queries";
 import { notifyChanged } from "@/lib/realtime";
 import { getSupabase } from "@/lib/supabase";
-import { writeMemberIdCookie } from "@/lib/session";
 import type { ActionResult } from "@/lib/types";
 
 const nameSchema = z
@@ -20,14 +19,17 @@ const roleSchema = z.enum(["admin", "member"]);
 
 /**
  * Server Actions are reachable by direct POST, not just through our UI, so
- * every one of them re-derives who the caller is from the cookie and checks
+ * every one of them re-derives who the caller is from their session and checks
  * permission here. Nothing trusts an id supplied by the client.
+ *
+ * getCurrentMember() only ever returns an approved member, so somebody still
+ * waiting at the door fails this the same way a stranger does.
  */
 async function requireAdmin(): Promise<
   { ok: true } | { ok: false; error: string }
 > {
   const current = await getCurrentMember();
-  if (!current) return { ok: false, error: "Najprv si vyber, kto si." };
+  if (!current) return { ok: false, error: "Najprv sa prihlás." };
   if (current.role !== "admin") {
     return { ok: false, error: "Členov rodiny môže spravovať len správca." };
   }
@@ -35,52 +37,68 @@ async function requireAdmin(): Promise<
 }
 
 /**
- * Add a family member.
+ * Let someone in.
  *
- * Bootstrap: only admins may add members, but the table starts empty and there
- * is no admin yet. So when there are no members at all, the check is skipped
- * and the first member created becomes the admin. From then on the normal rule
- * applies.
+ * Members are not created here — signing in with Google creates them, as
+ * `pending` (see supabase/migrations/0003_auth.sql). This is the step that turns
+ * a stranger who found the link into a member of the family, and it is the only
+ * thing standing between the two, because Supabase will let any Google account
+ * in the world finish the sign-in flow.
  */
-export async function addMember(input: {
-  name: string;
-  role?: "admin" | "member";
-}): Promise<ActionResult> {
-  const name = nameSchema.safeParse(input.name);
-  if (!name.success) {
-    return { ok: false, error: name.error.issues[0].message };
-  }
+export async function approveMember(memberId: string): Promise<ActionResult> {
+  const permitted = await requireAdmin();
+  if (!permitted.ok) return permitted;
 
-  const existing = await countMembers();
-  const isBootstrap = existing === 0;
-
-  if (!isBootstrap) {
-    const permitted = await requireAdmin();
-    if (!permitted.ok) return permitted;
-  }
-
-  const role = isBootstrap ? "admin" : (input.role ?? "member");
-  const parsedRole = roleSchema.safeParse(role);
-  if (!parsedRole.success) return { ok: false, error: "Neplatná rola." };
+  const id = idSchema.safeParse(memberId);
+  if (!id.success) return { ok: false, error: "Neplatný člen." };
 
   const supabase = getSupabase();
   const { data, error } = await supabase
     .from("family_members")
-    .insert({ name: name.data, role: parsedRole.data })
-    .select("id")
-    .single();
+    .update({ status: "active" })
+    .eq("id", id.data)
+    .eq("status", "pending")
+    .select("id");
 
-  if (error) {
-    if (error.code === "23505") {
-      return { ok: false, error: `Niekto s menom ${name.data} už existuje.` };
-    }
-    return { ok: false, error: error.message };
+  if (error) return { ok: false, error: error.message };
+  if (!data || data.length === 0) {
+    return { ok: false, error: "Tento človek už nečaká na schválenie." };
   }
 
-  // The very first person to set the family up is signed in as themselves,
-  // otherwise they'd have to pick their own name straight afterwards.
-  if (isBootstrap && data) {
-    await writeMemberIdCookie(data.id as string);
+  revalidatePath("/", "layout");
+  await notifyChanged();
+  return { ok: true };
+}
+
+/**
+ * Turn someone away.
+ *
+ * Deletes the family_members row, which is what the app goes by. Their Google
+ * account still exists in Supabase Auth, so signing in again puts them back in
+ * the queue — the database recreates the row on insert only, and this is not an
+ * insert. To bar someone for good, delete the user under Authentication in the
+ * Supabase dashboard; that cascades back to here.
+ */
+export async function rejectMember(memberId: string): Promise<ActionResult> {
+  const permitted = await requireAdmin();
+  if (!permitted.ok) return permitted;
+
+  const id = idSchema.safeParse(memberId);
+  if (!id.success) return { ok: false, error: "Neplatný člen." };
+
+  const supabase = getSupabase();
+  const { data, error } = await supabase
+    .from("family_members")
+    .delete()
+    // Never let this path touch an approved member. Removing one of those is
+    // removeMember's job, which checks that the last admin cannot be deleted.
+    .eq("id", id.data)
+    .eq("status", "pending")
+    .select("id");
+
+  if (error) return { ok: false, error: error.message };
+  if (!data || data.length === 0) {
+    return { ok: false, error: "Tento človek už nečaká na schválenie." };
   }
 
   revalidatePath("/", "layout");
@@ -102,17 +120,15 @@ export async function renameMember(
   if (!name.success) return { ok: false, error: name.error.issues[0].message };
 
   const supabase = getSupabase();
+  // Names stopped being unique in 0003_auth.sql — they come from Google
+  // profiles now, and two people really can share one. This is a label on a
+  // card; identity is the linked account.
   const { error } = await supabase
     .from("family_members")
     .update({ name: name.data })
     .eq("id", id.data);
 
-  if (error) {
-    if (error.code === "23505") {
-      return { ok: false, error: `Niekto s menom ${name.data} už existuje.` };
-    }
-    return { ok: false, error: error.message };
-  }
+  if (error) return { ok: false, error: error.message };
 
   revalidatePath("/", "layout");
   await notifyChanged();
@@ -140,7 +156,9 @@ export async function setMemberRole(
     const { count, error: countError } = await supabase
       .from("family_members")
       .select("id", { count: "exact", head: true })
-      .eq("role", "admin");
+      .eq("role", "admin")
+      // A pending admin cannot let anyone in, so they do not count as cover.
+      .eq("status", "active");
 
     if (countError) return { ok: false, error: countError.message };
     if ((count ?? 0) <= 1) {
@@ -183,7 +201,9 @@ export async function removeMember(memberId: string): Promise<ActionResult> {
     const { count, error: countError } = await supabase
       .from("family_members")
       .select("id", { count: "exact", head: true })
-      .eq("role", "admin");
+      .eq("role", "admin")
+      // A pending admin cannot let anyone in, so they do not count as cover.
+      .eq("status", "active");
 
     if (countError) return { ok: false, error: countError.message };
     if ((count ?? 0) <= 1) {

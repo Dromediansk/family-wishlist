@@ -2,11 +2,14 @@ import "server-only";
 
 import { cache } from "react";
 
+import { resolveAccess, type Access } from "@/lib/access";
 import { getSupabase } from "@/lib/supabase";
-import { readMemberIdCookie } from "@/lib/session";
+import { getAuthUser } from "@/lib/supabase-auth";
 import type {
   ClaimedWish,
   Member,
+  MemberAccount,
+  MemberStatus,
   MemberWithCount,
   WishListView,
 } from "@/lib/types";
@@ -21,11 +24,18 @@ import {
   type ViewerWishRow,
 } from "@/lib/wishes";
 
+const MEMBER_COLUMNS = "id, name, role, created_at";
+
 type MemberRow = {
   id: string;
   name: string;
   role: string;
   created_at: string;
+};
+
+type MemberAccountRow = MemberRow & {
+  status: string;
+  email: string | null;
 };
 
 function toMember(row: MemberRow): Member {
@@ -34,6 +44,18 @@ function toMember(row: MemberRow): Member {
     name: row.name,
     role: row.role === "admin" ? "admin" : "member",
     createdAt: row.created_at,
+  };
+}
+
+function toStatus(value: string): MemberStatus {
+  return value === "active" ? "active" : "pending";
+}
+
+function toMemberAccount(row: MemberAccountRow): MemberAccount {
+  return {
+    ...toMember(row),
+    status: toStatus(row.status),
+    email: row.email,
   };
 }
 
@@ -47,7 +69,10 @@ export const getMembers = cache(async (): Promise<MemberWithCount[]> => {
   const [membersResult, wishesResult] = await Promise.all([
     supabase
       .from("family_members")
-      .select("id, name, role, created_at")
+      .select(MEMBER_COLUMNS)
+      // People waiting to be approved are not in the family yet: they must not
+      // appear on the grid, and nobody should be able to claim off their list.
+      .eq("status", "active")
       .order("created_at", { ascending: true }),
     supabase.from("wishes").select("member_id"),
   ]);
@@ -70,35 +95,69 @@ export const getMemberById = cache(async (id: string): Promise<Member | null> =>
   const supabase = getSupabase();
   const { data, error } = await supabase
     .from("family_members")
-    .select("id, name, role, created_at")
+    .select(MEMBER_COLUMNS)
     .eq("id", id)
+    .eq("status", "active")
     .maybeSingle();
 
   if (error) throw error;
   return data ? toMember(data as MemberRow) : null;
 });
 
-export async function countMembers(): Promise<number> {
+/** Everyone, approved or not — the admin's approval dialog and nothing else. */
+export const getMemberAccounts = cache(async (): Promise<MemberAccount[]> => {
   const supabase = getSupabase();
-  const { count, error } = await supabase
+  const { data, error } = await supabase
     .from("family_members")
-    .select("id", { count: "exact", head: true });
+    .select(`${MEMBER_COLUMNS}, status, email`)
+    .order("created_at", { ascending: true });
 
   if (error) throw error;
-  return count ?? 0;
-}
+  return ((data ?? []) as MemberAccountRow[]).map(toMemberAccount);
+});
 
 /**
- * The member the visitor claims to be, per their cookie.
+ * Who is looking, resolved once per render.
  *
- * Returns null when the cookie is missing or points at a member who has since
- * been deleted. The cookie is not cleared here — a Server Component render
- * cannot write cookies — the identity gate simply reappears and overwrites it.
+ * Two clients, on purpose: the session comes from Supabase Auth, running as the
+ * visitor and able to read no table at all, and the member row is then fetched
+ * with the service_role key. The link between them is `auth_user_id`, which the
+ * visitor cannot influence — unlike the cookie this replaced, which was simply a
+ * member id that anyone could edit to become anyone.
+ */
+export const getAccess = cache(async (): Promise<Access> => {
+  const user = await getAuthUser();
+  if (!user) return { kind: "anonymous" };
+
+  const supabase = getSupabase();
+  const { data, error } = await supabase
+    .from("family_members")
+    .select(`${MEMBER_COLUMNS}, status`)
+    .eq("auth_user_id", user.id)
+    .maybeSingle();
+
+  if (error) throw error;
+
+  const row = data as (MemberRow & { status: string }) | null;
+
+  return resolveAccess({
+    authUserId: user.id,
+    member: row
+      ? { ...toMember(row), status: toStatus(row.status) }
+      : null,
+  });
+});
+
+/**
+ * The signed-in, approved member — or null.
+ *
+ * Every Server Action derives the caller from this, so someone still waiting for
+ * approval is treated exactly like a stranger by all of them, without any of
+ * them having to know that `pending` is a state that exists.
  */
 export const getCurrentMember = cache(async (): Promise<Member | null> => {
-  const id = await readMemberIdCookie();
-  if (!id) return null;
-  return getMemberById(id);
+  const access = await getAccess();
+  return access.kind === "active" ? access.member : null;
 });
 
 /**
