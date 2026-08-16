@@ -19,13 +19,27 @@ Run `npm run typecheck && npm run lint && npm test` before claiming work is done
 
 **A list owner must never learn that one of their own wishes has been claimed.**
 Everyone else sees claims; the owner does not. Every design oddity here follows
-from that. Enforced in four places — change one and you must check the rest:
+from that. Enforced in eight places — change one and you must check the rest:
 
 1. `getWishListFor` (`src/lib/queries.ts`) selects `OWNER_WISH_COLUMNS` on the
    owner path, so claim columns never leave the database.
 2. `OwnerWish` (`src/lib/types.ts`) has no claim fields, making a leak a type error.
 3. `toOwnerWish` builds an explicit object instead of spreading the row.
 4. `src/lib/wishes.test.ts` pins it down.
+
+The family grid shows "free / total" per member, and the same rule applies to
+that arithmetic — "3 / 5" on your own card would say two of yours are taken:
+
+5. `getMemberSummaries` (`src/lib/queries.ts`) counts the free ones with
+   `.is("claimed_by", null)` **and** `.neq("member_id", viewerId)`, so no claim
+   column is selected and the viewer's own rows never reach the count.
+6. `MemberSummary` (`src/lib/types.ts`) is discriminated on `viewerIsOwner`, so
+   the owner half of the union has no `availableCount` field to render.
+7. `toMemberSummary` (`src/lib/members.ts`) returns that half for the viewer.
+8. `src/lib/members.test.ts` pins it down.
+
+`MemberCard` therefore shows a bare total for your own list — and also for any
+empty list, where "0 / 0" would just be noise.
 
 Never do these:
 
@@ -72,8 +86,8 @@ Return `ActionResult`, never throw for expected failures.
   prerendered or cached between visitors.
 - **No service worker**, deliberately — cached HTML could show an owner their own
   claims. `experimental.useOffline` in `next.config.ts` covers offline instead.
-- Tests cover **pure functions only** (`access`, `live`, `wishes`, `manifest`,
-  `utils`) —
+- Tests cover **pure functions only** (`access`, `live`, `wishes`, `members`,
+  `manifest`, `utils`) —
   no mocks, no DB. Keep new logic pure enough to test that way.
 - `AGENTS.md` is written by `next dev`, not by you. It reappears after every dev
   run; commit it with your work rather than fighting it.

@@ -2,7 +2,7 @@ import { redirect } from "next/navigation";
 
 import { MemberCard } from "@/components/member-card";
 import { SetupRequired } from "@/components/setup-required";
-import { getAccess, getMembers } from "@/lib/queries";
+import { getAccess, getMemberSummaries } from "@/lib/queries";
 import { isConfigured } from "@/lib/supabase";
 
 export default async function HomePage() {
@@ -17,7 +17,8 @@ export default async function HomePage() {
   if (access.kind === "pending") redirect("/pending");
 
   const currentMember = access.member;
-  const members = await getMembers();
+  // The viewer's id is what decides whose availability count is withheld.
+  const members = await getMemberSummaries(currentMember.id);
 
   return (
     <div className="space-y-6">
@@ -31,11 +32,7 @@ export default async function HomePage() {
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {members.map((member) => (
-          <MemberCard
-            key={member.id}
-            member={member}
-            isCurrentMember={member.id === currentMember.id}
-          />
+          <MemberCard key={member.id} member={member} />
         ))}
       </div>
     </div>

@@ -3,6 +3,7 @@ import "server-only";
 import { cache } from "react";
 
 import { resolveAccess, type Access } from "@/lib/access";
+import { toMemberSummary } from "@/lib/members";
 import { getSupabase } from "@/lib/supabase";
 import { getAuthUser } from "@/lib/supabase-auth";
 import type {
@@ -10,6 +11,7 @@ import type {
   Member,
   MemberAccount,
   MemberStatus,
+  MemberSummary,
   MemberWithCount,
   WishListView,
 } from "@/lib/types";
@@ -80,16 +82,53 @@ export const getMembers = cache(async (): Promise<MemberWithCount[]> => {
   if (membersResult.error) throw membersResult.error;
   if (wishesResult.error) throw wishesResult.error;
 
-  const counts = new Map<string, number>();
-  for (const row of (wishesResult.data ?? []) as { member_id: string }[]) {
-    counts.set(row.member_id, (counts.get(row.member_id) ?? 0) + 1);
-  }
+  const counts = tally(wishesResult.data);
 
   return ((membersResult.data ?? []) as MemberRow[]).map((row) => ({
     ...toMember(row),
     wishCount: counts.get(row.id) ?? 0,
   }));
 });
+
+/**
+ * The family grid: `getMembers` plus, for everyone but the viewer, how many of
+ * their wishes nobody has taken yet.
+ *
+ * The availability query never selects a claim column, and it drops the viewer's
+ * own rows in the `WHERE` clause — so the number that would tell them their list
+ * has been raided is not computed, let alone sent. `toMemberSummary` withholds
+ * it a second time. Kept apart from `getMembers` because the admin screen wants
+ * the plain total and has no business receiving anything claim-derived.
+ */
+export const getMemberSummaries = cache(
+  async (viewerId: string): Promise<MemberSummary[]> => {
+    const supabase = getSupabase();
+
+    const [members, freeResult] = await Promise.all([
+      getMembers(),
+      supabase
+        .from("wishes")
+        .select("member_id")
+        .is("claimed_by", null)
+        .neq("member_id", viewerId),
+    ]);
+
+    if (freeResult.error) throw freeResult.error;
+
+    const free = tally(freeResult.data);
+
+    return members.map((member) => toMemberSummary(member, free, viewerId));
+  },
+);
+
+/** Wish rows in, wishes-per-member out. */
+function tally(rows: unknown): Map<string, number> {
+  const counts = new Map<string, number>();
+  for (const row of (rows ?? []) as { member_id: string }[]) {
+    counts.set(row.member_id, (counts.get(row.member_id) ?? 0) + 1);
+  }
+  return counts;
+}
 
 export const getMemberById = cache(async (id: string): Promise<Member | null> => {
   const supabase = getSupabase();

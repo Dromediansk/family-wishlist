@@ -21,6 +21,18 @@ export type MemberWithCount = Member & {
 };
 
 /**
+ * A member as shown on the family grid, discriminated the way `WishListView` is.
+ *
+ * On your own card there is no `availableCount` to render — not null, absent.
+ * How many of your wishes are still free would say, in arithmetic, that the
+ * rest are not, which is the one thing this app must never do. Splitting the
+ * two shapes makes reaching for that number a type error rather than a thing to
+ * remember.
+ */
+export type MemberSummary = MemberWithCount &
+  ({ viewerIsOwner: true } | { viewerIsOwner: false; availableCount: number });
+
+/**
  * A member plus the fields only an admin has any business seeing.
  *
  * Kept separate from `Member` so that email addresses reach the browser on one
