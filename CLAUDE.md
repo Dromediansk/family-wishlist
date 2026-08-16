@@ -129,6 +129,12 @@ Return `ActionResult`, never throw for expected failures.
   `truncate family_members cascade` included. The CLI exists in this repo for
   the local stack only.
 
+- **The CLI is not a dependency.** `npm run supabase` is `npx --yes
+  supabase@<pinned>`, and every `db:*` script goes through it. Do not
+  `npm i -D supabase`: its binary is ~110 MB, the Linux packages declare no
+  `libc` so a build host installs both the glibc and musl copies, and Vercel
+  installs devDependencies. Bump the version in that one script, not in five.
+
 - **`auto_expose_new_tables = true`** in `supabase/config.toml`, and it has to
   be. Every read and write goes through PostgREST as `service_role` and no
   migration issues a GRANT; the hosted project predates the always-revoked

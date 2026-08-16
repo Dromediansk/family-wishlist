@@ -114,6 +114,16 @@ Storage, Edge Functions, analytics and the mail catcher are switched off in
 [`supabase/config.toml`](supabase/config.toml) — nothing here uses them — which
 leaves seven containers.
 
+The CLI is fetched by `npx` at a pinned version rather than installed as a
+devDependency, which is what the `db:*` scripts in `package.json` are doing. The
+`supabase` npm package is a shim around a platform binary of about 110 MB, and
+`npm install` on a Linux build host takes *two* of them — the published packages
+declare `os` and `cpu` but no `libc`, so the glibc and musl builds both match.
+Vercel installs devDependencies, because `next build` needs them, so leaving it
+in `package.json` meant roughly 300 MB unpacked on every deploy for a tool the
+build never runs. The first `db:*` command of the day pays a few seconds to
+populate the npx cache instead.
+
 ### One-time setup
 
 **1. Tell Google about the local callback.** In the Google Cloud Console, open
@@ -142,7 +152,7 @@ them. This file is gitignored.
 **3. Start it and copy the keys out.**
 
 ```bash
-npm run db:start     # first run pulls images; several minutes
+npm run db:start     # first run fetches the CLI and pulls images; several minutes
 npm run db:status
 ```
 
