@@ -5,6 +5,12 @@ import { Skeleton } from "@/components/ui/skeleton";
  * Beyond the usual loading state, this boundary is what Next prefetches as the
  * route's shell — so it's also what renders when someone taps through with no
  * signal, instead of the tap appearing to do nothing.
+ *
+ * The `(home)` route group is why this lives one directory down instead of
+ * beside the root layout. A `loading.tsx` wraps its whole segment subtree, so
+ * at `src/app/` this grid of member cards would be the fallback for *every*
+ * route — you'd see it flash on the way to a wish list before that route's own
+ * skeleton took over. The group scopes it to `/` without changing the URL.
  */
 export default function HomeLoading() {
   return (

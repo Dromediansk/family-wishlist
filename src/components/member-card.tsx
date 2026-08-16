@@ -46,7 +46,7 @@ export function MemberCard({ member }: { member: MemberSummary }) {
       ) : null}
 
       <div className="flex flex-1 flex-col items-center justify-center gap-2 px-6 text-center">
-        <h2 className="text-2xl leading-tight font-semibold tracking-tight text-balance break-words">
+        <h2 className="text-2xl leading-tight font-semibold tracking-tight text-balance wrap-break-word">
           <Link
             href={`/member/${member.id}`}
             className="rounded-sm after:absolute after:inset-0"
