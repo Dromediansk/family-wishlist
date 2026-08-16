@@ -3,9 +3,10 @@ import Link from "next/link";
 import { GiftIcon, ShoppingBagIcon } from "lucide-react";
 
 import { AccountMenu } from "@/components/account-menu";
+import { CountBadge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { isAdmin } from "@/lib/access";
-import { countPendingAccounts, getAccess } from "@/lib/queries";
+import { countNoticesFor, countPendingAccounts, getAccess } from "@/lib/queries";
 import { isConfigured } from "@/lib/supabase";
 
 /**
@@ -53,15 +54,30 @@ async function HeaderAccount() {
   const member = access.member;
   const canManage = isAdmin(member);
 
-  // Only an admin has an approval queue, so only an admin pays for the count.
-  const pendingCount = canManage ? await countPendingAccounts() : 0;
+  const [pendingCount, noticeCount] = await Promise.all([
+    // Only an admin has an approval queue, so only an admin pays for the count.
+    canManage ? countPendingAccounts() : 0,
+    // Everyone pays for this one — anybody can have a gift cancelled under
+    // them, and finding out only when you next happen to open Čo kupujem is too
+    // late to be worth building. It is a `head: true` count on an indexed
+    // column, the same cost an admin already carries above.
+    countNoticesFor(member.id),
+  ]);
 
   return (
     <div className="flex shrink-0 items-center gap-1 sm:gap-2">
-      <Button variant="ghost" size="sm" asChild>
-        <Link href="/buying" aria-label="Čo kupujem">
+      <Button variant="ghost" size="sm" asChild className="relative">
+        <Link
+          href="/buying"
+          aria-label={
+            noticeCount > 0
+              ? `Čo kupujem, ${noticeCount} upozornení`
+              : "Čo kupujem"
+          }
+        >
           <ShoppingBagIcon />
           <span className="hidden sm:inline">Čo kupujem</span>
+          {noticeCount > 0 ? <CountBadge>{noticeCount}</CountBadge> : null}
         </Link>
       </Button>
       <AccountMenu

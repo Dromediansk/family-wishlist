@@ -41,8 +41,33 @@ that arithmetic — "3 / 5" on your own card would say two of yours are taken:
 `MemberCard` therefore shows a bare total for your own list — and also for any
 empty list, where "0 / 0" would just be noise.
 
+### The one channel that runs the other way
+
+Everything above hides claims from the owner. `claim_notices` exists to tell the
+**buyer** something: when an owner deletes or rewrites a wish that was already
+reserved, a trigger writes a row addressed to whoever reserved it, and `/buying`
+shows "bolo … → teraz …" or "odstránil zo svojho zoznamu" with a Rozumiem
+button. It does not weaken the rule, and the reasons are the design:
+
+- The owner's delete and edit are identical whether or not the wish was claimed
+  — same dialog wording, same `{ ok: true }`. A "this is reserved, are you sure?"
+  prompt *would be* the leak. That is why the notice is written by a trigger in
+  `0004_claim_notices.sql` rather than by branching inside the Server Action:
+  `OLD` only exists in a trigger, and no future code path can forget it.
+- `wishes` is untouched — deletes stay hard deletes — so every count on the
+  family grid stays correct with no new filter to forget. A total that *failed*
+  to drop after a delete would say "that one was claimed" as loudly as a badge.
+- Only `getNoticesFor` and `countNoticesFor` read the table, only ever for the
+  member the row is addressed to.
+
+`toBuyingItems` (`src/lib/notices.ts`) is pure and pinned by
+`src/lib/notices.test.ts`, including that a cancelled row carries no claim field.
+
 Never do these:
 
+- Read `claim_notices` from any code path that serves a list's owner. It is
+  addressed to the buyer; there is no owner-shaped view of it and there must not
+  be one.
 - Add an RLS policy to any table. RLS is on with **zero policies** on purpose.
 - Enable `postgres_changes` — it is RLS-filtered and would push `claimed_by` to owners.
 - Put anything in `LIVE_PAYLOAD` (`src/lib/live.ts`). The ping is empty by design.
@@ -80,6 +105,8 @@ Return `ActionResult`, never throw for expected failures.
   Supabase's guides still say middleware and such a file would never run.
 - **Migrations are run by hand** in the Supabase SQL editor. `0002_realtime.sql`
   is a comment file — **do not run it**. `0003_auth.sql` truncates all data.
+  `0004_claim_notices.sql` adds the buyer-notice table and its triggers; it
+  deletes nothing and alters no existing table.
 - **All user-facing strings are Slovak**, including validation messages.
   `wishCount()` in `src/lib/utils.ts` handles 1 / 2–4 / 5+ plural forms.
 - **`export const dynamic = "force-dynamic"`** in the root layout. Nothing may be

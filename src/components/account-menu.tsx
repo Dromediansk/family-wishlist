@@ -4,7 +4,7 @@ import Link from "next/link";
 import { LogOutIcon, SettingsIcon } from "lucide-react";
 
 import { signOut } from "@/app/actions/auth";
-import { Badge } from "@/components/ui/badge";
+import { Badge, CountBadge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -60,14 +60,7 @@ export function AccountMenu({
           aria-label={`Účet – ${name}${waiting ? `, ${pendingCount} čaká na schválenie` : ""}`}
         >
           {initial(name)}
-          {waiting ? (
-            <Badge
-              aria-hidden="true"
-              className="ring-background absolute -top-1 -right-1 min-w-4 justify-center px-1 py-0 text-[0.625rem] leading-4 ring-2"
-            >
-              {pendingCount}
-            </Badge>
-          ) : null}
+          {waiting ? <CountBadge>{pendingCount}</CountBadge> : null}
         </DropdownMenuTrigger>
 
         <DropdownMenuContent align="end">
