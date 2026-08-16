@@ -76,7 +76,8 @@ function AlertDialogTitle({
 }: React.ComponentProps<typeof AlertDialogPrimitive.Title>) {
   return (
     <AlertDialogPrimitive.Title
-      className={cn("text-lg font-semibold", className)}
+      // Kept identical to DialogTitle — the two files are forks and had drifted.
+      className={cn("text-xl leading-snug font-semibold", className)}
       {...props}
     />
   );
@@ -88,7 +89,7 @@ function AlertDialogDescription({
 }: React.ComponentProps<typeof AlertDialogPrimitive.Description>) {
   return (
     <AlertDialogPrimitive.Description
-      className={cn("text-muted-foreground text-sm", className)}
+      className={cn("text-muted-foreground text-base", className)}
       {...props}
     />
   );

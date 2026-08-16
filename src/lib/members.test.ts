@@ -1,12 +1,13 @@
 import { describe, expect, it } from "vitest";
 
-import { toMemberSummary } from "@/lib/members";
-import type { MemberWithCount } from "@/lib/types";
+import { sortMemberSummaries, toMemberSummary } from "@/lib/members";
+import type { MemberSummary, MemberWithCount } from "@/lib/types";
 
 /**
  * The grid leads with how many wishes are still free — for everyone but you.
  * On your own card that number would betray the one rule this app has, so the
- * row comes back without it. These tests pin that down.
+ * row comes back without it. These tests pin that down, and the order the
+ * cards are laid out in.
  */
 
 const viewerId = "11111111-1111-4111-8111-111111111111";
@@ -76,5 +77,73 @@ describe("toMemberSummary", () => {
 
     expect(summary.wishCount).toBe(0);
     expect(summary).toHaveProperty("availableCount", 0);
+  });
+});
+
+/** Someone else's card, which is every card but one. */
+function other(name: string): MemberSummary {
+  return {
+    ...member(`id-${name}`, name, 0),
+    viewerIsOwner: false,
+    availableCount: 0,
+  };
+}
+
+/** The viewer's own card — the half of the union with no availability. */
+function own(name: string): MemberSummary {
+  return { ...member(viewerId, name, 0), viewerIsOwner: true };
+}
+
+const names = (summaries: readonly MemberSummary[]) =>
+  summaries.map((summary) => summary.name);
+
+describe("sortMemberSummaries", () => {
+  it("leads with the viewer's own card whatever their name is", () => {
+    const sorted = sortMemberSummaries([
+      other("Adam"),
+      other("Beata"),
+      own("Zuzka"),
+    ]);
+
+    expect(names(sorted)).toEqual(["Zuzka", "Adam", "Beata"]);
+  });
+
+  it("puts everyone else in alphabetical order", () => {
+    const sorted = sortMemberSummaries([
+      other("Peter"),
+      other("Beata"),
+      other("Adam"),
+    ]);
+
+    expect(names(sorted)).toEqual(["Adam", "Beata", "Peter"]);
+  });
+
+  it("files Slovak letters next to their base letter, not after Z", () => {
+    // A code-point compare would put Čaňo and Šimon last, after Zuzka.
+    const sorted = sortMemberSummaries([
+      other("Zuzka"),
+      other("Šimon"),
+      other("Čaňo"),
+      other("Adam"),
+    ]);
+
+    expect(names(sorted)).toEqual(["Adam", "Čaňo", "Šimon", "Zuzka"]);
+  });
+
+  it("leaves the array it was given alone", () => {
+    const input = [other("Peter"), other("Adam")];
+
+    sortMemberSummaries(input);
+
+    expect(names(input)).toEqual(["Peter", "Adam"]);
+  });
+
+  it("keeps the incoming order for two people of the same name", () => {
+    const first = { ...other("Anna"), id: "first" };
+    const second = { ...other("Anna"), id: "second" };
+
+    const sorted = sortMemberSummaries([first, second]);
+
+    expect(sorted.map((summary) => summary.id)).toEqual(["first", "second"]);
   });
 });

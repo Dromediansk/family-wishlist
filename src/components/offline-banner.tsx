@@ -18,9 +18,9 @@ export function OfflineBanner() {
   return (
     <div
       role="status"
-      className="bg-destructive text-destructive-foreground mb-4 flex items-center gap-2 rounded-lg px-3 py-2 text-sm"
+      className="bg-destructive text-destructive-foreground mb-4 flex items-center gap-2 rounded-lg px-4 py-3"
     >
-      <WifiOffIcon className="size-4 shrink-0" />
+      <WifiOffIcon className="size-5 shrink-0" />
       Bez pripojenia. Zmeny sa odošlú, keď sa sieť vráti.
     </div>
   );

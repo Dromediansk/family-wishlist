@@ -31,7 +31,7 @@ export default async function FamilyPage() {
   return (
     <div className="space-y-6">
       <div>
-        <Button variant="ghost" size="sm" asChild className="-ml-3">
+        <Button variant="ghost" size="sm" asChild className="-ml-4">
           <Link href="/">
             <ArrowLeftIcon />
             Všetci
@@ -40,8 +40,10 @@ export default async function FamilyPage() {
       </div>
 
       <div>
-        <h1 className="text-2xl font-semibold">Správa členov rodiny</h1>
-        <p className="text-muted-foreground text-sm">
+        <h1 className="text-2xl font-semibold text-balance">
+          Správa členov rodiny
+        </h1>
+        <p className="text-muted-foreground mt-1 max-w-[62ch]">
           Púšťaj dnu nových ľudí, premenúvaj ich alebo meň, kto môže spravovať
           tento zoznam.
         </p>

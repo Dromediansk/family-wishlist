@@ -35,7 +35,6 @@ export function ClaimButton({
       <div className="flex flex-col items-end gap-1">
         <Button
           variant="outline"
-          size="sm"
           disabled={pending}
           onClick={() => run(() => unclaimWish(wishId))}
         >
@@ -43,7 +42,7 @@ export function ClaimButton({
           {pending ? "Ruším…" : "Toto nekupujem"}
         </Button>
         {error ? (
-          <p className="text-destructive text-xs" role="alert">
+          <p className="text-destructive text-sm" role="alert">
             {error}
           </p>
         ) : null}
@@ -54,7 +53,7 @@ export function ClaimButton({
   // Taken by someone else — show who, and offer nothing to click.
   if (claimedByName) {
     return (
-      <span className="text-muted-foreground shrink-0 text-sm">
+      <span className="text-muted-foreground shrink-0">
         Toto kupuje {claimedByName}
       </span>
     );
@@ -62,16 +61,12 @@ export function ClaimButton({
 
   return (
     <div className="flex flex-col items-end gap-1">
-      <Button
-        size="sm"
-        disabled={pending}
-        onClick={() => run(() => claimWish(wishId))}
-      >
+      <Button disabled={pending} onClick={() => run(() => claimWish(wishId))}>
         <GiftIcon />
         {pending ? "Rezervujem…" : "Toto kúpim"}
       </Button>
       {error ? (
-        <p className="text-destructive text-xs" role="alert">
+        <p className="text-destructive text-sm" role="alert">
           {error}
         </p>
       ) : null}

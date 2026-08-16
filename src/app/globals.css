@@ -16,7 +16,9 @@
   --secondary: oklch(0.96 0.01 275);
   --secondary-foreground: oklch(0.25 0.02 275);
   --muted: oklch(0.96 0.01 275);
-  --muted-foreground: oklch(0.53 0.02 275);
+  /* Darkened from 0.53 (~5.4:1) to ~7:1 — secondary text still reads as
+     secondary, but stops being the first thing an older eye gives up on. */
+  --muted-foreground: oklch(0.46 0.02 275);
   --accent: oklch(0.95 0.03 155);
   --accent-foreground: oklch(0.28 0.05 155);
   --destructive: oklch(0.58 0.22 27);
@@ -68,12 +70,58 @@
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  /*
+   * These two belong in the `inline` block, not the plain `@theme` below.
+   *
+   * next/font sets --font-sans-family on <body>, not on :root. A non-inline
+   * theme key would emit `:root { --font-sans: var(--font-sans-family), … }`,
+   * where that var has no value — the declaration is then invalid at
+   * computed-value time, --font-sans inherits down as nothing, and the whole
+   * app silently renders in the preflight's system stack. `inline` substitutes
+   * the value into `.font-sans` instead, which lands on <body> where the
+   * variable actually exists.
+   */
+  --font-sans: var(--font-sans-family), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, monospace;
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
+}
+
+/*
+ * The type scale.
+ *
+ * Not `inline`, because these are literal values rather than indirections into
+ * the :root block above. Every size in the app comes through a stock Tailwind
+ * name, so re-tuning the tokens here moves the whole app at once and leaves the
+ * call sites saying what they mean.
+ *
+ * The scale is pitched for an older reader holding a phone: 17px body rather
+ * than 16, nothing below 13px anywhere, and line-heights around 1.65 at body
+ * size loosening as the type grows. Sizes are in rem so the browser's own
+ * "larger text" setting still scales the entire app.
+ */
+@theme {
+  --text-xs: 0.8125rem;
+  --text-xs--line-height: 1.25rem;
+  --text-sm: 0.9375rem;
+  --text-sm--line-height: 1.5rem;
+  --text-base: 1.0625rem;
+  --text-base--line-height: 1.75rem;
+  --text-lg: 1.25rem;
+  --text-lg--line-height: 1.875rem;
+  --text-xl: 1.5rem;
+  --text-xl--line-height: 2rem;
+  --text-2xl: 1.75rem;
+  --text-2xl--line-height: 2.125rem;
+  --text-2xl--letter-spacing: -0.01em;
+  --text-3xl: 2.125rem;
+  --text-3xl--line-height: 2.5rem;
+  --text-3xl--letter-spacing: -0.015em;
+
+  /* Atkinson's 600 is light for emphasis; 650 holds up at body size. */
+  --font-weight-semibold: 650;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -105,10 +153,18 @@
     border-color: var(--border);
   }
 
+  /*
+   * The scale tokens above define what `text-base` means; they don't move the
+   * document off the browser's inherited 16px/normal, so the body says it here.
+   *
+   * No `-webkit-font-smoothing: antialiased`. It thins stems on macOS, and full
+   * stems are the point of choosing this typeface.
+   */
   body {
     background-color: var(--background);
     color: var(--foreground);
-    -webkit-font-smoothing: antialiased;
+    font-size: var(--text-base);
+    line-height: var(--text-base--line-height);
   }
 
   :focus-visible {

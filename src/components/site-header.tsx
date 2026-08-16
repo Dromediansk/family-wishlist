@@ -26,9 +26,11 @@ export async function SiteHeader() {
     <header className="mb-8 flex items-center justify-between gap-4">
       <Link
         href="/"
-        className="flex min-w-0 items-center gap-2 text-lg font-semibold"
+        // A step smaller on phones: at 24px the full Slovak name would truncate
+        // next to the taller avatar, and a clipped wordmark reads as a bug.
+        className="flex min-w-0 items-center gap-2 text-lg font-semibold sm:text-xl"
       >
-        <GiftIcon className="text-primary size-5 shrink-0" />
+        <GiftIcon className="text-primary size-6 shrink-0" />
         <span className="truncate">Rodinný zoznam želaní</span>
       </Link>
       {/*
@@ -37,7 +39,7 @@ export async function SiteHeader() {
        * back the <head> and every route's loading.tsx skeleton. The fallback
        * reserves the avatar's box so nothing jumps when it arrives.
        */}
-      <Suspense fallback={<div className="size-9 shrink-0" />}>
+      <Suspense fallback={<div className="size-11 shrink-0" />}>
         <HeaderAccount />
       </Suspense>
     </header>

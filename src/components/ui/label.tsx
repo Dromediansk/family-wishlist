@@ -12,7 +12,9 @@ function Label({
   return (
     <LabelPrimitive.Root
       data-slot="label"
-      className={cn("text-sm leading-none font-medium select-none", className)}
+      // `leading-tight`, not `leading-none`: a line box the exact height of the
+      // type clips the caron off a capital Č or Ľ, which Slovak labels have.
+      className={cn("text-base leading-tight font-medium select-none", className)}
       {...props}
     />
   );

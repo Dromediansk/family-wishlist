@@ -31,7 +31,7 @@ export default async function PendingPage() {
     <Card className="mx-auto max-w-md">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
-          <HourglassIcon className="text-primary size-5" />
+          <HourglassIcon className="text-primary size-6 shrink-0" />
           Čaká sa na schválenie
         </CardTitle>
         <CardDescription>

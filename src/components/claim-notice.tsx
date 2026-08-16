@@ -42,12 +42,12 @@ export function ClaimNotice({ item }: { item: BuyingItem }) {
   return (
     <div className="border-muted-foreground/25 bg-muted/40 mt-3 rounded-md border border-dashed p-3">
       <div className="flex gap-2">
-        <TriangleAlertIcon className="text-muted-foreground mt-0.5 size-4 shrink-0" />
-        <div className="min-w-0 flex-1 space-y-2 text-sm">
+        <TriangleAlertIcon className="text-muted-foreground mt-0.5 size-5 shrink-0" />
+        <div className="min-w-0 flex-1 space-y-2 text-base">
           {item.kind === "cancelled" ? (
             <>
               <p>{item.ownerName} túto položku odstránil zo svojho zoznamu.</p>
-              <p className="text-muted-foreground text-xs">
+              <p className="text-muted-foreground text-sm">
                 Ak si ju už kúpil, ozvi sa mu.
               </p>
             </>
@@ -57,10 +57,10 @@ export function ClaimNotice({ item }: { item: BuyingItem }) {
               <dl className="space-y-2">
                 {item.change?.fields.map((change) => (
                   <div key={change.field} className="space-y-0.5">
-                    <dt className="text-muted-foreground text-xs">
+                    <dt className="text-muted-foreground text-sm font-medium">
                       {FIELD_LABEL[change.field]}
                     </dt>
-                    <dd className="text-muted-foreground text-xs break-words">
+                    <dd className="text-muted-foreground text-sm break-words">
                       <span className="line-through">
                         {change.before ?? "—"}
                       </span>
@@ -69,7 +69,7 @@ export function ClaimNotice({ item }: { item: BuyingItem }) {
                   </div>
                 ))}
               </dl>
-              <p className="text-muted-foreground text-xs">
+              <p className="text-muted-foreground text-sm">
                 Skontroluj, či ešte kupuješ to správne.
               </p>
             </>
@@ -87,7 +87,7 @@ export function ClaimNotice({ item }: { item: BuyingItem }) {
           {pending ? "Zatváram…" : "Rozumiem"}
         </Button>
         {error ? (
-          <p className="text-destructive text-xs" role="alert">
+          <p className="text-destructive text-sm" role="alert">
             {error}
           </p>
         ) : null}

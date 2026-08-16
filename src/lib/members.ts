@@ -28,3 +28,31 @@ export function toMemberSummary(
     availableCount: free.get(member.id) ?? 0,
   };
 }
+
+/**
+ * Slovak collation: Č sorts right after C, not after Z. A plain `<` compares
+ * code points and would file Čaňo past Zuzka. Built once — constructing a
+ * collator inside the comparator is the classic way to make a sort slow.
+ */
+const byName = new Intl.Collator("sk", { sensitivity: "base" });
+
+/**
+ * The order of the family grid: your own card first, then everyone else by name.
+ *
+ * Your own card leads because it is the one you came for — it is where you add
+ * to your own list. Nothing claim-derived enters this: the only keys are
+ * `viewerIsOwner` and `name`, and you already knew which card was yours.
+ *
+ * Keyed off the discriminant `toMemberSummary` has already set rather than
+ * taking a viewer id of its own, so there is no second copy of "who is looking"
+ * to drift out of step. Sorts a copy, and `Array.prototype.sort` is stable, so
+ * two members sharing a name keep the sign-up order the query gave them.
+ */
+export function sortMemberSummaries(
+  summaries: readonly MemberSummary[],
+): MemberSummary[] {
+  return [...summaries].sort((a, b) => {
+    if (a.viewerIsOwner !== b.viewerIsOwner) return a.viewerIsOwner ? -1 : 1;
+    return byName.compare(a.name, b.name);
+  });
+}

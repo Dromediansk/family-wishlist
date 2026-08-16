@@ -97,16 +97,20 @@ export function WishForm({
       </div>
 
       {error ? (
-        <p className="text-destructive text-sm" role="alert">
+        <p className="text-destructive" role="alert">
           {error}
         </p>
       ) : null}
 
-      <div className="flex justify-end gap-2">
-        <Button type="submit" disabled={pending || values.title.trim() === ""}>
-          {pending ? pendingLabel : submitLabel}
-        </Button>
-      </div>
+      {/* Full width on a phone, so the thumb has the whole edge to aim at. */}
+      <Button
+        type="submit"
+        size="lg"
+        className="w-full sm:ml-auto sm:w-auto"
+        disabled={pending || values.title.trim() === ""}
+      >
+        {pending ? pendingLabel : submitLabel}
+      </Button>
     </form>
   );
 }

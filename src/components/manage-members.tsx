@@ -57,8 +57,8 @@ export function ManageMembers({
       {waiting.length > 0 ? (
         <section className="border-primary/40 bg-primary/5 flex flex-col gap-3 rounded-md border p-3">
           <div>
-            <h3 className="text-sm font-semibold">Čakajú na schválenie</h3>
-            <p className="text-muted-foreground text-xs">
+            <h3 className="text-lg font-semibold">Čakajú na schválenie</h3>
+            <p className="text-muted-foreground max-w-[62ch] text-sm">
               Prihlásili sa cez Google, ale zatiaľ nič nevidia. Skontroluj
               e-mail — prihlásiť sa môže ktokoľvek, kto pozná adresu tejto
               stránky.
@@ -67,14 +67,13 @@ export function ManageMembers({
           <ul className="flex flex-col gap-2">
             {waiting.map((account) => (
               <li key={account.id} className="flex flex-wrap items-center gap-2">
-                <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm font-medium">{account.name}</p>
-                  <p className="text-muted-foreground truncate text-xs">
+                <div className="min-w-[10rem] flex-1">
+                  <p className="truncate font-semibold">{account.name}</p>
+                  <p className="text-muted-foreground truncate text-sm">
                     {account.email ?? "bez e-mailu"}
                   </p>
                 </div>
                 <Button
-                  size="sm"
                   disabled={pending}
                   onClick={() => run(() => approveMember(account.id))}
                 >
@@ -137,9 +136,12 @@ function MemberAdminRow({
   const renamed = name.trim() !== member.name && name.trim() !== "";
 
   return (
-    <li className="flex flex-col gap-2 py-3">
-      <div className="flex items-center gap-2">
+    <li className="flex flex-col gap-2 py-4">
+      {/* Wraps: at 44px tall the name field plus three controls no longer fit
+          across a phone, so the buttons drop to a second line instead. */}
+      <div className="flex flex-wrap items-center gap-2">
         <Input
+          className="min-w-[10rem] flex-1"
           value={name}
           onChange={(event) => setName(event.target.value)}
           maxLength={50}
@@ -147,7 +149,6 @@ function MemberAdminRow({
         />
         {renamed ? (
           <Button
-            size="sm"
             disabled={pending}
             onClick={() => run(() => renameMember(member.id, name))}
           >
@@ -156,7 +157,6 @@ function MemberAdminRow({
         ) : null}
         <Button
           variant="outline"
-          size="sm"
           disabled={pending}
           title={
             member.role === "admin"
@@ -188,11 +188,11 @@ function MemberAdminRow({
       </div>
 
       {email ? (
-        <p className="text-muted-foreground truncate text-xs">{email}</p>
+        <p className="text-muted-foreground truncate text-sm">{email}</p>
       ) : null}
 
       {confirmingRemove ? (
-        <div className="bg-muted flex flex-col gap-2 rounded-md p-3 text-sm">
+        <div className="bg-muted flex flex-col gap-3 rounded-md p-4">
           <p>
             Odstrániť <strong>{member.name}</strong>? Vymažú sa aj všetky
             želania v tomto zozname ({wishCount(member.wishCount)}) a
@@ -202,7 +202,6 @@ function MemberAdminRow({
           <div className="flex gap-2">
             <Button
               variant="destructive"
-              size="sm"
               disabled={pending}
               onClick={() =>
                 run(() => removeMember(member.id), () =>
@@ -212,11 +211,7 @@ function MemberAdminRow({
             >
               Odstrániť
             </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setConfirmingRemove(false)}
-            >
+            <Button variant="outline" onClick={() => setConfirmingRemove(false)}>
               Zrušiť
             </Button>
           </div>

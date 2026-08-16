@@ -16,18 +16,21 @@ export default function HomeLoading() {
   return (
     <div className="space-y-6">
       <div className="space-y-2">
-        <Skeleton className="h-8 w-40" />
-        <Skeleton className="h-4 w-72 max-w-full" />
+        <Skeleton className="h-9 w-40" />
+        <Skeleton className="h-5 w-72 max-w-full" />
       </div>
 
+      {/* Mirrors MemberCard: min-h-48, the name centred, the action row below. */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {Array.from({ length: 6 }, (_, i) => (
-          <Card key={i} className="gap-5">
-            <div className="space-y-2">
-              <Skeleton className="h-5 w-28" />
-              <Skeleton className="h-4 w-20" />
+          <Card key={i} className="min-h-44 gap-4 p-5">
+            <div className="flex flex-1 flex-col items-center justify-center">
+              <Skeleton className="h-8 w-36 max-w-full" />
             </div>
-            <Skeleton className="h-8 w-36" />
+            <div className="flex items-center gap-2">
+              <Skeleton className="h-11 w-40 max-w-full" />
+              <Skeleton className="ml-auto h-6 w-12 shrink-0" />
+            </div>
           </Card>
         ))}
       </div>

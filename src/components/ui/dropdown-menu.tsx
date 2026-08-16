@@ -35,7 +35,8 @@ function DropdownMenuItem({
   return (
     <DropdownMenuPrimitive.Item
       className={cn(
-        "focus:bg-accent focus:text-accent-foreground relative flex w-full cursor-pointer items-center gap-2 rounded-md px-2 py-2 text-sm outline-none select-none data-[disabled]:pointer-events-none data-[disabled]:opacity-50 [&_svg]:size-4 [&_svg]:shrink-0",
+        // `min-h-11` because padding alone can't guarantee a 44px row.
+        "focus:bg-accent focus:text-accent-foreground relative flex min-h-11 w-full cursor-pointer items-center gap-2.5 rounded-md px-3 py-2.5 text-base outline-none select-none data-[disabled]:pointer-events-none data-[disabled]:opacity-50 [&_svg]:size-5 [&_svg]:shrink-0",
         className,
       )}
       {...props}
@@ -49,7 +50,7 @@ function DropdownMenuLabel({
 }: React.ComponentProps<typeof DropdownMenuPrimitive.Label>) {
   return (
     <DropdownMenuPrimitive.Label
-      className={cn("px-2 py-1.5 text-sm font-semibold", className)}
+      className={cn("px-3 py-2 text-base font-semibold", className)}
       {...props}
     />
   );

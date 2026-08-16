@@ -13,7 +13,7 @@ export function SignOutButton({ fullWidth = false }: { fullWidth?: boolean }) {
       <Button
         type="submit"
         variant="outline"
-        size="sm"
+        size={fullWidth ? "lg" : "sm"}
         className={fullWidth ? "w-full" : undefined}
       >
         <LogOutIcon />

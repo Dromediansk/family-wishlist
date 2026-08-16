@@ -36,7 +36,7 @@ export default async function MemberPage({
   return (
     <div className="space-y-6">
       <div>
-        <Button variant="ghost" size="sm" asChild className="-ml-3">
+        <Button variant="ghost" size="sm" asChild className="-ml-4">
           <Link href="/">
             <ArrowLeftIcon />
             Všetci
@@ -46,12 +46,12 @@ export default async function MemberPage({
 
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-semibold">
+          <h1 className="text-2xl font-semibold text-balance">
             {list.viewerIsOwner
               ? "Môj zoznam želaní"
               : `Zoznam želaní – ${owner.name}`}
           </h1>
-          <p className="text-muted-foreground text-sm">
+          <p className="text-muted-foreground mt-1 max-w-[62ch]">
             {list.viewerIsOwner
               ? "Pridaj si čokoľvek, čo by si chcel. Nedozvieš sa, kto si čo vybral."
               : "Rezervuj si niečo, aby to isté nekúpil ešte niekto ďalší."}
@@ -61,14 +61,14 @@ export default async function MemberPage({
       </div>
 
       {list.viewerIsOwner ? (
-        <p className="text-muted-foreground flex items-center gap-2 text-xs">
-          <EyeOffIcon className="size-3.5 shrink-0" />
+        <p className="text-muted-foreground flex items-center gap-2 text-sm">
+          <EyeOffIcon className="size-4 shrink-0" />
           Vo vlastnom zozname sú rezervácie skryté — o to práve ide.
         </p>
       ) : null}
 
       {list.wishes.length === 0 ? (
-        <Card className="text-muted-foreground items-center py-12 text-center text-sm">
+        <Card className="text-muted-foreground items-center py-12 text-center">
           {list.viewerIsOwner
             ? "Tvoj zoznam je prázdny. Pridaj si vyššie prvé želanie."
             : "V tomto zozname zatiaľ nie sú žiadne želania."}
@@ -82,7 +82,8 @@ export default async function MemberPage({
                     key={wish.id}
                     wish={wish}
                     action={
-                      <div className="flex items-center">
+                      // A gap between two 44px targets, one of which deletes.
+                      <div className="flex items-center gap-1">
                         <EditWishDialog wish={wish} />
                         <DeleteWishButton wish={wish} />
                       </div>

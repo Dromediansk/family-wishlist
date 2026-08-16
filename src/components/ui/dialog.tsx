@@ -46,8 +46,8 @@ function DialogContent({
       >
         {children}
         {showCloseButton ? (
-          <DialogPrimitive.Close className="absolute top-4 right-4 cursor-pointer rounded-sm opacity-70 transition-opacity hover:opacity-100">
-            <XIcon className="size-4" />
+          <DialogPrimitive.Close className="absolute top-2.5 right-2.5 inline-flex size-11 cursor-pointer items-center justify-center rounded-md opacity-70 transition-opacity hover:opacity-100">
+            <XIcon className="size-5" />
             <span className="sr-only">Zavrieť</span>
           </DialogPrimitive.Close>
         ) : null}
@@ -83,7 +83,7 @@ function DialogTitle({
 }: React.ComponentProps<typeof DialogPrimitive.Title>) {
   return (
     <DialogPrimitive.Title
-      className={cn("text-lg leading-none font-semibold", className)}
+      className={cn("text-xl leading-snug font-semibold", className)}
       {...props}
     />
   );
@@ -95,7 +95,7 @@ function DialogDescription({
 }: React.ComponentProps<typeof DialogPrimitive.Description>) {
   return (
     <DialogPrimitive.Description
-      className={cn("text-muted-foreground text-sm", className)}
+      className={cn("text-muted-foreground text-base", className)}
       {...props}
     />
   );

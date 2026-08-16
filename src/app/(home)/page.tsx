@@ -23,8 +23,8 @@ export default async function HomePage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-semibold">Rodina</h1>
-        <p className="text-muted-foreground text-sm">
+        <h1 className="text-2xl font-semibold text-balance">Rodina</h1>
+        <p className="text-muted-foreground mt-1 max-w-[62ch]">
           Pridaj si niečo do vlastného zoznamu alebo si vyber, čo kúpiš niekomu
           inému.
         </p>

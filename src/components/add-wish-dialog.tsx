@@ -27,7 +27,7 @@ type Props = {
  */
 export function AddWishDialog({
   variant = "default",
-  size = "sm",
+  size = "default",
   className,
 }: Props) {
   const [open, setOpen] = useState(false);

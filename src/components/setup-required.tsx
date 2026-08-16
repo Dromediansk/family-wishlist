@@ -11,14 +11,14 @@ export function SetupRequired() {
     <Card>
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
-          <DatabaseIcon className="text-primary size-5" />
+          <DatabaseIcon className="text-primary size-6 shrink-0" />
           Ešte krok — pripoj databázu
         </CardTitle>
         <CardDescription>
           Aplikácia potrebuje projekt v Supabase, aby mohla čokoľvek ukladať.
         </CardDescription>
       </CardHeader>
-      <ol className="text-muted-foreground list-decimal space-y-3 pl-5 text-sm">
+      <ol className="text-muted-foreground max-w-[62ch] list-decimal space-y-3 pl-5">
         <li>
           Vytvor si bezplatný projekt na{" "}
           <a
@@ -33,18 +33,18 @@ export function SetupRequired() {
         </li>
         <li>
           Otvor SQL editor a spusti{" "}
-          <code className="bg-muted rounded px-1.5 py-0.5 font-mono text-xs">
+          <code className="bg-muted rounded px-1.5 py-0.5 font-mono text-sm">
             supabase/migrations/0001_init.sql
           </code>{" "}
           z tohto repozitára.
         </li>
         <li>
           Skopíruj{" "}
-          <code className="bg-muted rounded px-1.5 py-0.5 font-mono text-xs">
+          <code className="bg-muted rounded px-1.5 py-0.5 font-mono text-sm">
             .env.example
           </code>{" "}
           do{" "}
-          <code className="bg-muted rounded px-1.5 py-0.5 font-mono text-xs">
+          <code className="bg-muted rounded px-1.5 py-0.5 font-mono text-sm">
             .env.local
           </code>{" "}
           a doplň URL svojho projektu a kľúč{" "}
@@ -52,7 +52,7 @@ export function SetupRequired() {
         </li>
         <li>Reštartuj vývojový server.</li>
       </ol>
-      <p className="text-muted-foreground text-xs">
+      <p className="text-muted-foreground text-sm">
         Kompletný návod nájdeš v súbore README.
       </p>
     </Card>

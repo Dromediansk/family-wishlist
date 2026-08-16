@@ -83,7 +83,7 @@ export function DeleteWishButton({ wish }: { wish: OwnerWish }) {
           </AlertDialogDescription>
         </AlertDialogHeader>
         {error ? (
-          <p className="text-destructive text-sm" role="alert">
+          <p className="text-destructive" role="alert">
             {error}
           </p>
         ) : null}

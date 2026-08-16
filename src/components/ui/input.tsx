@@ -8,7 +8,9 @@ function Input({ className, type, ...props }: React.ComponentProps<"input">) {
       type={type}
       data-slot="input"
       className={cn(
-        "border-input bg-background placeholder:text-muted-foreground flex h-9 w-full rounded-md border px-3 py-1 text-sm shadow-xs transition-colors disabled:cursor-not-allowed disabled:opacity-50",
+        // `text-base` is 17px. Anything under 16px makes iOS Safari zoom the
+        // viewport the moment the field takes focus, and never zoom back out.
+        "border-input bg-background placeholder:text-muted-foreground flex h-11 w-full rounded-md border px-3.5 py-2 text-base shadow-xs transition-colors disabled:cursor-not-allowed disabled:opacity-50",
         className,
       )}
       {...props}

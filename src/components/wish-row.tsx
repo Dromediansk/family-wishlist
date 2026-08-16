@@ -20,17 +20,21 @@ export function WishRow({
   dimmed?: boolean;
 }) {
   return (
-    <li className="border-b py-4 last:border-b-0">
+    <li className="border-b py-5 last:border-b-0">
       <div
         className={cn(
           "flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between sm:gap-6",
-          dimmed && "opacity-60",
+          // 70, not 60: still reads as "taken, move on", but the title stays
+          // legible to an older eye rather than dissolving into the paper.
+          dimmed && "opacity-70",
         )}
       >
-        <div className="min-w-0 space-y-1">
-          <p className="font-medium break-words">{wish.title}</p>
+        <div className="min-w-0 space-y-1.5">
+          <p className="text-lg leading-snug font-semibold break-words">
+            {wish.title}
+          </p>
           {wish.description ? (
-            <p className="text-muted-foreground text-sm break-words whitespace-pre-line">
+            <p className="text-muted-foreground max-w-[62ch] break-words whitespace-pre-line">
               {wish.description}
             </p>
           ) : null}
@@ -39,9 +43,9 @@ export function WishRow({
               href={wish.url}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-primary inline-flex items-center gap-1 text-sm underline underline-offset-4"
+              className="text-primary inline-flex min-h-11 items-center gap-1.5 underline underline-offset-4"
             >
-              <ExternalLinkIcon className="size-3.5" />
+              <ExternalLinkIcon className="size-4 shrink-0" />
               <span className="break-all">{displayUrl(wish.url)}</span>
             </a>
           ) : null}

@@ -33,7 +33,7 @@ export function MemberCard({ member }: { member: MemberSummary }) {
   const leadCount = available ?? member.wishCount;
 
   return (
-    <Card className="hover:border-ring/60 hover:bg-accent/20 active:bg-accent/30 relative min-h-40 gap-4 p-5 transition">
+    <Card className="hover:border-ring/60 hover:bg-accent/20 active:bg-accent/30 relative min-h-44 gap-4 p-5 transition">
       {member.role === "admin" ? (
         <Badge
           variant="secondary"
@@ -45,8 +45,8 @@ export function MemberCard({ member }: { member: MemberSummary }) {
         </Badge>
       ) : null}
 
-      <div className="flex flex-1 flex-col items-center justify-center gap-2 px-6 text-center">
-        <h2 className="text-2xl leading-tight font-semibold tracking-tight text-balance wrap-break-word">
+      <div className="flex flex-1 flex-col items-center justify-center gap-2 px-4 text-center">
+        <h2 className="text-3xl leading-tight font-semibold text-balance wrap-break-word">
           <Link
             href={`/member/${member.id}`}
             className="rounded-sm after:absolute after:inset-0"
@@ -62,12 +62,12 @@ export function MemberCard({ member }: { member: MemberSummary }) {
         ) : null}
         <span
           className={cn(
-            "ml-auto inline-flex items-center gap-1.5 text-sm font-medium tabular-nums",
+            "ml-auto inline-flex items-center gap-1.5 text-lg font-semibold tabular-nums",
             // Tracks what is left to take, so a fully reserved list dims down.
             leadCount > 0 ? "text-primary" : "text-muted-foreground",
           )}
         >
-          <GiftIcon className="size-4" aria-hidden />
+          <GiftIcon className="size-5" aria-hidden />
           <span aria-hidden>
             {leadCount}
             {available !== null ? (

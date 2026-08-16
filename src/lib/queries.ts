@@ -3,7 +3,7 @@ import "server-only";
 import { cache } from "react";
 
 import { resolveAccess, type Access } from "@/lib/access";
-import { toMemberSummary } from "@/lib/members";
+import { sortMemberSummaries, toMemberSummary } from "@/lib/members";
 import { NOTICE_COLUMNS, type NoticeRow } from "@/lib/notices";
 import { getSupabase } from "@/lib/supabase";
 import { getAuthUser } from "@/lib/supabase-auth";
@@ -99,7 +99,9 @@ export const getMembers = cache(async (): Promise<MemberWithCount[]> => {
  * own rows in the `WHERE` clause — so the number that would tell them their list
  * has been raided is not computed, let alone sent. `toMemberSummary` withholds
  * it a second time. Kept apart from `getMembers` because the admin screen wants
- * the plain total and has no business receiving anything claim-derived.
+ * the plain total and has no business receiving anything claim-derived — and,
+ * now, because it wants sign-up order while this wants the grid's own: see
+ * `sortMemberSummaries`, which is the single authority on that.
  */
 export const getMemberSummaries = cache(
   async (viewerId: string): Promise<MemberSummary[]> => {
@@ -118,7 +120,9 @@ export const getMemberSummaries = cache(
 
     const free = tally(freeResult.data);
 
-    return members.map((member) => toMemberSummary(member, free, viewerId));
+    return sortMemberSummaries(
+      members.map((member) => toMemberSummary(member, free, viewerId)),
+    );
   },
 );
 

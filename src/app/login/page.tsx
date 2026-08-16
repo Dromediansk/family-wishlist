@@ -30,7 +30,7 @@ export default async function LoginPage({
     <Card className="mx-auto max-w-md">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
-          <GiftIcon className="text-primary size-5" />
+          <GiftIcon className="text-primary size-6 shrink-0" />
           Prihlás sa
         </CardTitle>
         <CardDescription>
@@ -40,14 +40,14 @@ export default async function LoginPage({
       </CardHeader>
 
       <form action={signInWithGoogle}>
-        <Button type="submit" variant="outline" className="w-full">
+        <Button type="submit" variant="outline" size="lg" className="w-full">
           <GoogleIcon />
           Prihlásiť sa cez Google
         </Button>
       </form>
 
       {error ? (
-        <p className="text-destructive text-sm" role="alert">
+        <p className="text-destructive" role="alert">
           {error}
         </p>
       ) : null}
