@@ -125,6 +125,14 @@ So instead:
 claim fields at all — so leaking one would be a type error rather than
 something to remember. `src/lib/wishes.test.ts` pins that down.
 
+The same reasoning shapes the counts on the family grid. Every card shows how
+many wishes are still free next to the list's total — "2 / 5" — except your own,
+which shows the total alone. "3 / 5" on your own card would say, in arithmetic,
+that two of your wishes are already spoken for. So the query that counts free
+wishes skips your rows in its `WHERE` clause, and `MemberSummary` splits the two
+shapes so your own card has no such number to render at all;
+`src/lib/members.test.ts` pins it down.
+
 ## Live updates
 
 Changes show up in everyone else's open tab within about a second, without a
