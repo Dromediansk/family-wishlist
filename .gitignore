@@ -33,10 +33,9 @@ yarn-error.log*
 # env files (can opt-in for committing if needed)
 .env*
 # ...but the templates have no secrets in them and the README tells you to copy them.
-# The negation has to name each one: `.env*` above matches these too, and `!.env.example`
-# is a literal, not a prefix. supabase/.env.example is covered by the first line.
-!.env.example
-!.env.development.local.example
+# One pattern covers every one of them, at any depth — supabase/.env.example included —
+# without this needing an edit each time another is added.
+!.env*.example
 
 # vercel
 .vercel

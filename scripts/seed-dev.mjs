@@ -19,6 +19,15 @@
 
 import { createClient } from "@supabase/supabase-js";
 
+/**
+ * Every giving-up path in this file. Defined first because the two checks below run at
+ * import time, before anything else exists.
+ */
+const fail = (message) => {
+  console.error(`\n${message}\n`);
+  process.exit(1);
+};
+
 const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
@@ -186,14 +195,10 @@ const clearPreviousSeed = async (me) => {
 
   if (wishError) throw wishError;
 
-  // Whatever notices survived the member delete above. Fewer than you would guess:
-  // notice_wish_deleted reads the owner's name out of family_members, so a cascade that
-  // has already removed that row inserts nothing, and it clears the wish's 'edited'
-  // notice on its way past. What is left over is the notices about members who were
-  // deleted in an earlier run, and they point at wishes that no longer exist.
-  //
-  // Anything you provoked by hand goes too — this script produces a known state, not a
-  // merge with whatever was there before.
+  // Every notice addressed to you, including any you provoked by hand — this script
+  // produces a known state, not a merge with whatever was there before. Nothing else
+  // collects them: claim_notices.wish_id is deliberately not a foreign key, so notices
+  // outlive the wishes and members they describe.
   const { data: notices, error: noticeError } = await db
     .from("claim_notices")
     .delete()
@@ -211,6 +216,20 @@ const clearPreviousSeed = async (me) => {
   if (removed.length) console.log(`Cleared from a previous seed: ${removed.join(", ")}.`);
 };
 
+/**
+ * Insert order is not guaranteed to come back in order, so both inserts below put the
+ * returned rows back in the order they were asked for, keyed on a column unique within
+ * the batch. A miss stops here rather than three lines later as `undefined.id`.
+ */
+const inAskedOrder = (rows, keys, column) =>
+  keys.map((key) => {
+    const row = rows.find((r) => r[column] === key);
+    if (!row) {
+      fail(`Inserted ${column} '${key}' did not come back from the database.`);
+    }
+    return row;
+  });
+
 const insertRelatives = async () => {
   const { data, error } = await db
     .from("family_members")
@@ -226,8 +245,7 @@ const insertRelatives = async () => {
     .select("id, name");
 
   if (error) throw error;
-  // Insert order is not guaranteed to come back in order.
-  return RELATIVES.map((name) => data.find((m) => m.name === name));
+  return inAskedOrder(data, RELATIVES, "name");
 };
 
 const insertWishes = async (memberId, wishes) => {
@@ -237,7 +255,11 @@ const insertWishes = async (memberId, wishes) => {
     .select("id, title");
 
   if (error) throw error;
-  return wishes.map((w) => data.find((row) => row.title === w.title));
+  return inAskedOrder(
+    data,
+    wishes.map((w) => w.title),
+    "title",
+  );
 };
 
 /** claimed_by and claimed_at are set together — claim_consistent in 0001_init.sql. */
@@ -299,7 +321,9 @@ const report = async (me) => {
     }),
   );
 
-  console.log(`\nSeeded: ${counts.join(", ")}.`);
+  // Whole-table counts, not "rows this run inserted" — anything you added by hand is in
+  // here too, which is the number you actually want when checking what a page renders.
+  console.log(`\nThe database now holds ${counts.join(", ")}.`);
   console.log(
     [
       "",
@@ -311,11 +335,6 @@ const report = async (me) => {
     ].join("\n"),
   );
 };
-
-function fail(message) {
-  console.error(`\n${message}\n`);
-  process.exit(1);
-}
 
 main().catch((error) => {
   console.error("\nSeeding failed:", error.message ?? error);
