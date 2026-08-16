@@ -22,7 +22,10 @@ export function WishListSkeleton() {
             key={i}
             className="flex items-center justify-between gap-4 border-b py-4 last:border-b-0"
           >
-            <div className="flex-1 space-y-2">
+            {/* `min-w-0` or the fixed-width bars below set this column's
+                automatic minimum size, and on a narrow phone the row overflows
+                the card — pushing the action bar past the right padding. */}
+            <div className="min-w-0 flex-1 space-y-2">
               <Skeleton className="h-4 w-48 max-w-full" />
               <Skeleton className="h-3 w-32 max-w-full" />
             </div>
