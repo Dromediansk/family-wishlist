@@ -1,10 +1,13 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
-import { ArrowLeftIcon, EyeOffIcon } from "lucide-react";
+import { ArrowLeftIcon } from "lucide-react";
 
 import { AddWishDialog } from "@/components/add-wish-dialog";
 import { ClaimButton } from "@/components/claim-button";
-import { DeleteWishButton, EditWishDialog } from "@/components/edit-wish-dialog";
+import {
+  DeleteWishButton,
+  EditWishDialog,
+} from "@/components/edit-wish-dialog";
 import { SetupRequired } from "@/components/setup-required";
 import { WishRow } from "@/components/wish-row";
 import { Button } from "@/components/ui/button";
@@ -49,23 +52,16 @@ export default async function MemberPage({
           <h1 className="text-2xl font-semibold text-balance">
             {list.viewerIsOwner
               ? "Môj zoznam želaní"
-              : `Zoznam želaní – ${owner.name}`}
+              : `Toto si praje ${owner.name}`}
           </h1>
           <p className="text-muted-foreground mt-1 max-w-[62ch]">
             {list.viewerIsOwner
               ? "Pridaj si čokoľvek, čo by si chcel. Nedozvieš sa, kto si čo vybral."
-              : "Rezervuj si niečo, aby to isté nekúpil ešte niekto ďalší."}
+              : "Rezervuj si to, aby to nekúpil ešte niekto ďalší."}
           </p>
         </div>
         {list.viewerIsOwner ? <AddWishDialog size="default" /> : null}
       </div>
-
-      {list.viewerIsOwner ? (
-        <p className="text-muted-foreground flex items-center gap-2 text-sm">
-          <EyeOffIcon className="size-4 shrink-0" />
-          Vo vlastnom zozname sú rezervácie skryté — o to práve ide.
-        </p>
-      ) : null}
 
       {list.wishes.length === 0 ? (
         <Card className="text-muted-foreground items-center py-12 text-center">
