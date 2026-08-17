@@ -41,6 +41,15 @@ You need a free Supabase project, and a Google OAuth client.
    DDL — do not run it. Live updates need no database changes, and it explains
    which tempting change would break the app.
 
+4. Finally run
+   [`supabase/migrations/0004_claim_notices.sql`](supabase/migrations/0004_claim_notices.sql).
+   It adds the buyer-notice table and its triggers. It deletes nothing and
+   alters no existing table.
+
+This is the production path, and it stays manual on purpose — see
+[Never run these](#never-run-these). For development there is a local database
+in Docker instead; see [A local database](#a-local-database).
+
 ### 2. Set up Google sign-in
 
 1. In the [Google Cloud console](https://console.cloud.google.com/auth/clients),
@@ -61,7 +70,7 @@ You need a free Supabase project, and a Google OAuth client.
 ### 3. Configure the app
 
 ```bash
-cp .env.example .env.local
+cp .env.example .env.production.local
 ```
 
 Fill in from **Project Settings → API**:
@@ -73,22 +82,173 @@ Fill in from **Project Settings → API**:
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | The **anon** key. Required — it carries the session |
 
 > The service_role key bypasses row level security. It must never be prefixed
-> with `NEXT_PUBLIC_` and must never reach the browser. `.env.local` is
-> gitignored; on a host, set it as a secret.
+> with `NEXT_PUBLIC_` and must never reach the browser. `.env.production.local`
+> is gitignored; on a host, set it as a secret.
 >
 > The anon key is the opposite: it is *meant* to reach the browser. It opens no
 > table — see [below](#live-updates).
+
+These are the values your host needs, and the ones a local `npm run build && npm
+start` reads. **Development does not use them**: `npm run dev` reads the
+committed `.env.development` and talks to the database in Docker instead, which
+is the next section.
 
 ### 4. Run it
 
 ```bash
 npm install
+npm run db:start     # the local database; see A local database for its one-time setup
 npm run dev
 ```
 
 Open [localhost:3000](http://localhost:3000) and sign in. The first person to
 sign in becomes the admin, and everyone who follows waits in **Manage family**
 until that admin lets them in.
+
+> Would rather develop against the hosted project than install Docker? Copy
+> `.env.example` to `.env.development.local` as well — it outranks
+> `.env.development`, so `npm run dev` uses it and no Docker is needed.
+
+## A local database
+
+Pointing `npm run dev` at the hosted project means every schema change is tried
+out in production, and `0003_auth.sql` opens with `truncate family_members
+cascade` — the kind of migration you cannot rehearse on live data. So
+development gets its own database in Docker.
+
+It is the Supabase CLI stack rather than a plain Postgres container, because a
+plain Postgres container cannot run this app: `0003_auth.sql` adds a foreign key
+to `auth.users` and a trigger on it, sign-in is Google OAuth, and live updates
+need Realtime. All three belong to services the CLI starts alongside Postgres.
+Storage, Edge Functions, analytics and the mail catcher are switched off in
+[`supabase/config.toml`](supabase/config.toml) — nothing here uses them — which
+leaves seven containers.
+
+The CLI is fetched by `npx` at a pinned version rather than installed as a
+devDependency, which is what the `db:*` scripts in `package.json` are doing. The
+`supabase` npm package is a shim around a platform binary of about 110 MB, and
+`npm install` on a Linux build host takes *two* of them — the published packages
+declare `os` and `cpu` but no `libc`, so the glibc and musl builds both match.
+Vercel installs devDependencies, because `next build` needs them, so leaving it
+in `package.json` meant roughly 300 MB unpacked on every deploy for a tool the
+build never runs. The first `db:*` command of the day pays a few seconds to
+populate the npx cache instead.
+
+### One-time setup
+
+**1. Tell Google about the local callback.** In the Google Cloud Console, open
+the same OAuth client production uses and add
+
+```
+http://127.0.0.1:54421/auth/v1/callback
+```
+
+to its **Authorized redirect URIs**, keeping the production one. That address is
+the local GoTrue container, not the app — Google returns to GoTrue, and GoTrue
+returns to `/auth/callback` on port 3000. Adding it takes nothing away from
+production: an OAuth client may list many redirect URIs, and which one is used
+is decided by whichever Supabase started the flow.
+
+**2. Give the CLI those credentials.**
+
+```bash
+cp supabase/.env.example supabase/.env
+```
+
+Fill in the client ID and secret. The CLI reads dotenv files from `supabase/`
+first, then the repo root, and resolves every `env(...)` in `config.toml` from
+them. This file is gitignored.
+
+**3. Start it.**
+
+```bash
+npm run db:start     # first run fetches the CLI and pulls images; several minutes
+```
+
+There is no third step, and nothing to copy: the address and keys are already in
+[`.env.development`](.env.development), committed. The stack's `anon` and
+`service_role` keys are the `supabase-demo` JWTs the CLI ships with, signed with
+its built-in default secret — the same strings on every machine, addressing
+nothing but `127.0.0.1`. There was never anything machine-specific to paste, so
+the file is checked in rather than templated.
+
+Two filenames are doing the work. Next resolves `.env.development.local` →
+`.env.local` → `.env.development` → `.env`, so a file called `.env.local`
+would outrank `.env.development` in development and quietly point `npm run dev`
+at the hosted project. Keeping the production values in
+`.env.production.local` leaves that slot empty: `npm run dev` gets Docker,
+`npm run build && npm start` gets the hosted project, and neither file is ever
+swapped out. `.env.development.local` stays free as an override, which is what
+the note at the end of [Run it](#4-run-it) uses.
+
+> The symptom of a stack that is not running is a connection refused to
+> `127.0.0.1:54421`, not the "connect your database" card — the values are
+> present, there is just nothing answering on that port. The card means the
+> values themselves are missing, which now only happens to a production build.
+
+### Day to day
+
+```bash
+npm run db:start     # bring the stack up
+npm run dev          # in another terminal
+npm run db:stop      # when you are done; data survives
+```
+
+Studio is at [127.0.0.1:54423](http://127.0.0.1:54423) and Postgres itself is on
+54422. The ports are shifted out of the usual `5432x` range so this project can
+run beside another local Supabase project without either having to be stopped.
+
+> **Check which port `next dev` picked.** If 3000 is busy it takes 3001 without
+> making a fuss, and an origin that is not in `additional_redirect_urls` does not
+> fail loudly — GoTrue sends you to `site_url` instead, so sign-in looks like it
+> worked and leaves you on the wrong port. 3000 and 3001 are both allow-listed in
+> `supabase/config.toml`; anything beyond that needs adding, followed by
+> `npm run db:stop && npm run db:start`.
+
+### Resetting and seeding
+
+```bash
+npm run db:reset     # drop everything, re-apply 0001–0004, then supabase/seed.sql
+```
+
+`db:reset` wipes `auth.users` too, so the loop after it is:
+
+1. `npm run db:reset`
+2. sign in at [localhost:3000](http://localhost:3000) — you become the admin
+3. `npm run db:seed`
+
+The middle step cannot be skipped, and that is deliberate.
+`handle_new_auth_user()` picks the admin with `not exists (select 1 from
+family_members)`, so any seeded member would make that false and leave your real
+sign-in stuck as `pending`, waiting on an admin who does not exist.
+[`supabase/seed.sql`](supabase/seed.sql) is therefore empty of members, and
+[`scripts/seed-dev.mjs`](scripts/seed-dev.mjs) builds the fake family around the
+row your sign-in created: three relatives, ten wishes, claims running in both
+directions, and both kinds of claim notice. Re-running it is safe.
+
+The notices are provoked rather than inserted — the seed edits and deletes
+wishes that are already claimed, so what lands in the table is whatever the
+triggers in `0004_claim_notices.sql` actually write.
+
+Nothing about the migrations changed for this. `supabase db reset` applies
+`0001` through `0004` in order; the CLI accepts the `0001_`-style names as they
+are. It also applies `0002_realtime.sql`, which the setup section above says not
+to run — harmless, because that file is entirely comments and contains no DDL.
+
+### Never run these
+
+Production has no `supabase_migrations.schema_migrations` table, because its
+migrations were always pasted into the SQL editor by hand. The CLI would
+therefore see a database with nothing applied and offer to apply everything —
+including `0003_auth.sql` and its `truncate`.
+
+So: **never run `supabase link`, `supabase db push`, `supabase db pull`, or
+`supabase db reset --linked`** in this repo. The CLI is here for the local stack
+and nothing else, and production stays hand-migrated.
+
+Two things back that up rather than relying on memory: `supabase/.temp/` is
+gitignored, so no link becomes sticky, and `scripts/seed-dev.mjs` refuses to run
+unless `NEXT_PUBLIC_SUPABASE_URL` resolves to loopback.
 
 ## Why the service_role key, and not the anon key
 
@@ -205,9 +365,10 @@ in each of them rather than at the entrance.
   dashboard; that cascades to their member row and wishes.
 - **Deleting a member** deletes their wishes, and releases anything they had
   claimed on other people's lists back to unclaimed.
-- **If you delete a wish someone had claimed**, they aren't told — telling you
-  they'd claimed it would give the game away. It just disappears from their
-  *What I'm buying* page.
+- **If you delete or rewrite a wish someone had claimed**, *you* are told
+  nothing — the dialog and the result are identical either way, because a "this
+  is reserved, are you sure?" prompt would be the leak. They are told, on their
+  *What I'm buying* page: "bolo … → teraz …", or that you removed it.
 - **Two people claiming at once**: the claim is a conditional update, so the
   second one is told the item is already taken rather than silently overwriting.
 - There must always be at least one admin, so the last one can't be demoted or
@@ -222,6 +383,11 @@ in each of them rather than at the entrance.
 | `npm run typecheck` | `tsc --noEmit` |
 | `npm run lint` | ESLint |
 | `npm run test` | Unit tests |
+| `npm run db:start` | Start the local Supabase stack in Docker |
+| `npm run db:stop` | Stop it; the data survives |
+| `npm run db:status` | Print the local URLs and keys |
+| `npm run db:reset` | Drop and rebuild the local database from the migrations |
+| `npm run db:seed` | Fill the local database with a fake family (after signing in) |
 
 ## Deploying
 

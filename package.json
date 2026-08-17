@@ -8,7 +8,13 @@
     "start": "next start",
     "lint": "eslint",
     "typecheck": "tsc --noEmit",
-    "test": "vitest run"
+    "test": "vitest run",
+    "supabase": "npx --yes --prefer-offline supabase@2.114.0",
+    "db:start": "npm run supabase -- start",
+    "db:stop": "npm run supabase -- stop",
+    "db:status": "npm run supabase -- status",
+    "db:reset": "npm run supabase -- db reset",
+    "db:seed": "node --env-file-if-exists=.env.development --env-file-if-exists=.env.development.local scripts/seed-dev.mjs"
   },
   "dependencies": {
     "@radix-ui/react-alert-dialog": "^1.1.23",

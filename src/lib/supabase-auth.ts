@@ -25,7 +25,7 @@ export async function createAuthClient() {
 
   if (!url || !key) {
     throw new Error(
-      "Supabase Auth is not configured. Set NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY in .env.local — see .env.example.",
+      "Supabase Auth is not configured. Set NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY in .env.production.local — see .env.example. In development they come from the committed .env.development.",
     );
   }
 

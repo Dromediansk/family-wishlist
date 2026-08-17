@@ -12,8 +12,20 @@ UI language is **Slovak**. `README.md` explains the *why* behind everything belo
 | `npm run typecheck` | `tsc --noEmit` |
 | `npm run lint` | ESLint |
 | `npm test` | Vitest (`src/**/*.test.ts`, node env) |
+| `npm run db:start` / `db:stop` / `db:status` | Local Supabase stack in Docker |
+| `npm run db:reset` | Rebuild the local DB from `supabase/migrations/` |
+| `npm run db:seed` | Fake family — run it *after* signing in, see below |
 
 Run `npm run typecheck && npm run lint && npm test` before claiming work is done.
+
+`npm run dev` talks to the local Docker stack, not the hosted project. The
+committed `.env.development` holds its address and the CLI's public demo keys —
+identical on every machine, so there is nothing to copy. Production values live
+in `.env.production.local`, **not** `.env.local`: Next resolves
+`.env.development.local` → `.env.local` → `.env.development`, so a `.env.local`
+would outrank the committed file and point `npm run dev` at production. Leave
+that name unused. README's "A local database" is the setup, and nothing works
+until `npm run db:start` is running.
 
 ## The one rule
 
@@ -103,10 +115,42 @@ Return `ActionResult`, never throw for expected failures.
 
 - **`src/proxy.ts`, not `middleware.ts`.** Next 16 renamed the convention;
   Supabase's guides still say middleware and such a file would never run.
-- **Migrations are run by hand** in the Supabase SQL editor. `0002_realtime.sql`
-  is a comment file — **do not run it**. `0003_auth.sql` truncates all data.
-  `0004_claim_notices.sql` adds the buyer-notice table and its triggers; it
-  deletes nothing and alters no existing table.
+- **Migrations reach production by hand**, pasted into the Supabase SQL editor.
+  `0002_realtime.sql` is a comment file — **do not run it there**.
+  `0003_auth.sql` truncates all data. `0004_claim_notices.sql` adds the
+  buyer-notice table and its triggers; it deletes nothing and alters no existing
+  table.
+
+  Locally they are applied by `npm run db:reset`, which runs all four in order.
+  It runs `0002` too — harmless, since that file is comments with no DDL. The
+  CLI accepts the `0001_`-style names; they need no timestamp prefix.
+
+- **Never run `supabase link`, `supabase db push`, `supabase db pull`, or
+  `supabase db reset --linked`.** Production has no
+  `supabase_migrations.schema_migrations` table, so the CLI would read it as a
+  database with nothing applied and replay everything — `0003_auth.sql`'s
+  `truncate family_members cascade` included. The CLI exists in this repo for
+  the local stack only.
+
+- **The CLI is not a dependency.** `npm run supabase` is `npx --yes
+  supabase@<pinned>`, and every `db:*` script goes through it. Do not
+  `npm i -D supabase`: its binary is ~110 MB, the Linux packages declare no
+  `libc` so a build host installs both the glibc and musl copies, and Vercel
+  installs devDependencies. Bump the version in that one script, not in five.
+
+- **`auto_expose_new_tables = true`** in `supabase/config.toml`, and it has to
+  be. Every read and write goes through PostgREST as `service_role` and no
+  migration issues a GRANT; the hosted project predates the always-revoked
+  default. Without it the tables exist locally and answer "permission denied".
+  The field is removed on 2026-10-30 — at which point the migrations need
+  explicit GRANTs, in production too.
+
+- **A local seed cannot insert `family_members`.** `handle_new_auth_user()`
+  picks the admin with `not exists (select 1 from family_members)`, so a seeded
+  member makes that false and strands your real sign-in as `pending`. Hence
+  `supabase/seed.sql` is empty of members and `scripts/seed-dev.mjs` runs after
+  the first sign-in, anchoring on the row it created. That script writes with
+  the service_role key, so it refuses any non-loopback URL.
 - **All user-facing strings are Slovak**, including validation messages.
   `wishCount()` in `src/lib/utils.ts` handles 1 / 2–4 / 5+ plural forms.
 - **`export const dynamic = "force-dynamic"`** in the root layout. Nothing may be
