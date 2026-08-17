@@ -149,6 +149,45 @@ Reachable by direct POST, so each one must, in order:
 
 Return `ActionResult`, never throw for expected failures.
 
+## Dialogs
+
+Three of them, all in `add-wish-dialog.tsx` and `edit-wish-dialog.tsx`. Picking
+the primitive picks the behaviour on a phone, and that is the whole API:
+
+- **`Dialog` fills the screen** below `sm:` — header pinned, middle scrolling,
+  action pinned to the bottom edge — and is the centred card from `sm:` up. Forms
+  go here.
+- **`AlertDialog` is a centred card at every size.** Questions go here. A
+  destructive confirmation blown up to full-screen invites the mis-tap it exists
+  to prevent.
+
+Everything they share lives in `src/components/ui/dialog-styles.ts`. The two
+files are forks that had drifted apart once already; put a shared value there
+rather than in one of them.
+
+Three things will bite:
+
+- **Padding is on the regions, not the panel.** Every child of a `*Content` must
+  be a `*Header`, `*Body` or `*Footer`, or it renders flush against the edge.
+  `DeleteWishButton`'s non-final error paragraph is the one that caught this.
+  The single exception is a wrapper that passes the regions through: `WishForm`
+  is a `<form>` around a body and a footer, because the submit button has to be
+  inside the form it submits. `flex min-h-0 flex-1 flex-col` is what makes it
+  transparent — without `min-h-0` a flex child will not shrink below its
+  content, the form outgrows the panel and the footer leaves the screen.
+- **The seams are 12 + 4, not 16 + 0.** The body's 4px is what keeps
+  `:focus-visible` — 2px outline at 2px offset — from being clipped by its own
+  `overflow-y-auto`. Change one side of a seam and you owe the other its
+  complement.
+- **A `max-w-*` passed to `DialogContent` must be `sm:`-qualified.** Unprefixed,
+  tailwind-merge cannot see it against the primitive's breakpoint-scoped width,
+  so it leaks down to the phone and un-fullscreens the panel.
+
+`interactiveWidget: "resizes-content"` in the root layout viewport is what keeps
+the pinned button above the on-screen keyboard. **Chromium only** — Safari does
+not implement it, so on iOS the keyboard still covers the footer; the body
+scrolls, so nothing is unreachable. There is no CSS-only fix.
+
 ## Gotchas
 
 - **`src/proxy.ts`, not `middleware.ts`.** Next 16 renamed the convention;

@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import {
   AlertDialog,
   AlertDialogAction,
+  AlertDialogBody,
   AlertDialogCancel,
   AlertDialogContent,
   AlertDialogDescription,
@@ -38,7 +39,8 @@ export function EditWishDialog({ wish }: { wish: OwnerWish }) {
           <PencilIcon />
         </Button>
       </DialogTrigger>
-      <DialogContent className="max-w-md">
+      {/* `sm:`-qualified, or the width leaks down and un-fullscreens the phone. */}
+      <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>Upraviť želanie</DialogTitle>
           <DialogDescription>Zmeň podrobnosti tohto želania.</DialogDescription>
@@ -101,9 +103,11 @@ export function DeleteWishButton({ wish }: { wish: OwnerWish }) {
         </AlertDialogHeader>
         {/* Something that failed but could yet succeed stays a question. */}
         {failure && !refused ? (
-          <p className="text-destructive" role="alert">
-            {failure.error}
-          </p>
+          <AlertDialogBody>
+            <p className="text-destructive" role="alert">
+              {failure.error}
+            </p>
+          </AlertDialogBody>
         ) : null}
         <AlertDialogFooter>
           <AlertDialogCancel>

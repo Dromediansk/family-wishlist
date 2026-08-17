@@ -5,6 +5,18 @@ import * as AlertDialogPrimitive from "@radix-ui/react-alert-dialog";
 
 import { cn } from "@/lib/utils";
 import { buttonVariants } from "@/components/ui/button";
+import {
+  ANIMATION_FADE,
+  ANIMATION_ZOOM,
+  BODY,
+  DESCRIPTION,
+  FOOTER,
+  HEADER,
+  OVERLAY,
+  PANEL_BASE,
+  PANEL_CARD,
+  TITLE,
+} from "@/components/ui/dialog-styles";
 
 const AlertDialog = AlertDialogPrimitive.Root;
 const AlertDialogTrigger = AlertDialogPrimitive.Trigger;
@@ -16,15 +28,18 @@ function AlertDialogOverlay({
 }: React.ComponentProps<typeof AlertDialogPrimitive.Overlay>) {
   return (
     <AlertDialogPrimitive.Overlay
-      className={cn(
-        "fixed inset-0 z-50 bg-black/50 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",
-        className,
-      )}
+      className={cn(OVERLAY, className)}
       {...props}
     />
   );
 }
 
+/**
+ * A centred card at every size — the one deliberate difference from
+ * `DialogContent`, which goes full-screen on a phone. `dialog-styles.ts` says
+ * why. Its direct children are the header, body and footer regions; anything
+ * else renders flush against the card edge.
+ */
 function AlertDialogContent({
   className,
   ...props
@@ -34,7 +49,10 @@ function AlertDialogContent({
       <AlertDialogOverlay />
       <AlertDialogPrimitive.Content
         className={cn(
-          "bg-background fixed top-1/2 left-1/2 z-50 grid w-full max-w-lg -translate-x-1/2 -translate-y-1/2 gap-4 rounded-xl border p-6 shadow-lg duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95",
+          PANEL_BASE,
+          PANEL_CARD,
+          ANIMATION_FADE,
+          ANIMATION_ZOOM,
           className,
         )}
         {...props}
@@ -47,27 +65,21 @@ function AlertDialogHeader({
   className,
   ...props
 }: React.ComponentProps<"div">) {
-  return (
-    <div
-      className={cn("flex flex-col gap-1.5 text-left", className)}
-      {...props}
-    />
-  );
+  // No `pr-14` unlike DialogHeader: this dialog is answered rather than
+  // dismissed, so there is no close button in the corner to keep clear of.
+  return <div className={cn(HEADER, className)} {...props} />;
+}
+
+/** Anything between the header and the footer. */
+function AlertDialogBody({ className, ...props }: React.ComponentProps<"div">) {
+  return <div className={cn(BODY, className)} {...props} />;
 }
 
 function AlertDialogFooter({
   className,
   ...props
 }: React.ComponentProps<"div">) {
-  return (
-    <div
-      className={cn(
-        "flex flex-col-reverse gap-2 sm:flex-row sm:justify-end",
-        className,
-      )}
-      {...props}
-    />
-  );
+  return <div className={cn(FOOTER, className)} {...props} />;
 }
 
 function AlertDialogTitle({
@@ -75,11 +87,7 @@ function AlertDialogTitle({
   ...props
 }: React.ComponentProps<typeof AlertDialogPrimitive.Title>) {
   return (
-    <AlertDialogPrimitive.Title
-      // Kept identical to DialogTitle — the two files are forks and had drifted.
-      className={cn("text-xl leading-snug font-semibold", className)}
-      {...props}
-    />
+    <AlertDialogPrimitive.Title className={cn(TITLE, className)} {...props} />
   );
 }
 
@@ -89,7 +97,7 @@ function AlertDialogDescription({
 }: React.ComponentProps<typeof AlertDialogPrimitive.Description>) {
   return (
     <AlertDialogPrimitive.Description
-      className={cn("text-muted-foreground text-base", className)}
+      className={cn(DESCRIPTION, className)}
       {...props}
     />
   );
@@ -122,6 +130,7 @@ function AlertDialogCancel({
 export {
   AlertDialog,
   AlertDialogAction,
+  AlertDialogBody,
   AlertDialogCancel,
   AlertDialogContent,
   AlertDialogDescription,

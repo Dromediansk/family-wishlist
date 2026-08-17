@@ -3,6 +3,7 @@
 import { useState, useTransition } from "react";
 
 import { Button } from "@/components/ui/button";
+import { DialogBody, DialogFooter } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -23,6 +24,13 @@ type Props = {
 };
 
 const EMPTY: WishFormValues = { title: "", description: "", url: "" };
+
+/**
+ * Whichever button the footer ends up showing. Full width on a phone, so the
+ * thumb has the whole edge to aim at; its natural width once the footer turns
+ * into a row.
+ */
+const ACTION_BUTTON = "w-full sm:w-auto";
 
 /** Shared by the add and edit dialogs — title required, the rest optional. */
 export function WishForm({
@@ -61,79 +69,90 @@ export function WishForm({
     });
   }
 
+  /*
+   * The form is the dialog's whole body-and-footer, not a block sitting inside
+   * it: it stretches to fill the panel so the fields can scroll in the middle
+   * while the button stays pinned to the bottom edge. On a phone that edge is
+   * the screen's, which is the point — the thumb never has to go looking for
+   * the button. `min-h-0` is what lets the form shrink to the panel instead of
+   * to its own content; see the region contract on `DialogContent`.
+   */
   return (
-    <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-      <div className="flex flex-col gap-2">
-        <Label htmlFor="wish-title">Názov</Label>
-        <Input
-          id="wish-title"
-          value={values.title}
-          onChange={(event) => update("title", event.target.value)}
-          placeholder="napr. Vlnené ponožky, veľkosť 42"
-          maxLength={120}
-          autoFocus
-          required
-        />
-      </div>
+    <form onSubmit={handleSubmit} className="flex min-h-0 flex-1 flex-col">
+      <DialogBody className="flex flex-col gap-4">
+        <div className="flex flex-col gap-2">
+          <Label htmlFor="wish-title">Názov</Label>
+          <Input
+            id="wish-title"
+            value={values.title}
+            onChange={(event) => update("title", event.target.value)}
+            placeholder="napr. Vlnené ponožky, veľkosť 42"
+            maxLength={120}
+            autoFocus
+            required
+          />
+        </div>
 
-      <div className="flex flex-col gap-2">
-        <Label htmlFor="wish-description">
-          Popis <span className="text-muted-foreground">(nepovinné)</span>
-        </Label>
-        <Textarea
-          id="wish-description"
-          value={values.description}
-          onChange={(event) => update("description", event.target.value)}
-          placeholder="Farba, veľkosť alebo čokoľvek iné, čo je dobré vedieť."
-          maxLength={1000}
-        />
-      </div>
+        <div className="flex flex-col gap-2">
+          <Label htmlFor="wish-description">
+            Popis <span className="text-muted-foreground">(nepovinné)</span>
+          </Label>
+          <Textarea
+            id="wish-description"
+            value={values.description}
+            onChange={(event) => update("description", event.target.value)}
+            placeholder="Farba, veľkosť alebo čokoľvek iné, čo je dobré vedieť."
+            maxLength={1000}
+          />
+        </div>
 
-      <div className="flex flex-col gap-2">
-        <Label htmlFor="wish-url">
-          Odkaz <span className="text-muted-foreground">(nepovinné)</span>
-        </Label>
-        <Input
-          id="wish-url"
-          type="url"
-          inputMode="url"
-          value={values.url}
-          onChange={(event) => update("url", event.target.value)}
-          placeholder="https://…"
-        />
-      </div>
+        <div className="flex flex-col gap-2">
+          <Label htmlFor="wish-url">
+            Odkaz <span className="text-muted-foreground">(nepovinné)</span>
+          </Label>
+          <Input
+            id="wish-url"
+            type="url"
+            inputMode="url"
+            value={values.url}
+            onChange={(event) => update("url", event.target.value)}
+            placeholder="https://…"
+          />
+        </div>
 
-      {failure ? (
-        <p className="text-destructive" role="alert">
-          {failure.error}
-        </p>
-      ) : null}
+        {failure ? (
+          <p className="text-destructive" role="alert">
+            {failure.error}
+          </p>
+        ) : null}
+      </DialogBody>
 
-      {/* Full width on a phone, so the thumb has the whole edge to aim at. */}
-      {refused ? (
-        /*
-         * Nothing typed into this form can be saved now, so the way out
-         * replaces the way forward rather than sitting next to it disabled.
-         */
-        <Button
-          type="button"
-          size="lg"
-          variant="outline"
-          className="w-full sm:ml-auto sm:w-auto"
-          onClick={onDone}
-        >
-          Zavrieť
-        </Button>
-      ) : (
-        <Button
-          type="submit"
-          size="lg"
-          className="w-full sm:ml-auto sm:w-auto"
-          disabled={pending || values.title.trim() === ""}
-        >
-          {pending ? pendingLabel : submitLabel}
-        </Button>
-      )}
+      <DialogFooter>
+        {refused ? (
+          /*
+           * Nothing typed into this form can be saved now, so the way out
+           * replaces the way forward rather than sitting next to it disabled.
+           */
+          <Button
+            type="button"
+            size="lg"
+            variant="outline"
+            className={ACTION_BUTTON}
+            onClick={onDone}
+          >
+            Zavrieť
+          </Button>
+        ) : (
+          <Button
+            type="submit"
+            size="lg"
+            className={ACTION_BUTTON}
+            disabled={pending || values.title.trim() === ""}
+          >
+            {pending ? pendingLabel : submitLabel}
+          </Button>
+        )}
+      </DialogFooter>
     </form>
   );
 }

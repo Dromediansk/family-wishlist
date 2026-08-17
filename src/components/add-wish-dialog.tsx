@@ -40,12 +40,12 @@ export function AddWishDialog({
           Pridať želanie
         </Button>
       </DialogTrigger>
-      <DialogContent className="max-w-md">
+      {/* `sm:`-qualified, or the width leaks down and un-fullscreens the phone. */}
+      <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>Pridať želanie</DialogTitle>
           <DialogDescription>
-            Pridá sa do tvojho vlastného zoznamu. Nedozvieš sa, či si ho niekto
-            rezervoval.
+            Pridá sa do tvojho vlastného zoznamu.
           </DialogDescription>
         </DialogHeader>
         <WishForm

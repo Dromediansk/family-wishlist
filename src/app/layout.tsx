@@ -61,6 +61,21 @@ export const metadata: Metadata = {
  * `viewportFit: "cover"` lets the installed app draw under the notch and the
  * home indicator; the safe-area padding on the container below keeps content
  * out from under them.
+ *
+ * `interactiveWidget: "resizes-content"` is here for the dialogs, oddly enough.
+ * A dialog is full-screen on a phone with its submit button pinned to the
+ * bottom edge, and by default the on-screen keyboard is laid *over* the
+ * viewport — so the button the reader is typing towards ends up behind it.
+ * Asking for the content to be resized instead shrinks the layout viewport, the
+ * panel shrinks with it, and the button rides up above the keyboard.
+ *
+ * Chromium honours this; **Safari does not implement `interactive-widget` at
+ * all**, so on an iPhone the keyboard still covers the footer. Nothing becomes
+ * unreachable — the dialog's middle scrolls, so every field can be brought into
+ * view, and dismissing the keyboard brings the button back — but do not read
+ * this line as having solved iOS. There is no CSS-only fix.
+ *
+ * It has to live here because a viewport can only be declared document-wide.
  */
 export const viewport: Viewport = {
   themeColor: [
@@ -72,6 +87,7 @@ export const viewport: Viewport = {
   ],
   colorScheme: "light dark",
   viewportFit: "cover",
+  interactiveWidget: "resizes-content",
 };
 
 /**
