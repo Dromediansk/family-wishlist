@@ -36,6 +36,11 @@ yarn-error.log*
 # One pattern covers every one of them, at any depth — supabase/.env.example included —
 # without this needing an edit each time another is added.
 !.env*.example
+# And .env.development is committed rather than copied: it holds the local stack's
+# address and the CLI's public demo keys, which are the same on every machine. The
+# file itself explains why that is not a secret. Overrides go in .env.development.local,
+# which the rule above still ignores.
+!.env.development
 
 # vercel
 .vercel

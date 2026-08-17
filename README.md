@@ -70,7 +70,7 @@ in Docker instead; see [A local database](#a-local-database).
 ### 3. Configure the app
 
 ```bash
-cp .env.example .env.local
+cp .env.example .env.production.local
 ```
 
 Fill in from **Project Settings → API**:
@@ -82,22 +82,32 @@ Fill in from **Project Settings → API**:
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | The **anon** key. Required — it carries the session |
 
 > The service_role key bypasses row level security. It must never be prefixed
-> with `NEXT_PUBLIC_` and must never reach the browser. `.env.local` is
-> gitignored; on a host, set it as a secret.
+> with `NEXT_PUBLIC_` and must never reach the browser. `.env.production.local`
+> is gitignored; on a host, set it as a secret.
 >
 > The anon key is the opposite: it is *meant* to reach the browser. It opens no
 > table — see [below](#live-updates).
+
+These are the values your host needs, and the ones a local `npm run build && npm
+start` reads. **Development does not use them**: `npm run dev` reads the
+committed `.env.development` and talks to the database in Docker instead, which
+is the next section.
 
 ### 4. Run it
 
 ```bash
 npm install
+npm run db:start     # the local database; see A local database for its one-time setup
 npm run dev
 ```
 
 Open [localhost:3000](http://localhost:3000) and sign in. The first person to
 sign in becomes the admin, and everyone who follows waits in **Manage family**
 until that admin lets them in.
+
+> Would rather develop against the hosted project than install Docker? Copy
+> `.env.example` to `.env.development.local` as well — it outranks
+> `.env.development`, so `npm run dev` uses it and no Docker is needed.
 
 ## A local database
 
@@ -149,28 +159,32 @@ Fill in the client ID and secret. The CLI reads dotenv files from `supabase/`
 first, then the repo root, and resolves every `env(...)` in `config.toml` from
 them. This file is gitignored.
 
-**3. Start it and copy the keys out.**
+**3. Start it.**
 
 ```bash
 npm run db:start     # first run fetches the CLI and pulls images; several minutes
-npm run db:status
 ```
 
-```bash
-cp .env.development.local.example .env.development.local
-```
+There is no third step, and nothing to copy: the address and keys are already in
+[`.env.development`](.env.development), committed. The stack's `anon` and
+`service_role` keys are the `supabase-demo` JWTs the CLI ships with, signed with
+its built-in default secret — the same strings on every machine, addressing
+nothing but `127.0.0.1`. There was never anything machine-specific to paste, so
+the file is checked in rather than templated.
 
-Fill in `SUPABASE_SERVICE_ROLE_KEY` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` from
-what `db:status` printed.
+Two filenames are doing the work. Next resolves `.env.development.local` →
+`.env.local` → `.env.development` → `.env`, so a file called `.env.local`
+would outrank `.env.development` in development and quietly point `npm run dev`
+at the hosted project. Keeping the production values in
+`.env.production.local` leaves that slot empty: `npm run dev` gets Docker,
+`npm run build && npm start` gets the hosted project, and neither file is ever
+swapped out. `.env.development.local` stays free as an override, which is what
+the note at the end of [Run it](#4-run-it) uses.
 
-The filename matters. Next loads `.env.development.local` ahead of `.env.local`,
-and only when `NODE_ENV` is development — so `npm run dev` talks to Docker while
-`npm run build && npm start` still goes to the hosted project. Both work at once
-and neither file has to be swapped out.
-
-> If a value is missing or misspelled, `isConfigured()` in `src/lib/supabase.ts`
-> turns every page into the "connect your database" card and `src/proxy.ts`
-> stops checking auth, rather than throwing. That card is the symptom.
+> The symptom of a stack that is not running is a connection refused to
+> `127.0.0.1:54421`, not the "connect your database" card — the values are
+> present, there is just nothing answering on that port. The card means the
+> values themselves are missing, which now only happens to a production build.
 
 ### Day to day
 

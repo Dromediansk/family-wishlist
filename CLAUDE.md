@@ -18,11 +18,14 @@ UI language is **Slovak**. `README.md` explains the *why* behind everything belo
 
 Run `npm run typecheck && npm run lint && npm test` before claiming work is done.
 
-`npm run dev` talks to the local Docker stack, not the hosted project:
-`.env.development.local` outranks `.env.local` and is only loaded when `NODE_ENV`
-is development, so `npm run build && npm start` still reaches production.
-README's "A local database" section is the setup. Nothing works until
-`npm run db:start` is running.
+`npm run dev` talks to the local Docker stack, not the hosted project. The
+committed `.env.development` holds its address and the CLI's public demo keys —
+identical on every machine, so there is nothing to copy. Production values live
+in `.env.production.local`, **not** `.env.local`: Next resolves
+`.env.development.local` → `.env.local` → `.env.development`, so a `.env.local`
+would outrank the committed file and point `npm run dev` at production. Leave
+that name unused. README's "A local database" is the setup, and nothing works
+until `npm run db:start` is running.
 
 ## The one rule
 

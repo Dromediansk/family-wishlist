@@ -14,7 +14,7 @@
     "db:stop": "npm run supabase -- stop",
     "db:status": "npm run supabase -- status",
     "db:reset": "npm run supabase -- db reset",
-    "db:seed": "node --env-file-if-exists=.env.development.local scripts/seed-dev.mjs"
+    "db:seed": "node --env-file-if-exists=.env.development --env-file-if-exists=.env.development.local scripts/seed-dev.mjs"
   },
   "dependencies": {
     "@radix-ui/react-alert-dialog": "^1.1.23",

@@ -45,7 +45,7 @@ export function SetupRequired() {
           </code>{" "}
           do{" "}
           <code className="bg-muted rounded px-1.5 py-0.5 font-mono text-sm">
-            .env.local
+            .env.production.local
           </code>{" "}
           a doplň URL svojho projektu a kľúč{" "}
           <strong className="text-foreground">service_role</strong>.

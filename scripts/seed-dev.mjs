@@ -34,7 +34,8 @@ const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 if (!url || !serviceKey) {
   fail(
     "NEXT_PUBLIC_SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY must both be set.\n" +
-      "Copy .env.development.local.example to .env.development.local and fill it in from `npm run db:status`.",
+      "They are committed in .env.development, so this most likely means that file was\n" +
+      "emptied or is being overridden — check .env.development.local and your shell.",
   );
 }
 
@@ -49,8 +50,8 @@ const host = new URL(url).hostname;
 if (!LOOPBACK.has(host)) {
   fail(
     `Refusing to seed ${host} — this only ever runs against the local stack.\n` +
-      "NEXT_PUBLIC_SUPABASE_URL is pointing somewhere that is not loopback, which means\n" +
-      "the environment being loaded is not .env.development.local.",
+      "NEXT_PUBLIC_SUPABASE_URL is pointing somewhere that is not loopback, so something\n" +
+      "is outranking .env.development — a .env.development.local, or your shell.",
   );
 }
 
