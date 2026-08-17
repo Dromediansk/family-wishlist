@@ -96,6 +96,6 @@ export const config = {
      *     installing the app.
      *   * Static image files.
      */
-    "/((?!_next/static|_next/image|auth/|favicon.ico|manifest.webmanifest|icon|apple-icon|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico)$).*)",
+    "/((?!_next/static|_next/image|auth/|manifest.webmanifest|icon|apple-icon|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico)$).*)",
   ],
 };
