@@ -31,7 +31,6 @@ export type ViewerWishRow = OwnerWishRow & {
 };
 
 export type ClaimedWishRow = OwnerWishRow & {
-  claimed_at: string | null;
   owner: { id: string; name: string } | { id: string; name: string }[];
 };
 
@@ -71,6 +70,41 @@ export function toClaimedWish(row: ClaimedWishRow): ClaimedWish {
   return {
     ...toOwnerWish(row),
     owner: owner ? { id: owner.id, name: owner.name } : { id: "", name: "?" },
-    claimedAt: row.claimed_at,
+  };
+}
+
+/** Every way an owner's delete or edit can be turned down, in one place. */
+const REFUSALS = {
+  delete: {
+    reserved: "Toto želanie už má niekto rezervované, preto ho nemôžeš vymazať.",
+    notYours: "Mazať môžeš len vlastné želania.",
+  },
+  update: {
+    reserved: "Toto želanie už má niekto rezervované, preto ho nemôžeš upraviť.",
+    notYours: "Upravovať môžeš len vlastné želania.",
+  },
+} as const;
+
+/**
+ * Why a delete or an edit was turned down.
+ *
+ * An owner may not change a wish somebody has already reserved, so those two
+ * actions have two ways to match no rows: the wish isn't theirs, or it is
+ * taken. Only the wording differs — and it never says by whom, which is the
+ * one thing the owner still must not learn. A `row` of null means nothing
+ * matched on id and owner at all.
+ *
+ * Always `final`: nothing the owner can do in the dialog they are standing in
+ * will change either answer, so it closes rather than leaving a button that
+ * fails every time it is pressed. Only the person holding it can release it.
+ */
+export function refusalFor(
+  row: { claimed_by: string | null } | null,
+  operation: "delete" | "update",
+): { error: string; final: true } {
+  const messages = REFUSALS[operation];
+  return {
+    error: row?.claimed_by != null ? messages.reserved : messages.notYours,
+    final: true,
   };
 }

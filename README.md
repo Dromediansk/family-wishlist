@@ -6,8 +6,12 @@ the same gift.
 
 The rule the whole app is built around:
 
-> **You never find out that something on your own list has been claimed.**
+> **Your own list never tells you that something on it has been claimed.**
 > Everyone else sees it. You don't.
+
+With one deliberate exception, and only if you go looking: a wish somebody has
+reserved can no longer be deleted or edited by its owner, and the refusal says
+so. It never says who reserved it.
 
 ## How it works
 
@@ -41,10 +45,18 @@ You need a free Supabase project, and a Google OAuth client.
    DDL — do not run it. Live updates need no database changes, and it explains
    which tempting change would break the app.
 
-4. Finally run
+4. Run
    [`supabase/migrations/0004_claim_notices.sql`](supabase/migrations/0004_claim_notices.sql).
    It adds the buyer-notice table and its triggers. It deletes nothing and
    alters no existing table.
+
+5. Finally run
+   [`supabase/migrations/0005_drop_claim_notices.sql`](supabase/migrations/0005_drop_claim_notices.sql),
+   which drops that table and both triggers again. A reserved wish can no longer
+   be deleted or rewritten by its owner, so there is nothing left for them to
+   report. It is a forward migration rather than an edit to `0004` because
+   production already had `0004` pasted in; on a fresh database you still need
+   both, in order. It touches no wish and no member.
 
 This is the production path, and it stays manual on purpose — see
 [Never run these](#never-run-these). For development there is a local database
@@ -208,7 +220,7 @@ run beside another local Supabase project without either having to be stopped.
 ### Resetting and seeding
 
 ```bash
-npm run db:reset     # drop everything, re-apply 0001–0004, then supabase/seed.sql
+npm run db:reset     # drop everything, re-apply 0001–0005, then supabase/seed.sql
 ```
 
 `db:reset` wipes `auth.users` too, so the loop after it is:
@@ -223,15 +235,15 @@ family_members)`, so any seeded member would make that false and leave your real
 sign-in stuck as `pending`, waiting on an admin who does not exist.
 [`supabase/seed.sql`](supabase/seed.sql) is therefore empty of members, and
 [`scripts/seed-dev.mjs`](scripts/seed-dev.mjs) builds the fake family around the
-row your sign-in created: three relatives, ten wishes, claims running in both
-directions, and both kinds of claim notice. Re-running it is safe.
+row your sign-in created: three relatives, ten wishes, and claims running in
+both directions. Re-running it is safe.
 
-The notices are provoked rather than inserted — the seed edits and deletes
-wishes that are already claimed, so what lands in the table is whatever the
-triggers in `0004_claim_notices.sql` actually write.
+Two of your own four wishes end up reserved, which is the state the UI cannot
+put you in: your list says nothing about either, and trying to delete or edit
+them is what the refusal looks like.
 
 Nothing about the migrations changed for this. `supabase db reset` applies
-`0001` through `0004` in order; the CLI accepts the `0001_`-style names as they
+`0001` through `0005` in order; the CLI accepts the `0001_`-style names as they
 are. It also applies `0002_realtime.sql`, which the setup section above says not
 to run — harmless, because that file is entirely comments and contains no DDL.
 
@@ -364,13 +376,24 @@ in each of them rather than at the entrance.
   someone for good, delete the user under **Authentication** in the Supabase
   dashboard; that cascades to their member row and wishes.
 - **Deleting a member** deletes their wishes, and releases anything they had
-  claimed on other people's lists back to unclaimed.
-- **If you delete or rewrite a wish someone had claimed**, *you* are told
-  nothing — the dialog and the result are identical either way, because a "this
-  is reserved, are you sure?" prompt would be the leak. They are told, on their
-  *What I'm buying* page: "bolo … → teraz …", or that you removed it.
+  claimed on other people's lists back to unclaimed. This is the one way a
+  reserved wish still disappears from under its buyer.
+- **You cannot delete or rewrite a wish someone has already reserved.** The bin
+  and the pencil behave exactly as they always did — the same dialog, the same
+  form — but confirming is refused: "Toto želanie už má niekto rezervované."
+  Never who. The dialog then turns into that answer, with one **Zavrieť**
+  button, rather than leaving you a Vymazať that fails every time you press it.
+  Wait until they release it, or ask the family.
+
+  This is the one place your own list admits a claim, and it is a real hole in
+  the surprise: clicking the bin on each of your wishes would tell you which are
+  taken. It replaced the older behaviour, where the delete quietly succeeded and
+  the buyer found out afterwards on *Čo kupujem* — better to keep the gift than
+  to keep the secret from someone determined to break it.
 - **Two people claiming at once**: the claim is a conditional update, so the
   second one is told the item is already taken rather than silently overwriting.
+  The refusal above works the same way — `claimed_by is null` is part of the
+  `WHERE` clause, not a check performed before it.
 - There must always be at least one admin, so the last one can't be demoted or
   removed.
 

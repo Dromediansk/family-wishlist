@@ -4,7 +4,6 @@ import { cache } from "react";
 
 import { resolveAccess, type Access } from "@/lib/access";
 import { sortMemberSummaries, toMemberSummary } from "@/lib/members";
-import { NOTICE_COLUMNS, type NoticeRow } from "@/lib/notices";
 import { getSupabase } from "@/lib/supabase";
 import { getAuthUser } from "@/lib/supabase-auth";
 import type {
@@ -264,50 +263,15 @@ export async function getWishListFor(
   };
 }
 
-/**
- * What happened to the things this member is buying, while they weren't looking.
- *
- * Written by trigger when an owner deletes or rewrites a claimed wish (see
- * supabase/migrations/0004_claim_notices.sql). Addressed to the buyer and read
- * on their behalf only — this table and `countNoticesFor` below must never be
- * reached from a code path serving a list's owner. There is no viewer-shaped
- * and owner-shaped pair of these the way there is for wishes, because an owner
- * has no business seeing one at all.
- */
-export const getNoticesFor = cache(
-  async (memberId: string): Promise<NoticeRow[]> => {
-    const supabase = getSupabase();
-    const { data, error } = await supabase
-      .from("claim_notices")
-      .select(NOTICE_COLUMNS)
-      .eq("claimer_id", memberId)
-      .order("created_at", { ascending: false });
-
-    if (error) throw error;
-    return (data ?? []) as unknown as NoticeRow[];
-  },
-);
-
-/**
- * How many of those are waiting — a number, nothing more.
- *
- * Counted from the rows rather than with a separate `head: true` query, unlike
- * `countPendingAccounts` above. The header badges this on every page and
- * /buying reads the rows anyway, so a second round trip with the same
- * `claimer_id` predicate would be pure duplicate I/O on the one page that
- * matters most; `getNoticesFor` is memoised per render, so this is free there
- * and one query everywhere else. The set is bounded by what you have claimed.
- */
-export const countNoticesFor = async (memberId: string): Promise<number> =>
-  (await getNoticesFor(memberId)).length;
-
 /** Everything the current member has claimed, across all lists. */
 export async function getClaimedBy(memberId: string): Promise<ClaimedWish[]> {
   const supabase = getSupabase();
   const { data, error } = await supabase
     .from("wishes")
-    .select(`${OWNER_WISH_COLUMNS}, claimed_at, owner:member_id (id, name)`)
+    .select(`${OWNER_WISH_COLUMNS}, owner:member_id (id, name)`)
     .eq("claimed_by", memberId)
+    // Newest reservation first. Ordering does not need the column selected,
+    // and nothing on the page shows a date, so it stays out of the projection.
     .order("claimed_at", { ascending: false });
 
   if (error) throw error;

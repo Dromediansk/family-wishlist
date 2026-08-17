@@ -69,7 +69,6 @@ export type ViewerWish = OwnerWish & {
 /** A wish the current member has claimed, with whose list it came from. */
 export type ClaimedWish = OwnerWish & {
   owner: { id: string; name: string };
-  claimedAt: string | null;
 };
 
 /** Discriminated so a component can never render the wrong view by accident. */
@@ -78,56 +77,23 @@ export type WishListView =
   | { viewerIsOwner: false; wishes: ViewerWish[] };
 
 /**
- * Everything `WishRow` displays.
- *
- * Structural, so that a wish which no longer exists can still be rendered: a
- * cancelled reservation on "Čo kupujem" is drawn from the notice that outlived
- * it, and has no wish id or creation date to offer.
+ * Everything `WishRow` displays — and the narrowing is the point. Handed a
+ * `ViewerWish` on someone else's list, the row cannot reach `claimedBy` or
+ * `claimedAt` through this type, so it cannot render a claim by accident.
  */
 export type Displayable = Pick<OwnerWish, "title" | "description" | "url">;
 
-/** One field of a reserved wish that the owner rewrote after it was claimed. */
-export type WishChange = {
-  field: "title" | "description" | "url";
-  before: string | null;
-  after: string | null;
-};
-
-/** A wish you are still buying, possibly rewritten since you reserved it. */
-export type ActiveItem = {
-  kind: "active";
-  key: string;
-  wish: ClaimedWish;
-  /**
-   * Also reachable as `wish.owner.name`. Named alongside the cancelled half's
-   * copy so both rows render through one code path rather than two that drift.
-   */
-  ownerName: string;
-  /** Null unless the owner rewrote it after you reserved it. */
-  change: { noticeId: string; fields: WishChange[] } | null;
-};
-
-/** A wish you were buying that the owner deleted. */
-export type CancelledItem = {
-  kind: "cancelled";
-  key: string;
-  wish: Displayable;
-  ownerName: string;
-  noticeId: string;
-};
-
 /**
- * A row on "Čo kupujem".
+ * What every Server Action returns. Expected failures are values, not throws.
  *
- * Discriminated the way `WishListView` is, because the two halves mean
- * different things: one is a wish that still exists, the other is a message
- * about one that does not. They deliberately share field names and shapes so
- * the page renders them with a single `WishRow`.
- *
- * Note which way this information travels. Everything here is built for the
- * person doing the buying, from a table the list's owner never reads; nothing on
- * an owner's code path may ever construct one of these.
+ * `final` means the same call will fail the same way however many times it is
+ * repeated, so the UI should stop offering the button rather than leave one
+ * that visibly does nothing. A validation message or a dropped connection is
+ * not final; being refused a reserved wish is.
  */
-export type BuyingItem = ActiveItem | CancelledItem;
+export type ActionResult =
+  | { ok: true }
+  | { ok: false; error: string; final?: boolean };
 
-export type ActionResult = { ok: true } | { ok: false; error: string };
+/** The failed half, for components that hold on to one to render it. */
+export type ActionFailure = Extract<ActionResult, { ok: false }>;

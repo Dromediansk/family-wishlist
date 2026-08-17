@@ -2,14 +2,17 @@ import { describe, expect, it } from "vitest";
 
 import {
   OWNER_WISH_COLUMNS,
+  refusalFor,
   toOwnerWish,
   toViewerWish,
   type ViewerWishRow,
 } from "@/lib/wishes";
 
 /**
- * The whole app hinges on one rule: the owner of a list must never learn that
- * one of their wishes has been claimed. These tests pin that down.
+ * The owner of a list must never learn *who* claimed one of their wishes, and
+ * a list they are only reading must never carry claim data at all. Refusing a
+ * delete or an edit is the one place the owner is told that a wish of theirs is
+ * reserved; these tests pin down both halves.
  */
 
 const claimedRow: ViewerWishRow = {
@@ -93,5 +96,53 @@ describe("toViewerWish", () => {
 
     expect(wish.claimedBy).toBeNull();
     expect(wish.claimedAt).toBeNull();
+  });
+});
+
+describe("refusalFor", () => {
+  const claimerId = "22222222-2222-4222-8222-222222222222";
+  const reserved = { claimed_by: claimerId };
+  const free = { claimed_by: null };
+
+  it("says the wish is reserved when deleting one somebody holds", () => {
+    expect(refusalFor(reserved, "delete").error).toBe(
+      "Toto želanie už má niekto rezervované, preto ho nemôžeš vymazať.",
+    );
+  });
+
+  it("says the same when editing one somebody holds", () => {
+    expect(refusalFor(reserved, "update").error).toBe(
+      "Toto želanie už má niekto rezervované, preto ho nemôžeš upraviť.",
+    );
+  });
+
+  it("never names the person holding it", () => {
+    expect(refusalFor(reserved, "delete").error).not.toContain(claimerId);
+    expect(refusalFor(reserved, "update").error).not.toContain(claimerId);
+  });
+
+  it("falls back to the ownership message for a row that is not reserved", () => {
+    // Unreserved and unmatched are the same answer: whatever went wrong, it was
+    // not a claim, so the owner learns nothing about claims either way.
+    expect(refusalFor(free, "delete").error).toBe(
+      "Mazať môžeš len vlastné želania.",
+    );
+    expect(refusalFor(free, "update").error).toBe(
+      "Upravovať môžeš len vlastné želania.",
+    );
+  });
+
+  it("falls back to the same message when nothing matched at all", () => {
+    expect(refusalFor(null, "delete").error).toBe(
+      "Mazať môžeš len vlastné želania.",
+    );
+    expect(refusalFor(null, "update").error).toBe(
+      "Upravovať môžeš len vlastné želania.",
+    );
+  });
+
+  it("marks a refusal final, so no dialog offers a retry that cannot work", () => {
+    expect(refusalFor(reserved, "delete").final).toBe(true);
+    expect(refusalFor(null, "update").final).toBe(true);
   });
 });

@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import type { ActionResult } from "@/lib/types";
+import type { ActionFailure, ActionResult } from "@/lib/types";
 
 export type WishFormValues = {
   title: string;
@@ -33,8 +33,15 @@ export function WishForm({
   onDone,
 }: Props) {
   const [values, setValues] = useState<WishFormValues>(initial ?? EMPTY);
-  const [error, setError] = useState<string | null>(null);
+  const [failure, setFailure] = useState<ActionFailure | null>(null);
   const [pending, startTransition] = useTransition();
+
+  /**
+   * The action says retrying cannot help, so there is nothing to submit any
+   * more. A validation message leaves this false, and fixing the title and
+   * submitting again works exactly as it always did.
+   */
+  const refused = failure?.final === true;
 
   function update(field: keyof WishFormValues, value: string) {
     setValues((previous) => ({ ...previous, [field]: value }));
@@ -42,11 +49,11 @@ export function WishForm({
 
   function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    setError(null);
+    setFailure(null);
     startTransition(async () => {
       const result = await onSubmit(values);
       if (!result.ok) {
-        setError(result.error);
+        setFailure(result);
         return;
       }
       if (!initial) setValues(EMPTY);
@@ -96,21 +103,37 @@ export function WishForm({
         />
       </div>
 
-      {error ? (
+      {failure ? (
         <p className="text-destructive" role="alert">
-          {error}
+          {failure.error}
         </p>
       ) : null}
 
       {/* Full width on a phone, so the thumb has the whole edge to aim at. */}
-      <Button
-        type="submit"
-        size="lg"
-        className="w-full sm:ml-auto sm:w-auto"
-        disabled={pending || values.title.trim() === ""}
-      >
-        {pending ? pendingLabel : submitLabel}
-      </Button>
+      {refused ? (
+        /*
+         * Nothing typed into this form can be saved now, so the way out
+         * replaces the way forward rather than sitting next to it disabled.
+         */
+        <Button
+          type="button"
+          size="lg"
+          variant="outline"
+          className="w-full sm:ml-auto sm:w-auto"
+          onClick={onDone}
+        >
+          Zavrieť
+        </Button>
+      ) : (
+        <Button
+          type="submit"
+          size="lg"
+          className="w-full sm:ml-auto sm:w-auto"
+          disabled={pending || values.title.trim() === ""}
+        >
+          {pending ? pendingLabel : submitLabel}
+        </Button>
+      )}
     </form>
   );
 }

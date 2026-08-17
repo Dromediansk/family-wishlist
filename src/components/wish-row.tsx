@@ -5,18 +5,15 @@ import type { Displayable } from "@/lib/types";
 
 /**
  * The wish itself — title, optional description, optional link. Claim status is
- * never rendered here; the caller decides what, if anything, to put in `action`
- * and `footer`.
+ * never rendered here; the caller decides what, if anything, to put in `action`.
  */
 export function WishRow({
   wish,
   action,
-  footer,
   dimmed = false,
 }: {
   wish: Displayable;
   action?: React.ReactNode;
-  footer?: React.ReactNode;
   dimmed?: boolean;
 }) {
   return (
@@ -52,7 +49,6 @@ export function WishRow({
         </div>
         {action ? <div className="shrink-0 sm:pt-0.5">{action}</div> : null}
       </div>
-      {footer}
     </li>
   );
 }

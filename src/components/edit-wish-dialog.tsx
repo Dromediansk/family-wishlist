@@ -25,7 +25,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { WishForm } from "@/components/wish-form";
-import type { OwnerWish } from "@/lib/types";
+import type { ActionFailure, OwnerWish } from "@/lib/types";
 
 /** Edit and delete controls, shown only on your own list. */
 export function EditWishDialog({ wish }: { wish: OwnerWish }) {
@@ -60,11 +60,24 @@ export function EditWishDialog({ wish }: { wish: OwnerWish }) {
 }
 
 export function DeleteWishButton({ wish }: { wish: OwnerWish }) {
-  const [error, setError] = useState<string | null>(null);
+  const [failure, setFailure] = useState<ActionFailure | null>(null);
   const [pending, startTransition] = useTransition();
 
+  /**
+   * A refused delete cannot be retried into working — only the person holding
+   * the wish can change that — so the dialog stops asking and turns into the
+   * answer. Leaving "Vymazať" there to fail again reads as a broken button.
+   */
+  const refused = failure?.final === true;
+
   return (
-    <AlertDialog>
+    <AlertDialog
+      onOpenChange={(open) => {
+        // The failure belongs to the attempt, not to the wish: reopening asks
+        // again, because by then the reservation may well have been released.
+        if (!open) setFailure(null);
+      }}
+    >
       <AlertDialogTrigger asChild>
         <Button
           variant="ghost"
@@ -77,31 +90,40 @@ export function DeleteWishButton({ wish }: { wish: OwnerWish }) {
       </AlertDialogTrigger>
       <AlertDialogContent className="max-w-md">
         <AlertDialogHeader>
-          <AlertDialogTitle>Vymazať „{wish.title}“?</AlertDialogTitle>
-          <AlertDialogDescription>
-            Natrvalo sa odstráni z tvojho zoznamu.
+          <AlertDialogTitle>
+            {refused
+              ? `Nedá sa vymazať „${wish.title}“`
+              : `Vymazať „${wish.title}“?`}
+          </AlertDialogTitle>
+          <AlertDialogDescription role={refused ? "alert" : undefined}>
+            {refused ? failure.error : "Natrvalo sa odstráni z tvojho zoznamu."}
           </AlertDialogDescription>
         </AlertDialogHeader>
-        {error ? (
+        {/* Something that failed but could yet succeed stays a question. */}
+        {failure && !refused ? (
           <p className="text-destructive" role="alert">
-            {error}
+            {failure.error}
           </p>
         ) : null}
         <AlertDialogFooter>
-          <AlertDialogCancel>Ponechať</AlertDialogCancel>
-          <AlertDialogAction
-            disabled={pending}
-            onClick={(event) => {
-              event.preventDefault();
-              setError(null);
-              startTransition(async () => {
-                const result = await deleteWish(wish.id);
-                if (!result.ok) setError(result.error);
-              });
-            }}
-          >
-            {pending ? "Mažem…" : "Vymazať"}
-          </AlertDialogAction>
+          <AlertDialogCancel>
+            {refused ? "Zavrieť" : "Ponechať"}
+          </AlertDialogCancel>
+          {refused ? null : (
+            <AlertDialogAction
+              disabled={pending}
+              onClick={(event) => {
+                event.preventDefault(); // keeps the dialog open on failure
+                setFailure(null);
+                startTransition(async () => {
+                  const result = await deleteWish(wish.id);
+                  if (!result.ok) setFailure(result);
+                });
+              }}
+            >
+              {pending ? "Mažem…" : "Vymazať"}
+            </AlertDialogAction>
+          )}
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>

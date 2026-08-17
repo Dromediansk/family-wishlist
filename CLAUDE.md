@@ -29,9 +29,10 @@ until `npm run db:start` is running.
 
 ## The one rule
 
-**A list owner must never learn that one of their own wishes has been claimed.**
-Everyone else sees claims; the owner does not. Every design oddity here follows
-from that. Enforced in eight places — change one and you must check the rest:
+**A list owner must never learn *who* claimed one of their own wishes, and must
+never be shown claims while reading their list.** Everyone else sees claims; the
+owner does not. Every design oddity here follows from that. Enforced in eight
+places — change one and you must check the rest:
 
 1. `getWishListFor` (`src/lib/queries.ts`) selects `OWNER_WISH_COLUMNS` on the
    owner path, so claim columns never leave the database.
@@ -53,33 +54,68 @@ that arithmetic — "3 / 5" on your own card would say two of yours are taken:
 `MemberCard` therefore shows a bare total for your own list — and also for any
 empty list, where "0 / 0" would just be noise.
 
-### The one channel that runs the other way
+### The deliberate exception: a reserved wish is frozen
 
-Everything above hides claims from the owner. `claim_notices` exists to tell the
-**buyer** something: when an owner deletes or rewrites a wish that was already
-reserved, a trigger writes a row addressed to whoever reserved it, and `/buying`
-shows "bolo … → teraz …" or "odstránil zo svojho zoznamu" with a Rozumiem
-button. It does not weaken the rule, and the reasons are the design:
+The rule above governs *reading*. Writing has one carve-out, and it is the only
+place the app ever admits a claim to an owner.
 
-- The owner's delete and edit are identical whether or not the wish was claimed
-  — same dialog wording, same `{ ok: true }`. A "this is reserved, are you sure?"
-  prompt *would be* the leak. That is why the notice is written by a trigger in
-  `0004_claim_notices.sql` rather than by branching inside the Server Action:
-  `OLD` only exists in a trigger, and no future code path can forget it.
-- `wishes` is untouched — deletes stay hard deletes — so every count on the
-  family grid stays correct with no new filter to forget. A total that *failed*
-  to drop after a delete would say "that one was claimed" as loudly as a badge.
-- Only `getNoticesFor` and `countNoticesFor` read the table, only ever for the
-  member the row is addressed to.
+**An owner cannot delete or edit a wish somebody has reserved.** The bin still
+opens the same confirmation dialog and the pencil still opens the same form —
+nothing on the list itself is disabled or badged — but on confirm the Server
+Action refuses with "Toto želanie už má niekto rezervované, preto ho nemôžeš
+vymazať." (or "…upraviť."). It never says by whom, and that part is not
+negotiable.
 
-`toBuyingItems` (`src/lib/notices.ts`) is pure and pinned by
-`src/lib/notices.test.ts`, including that a cancelled row carries no claim field.
+This is a **known, accepted** hole in the surprise: an owner who clicks the bin
+on every wish learns which of them are taken. It was chosen over the previous
+design, where the owner's delete silently succeeded and the buyer was told
+afterwards through `claim_notices`. Do not "fix" the inconsistency by hiding the
+refusal, and do not extend it by showing claim state on the owner's list.
+
+How it is enforced — four things, in this order:
+
+1. `.is("claimed_by", null)` sits in the `WHERE` clause of `updateWish` and
+   `deleteWish` (`src/app/actions/wishes.ts`), next to `.eq("member_id", …)`.
+   That is the whole guard, and it is race-free for the same reason
+   `claimWish`'s conditional update is: a claim landing first stops the row from
+   matching. Never replace it with a read-then-write.
+2. `refusalFor` in the same file reads `claimed_by` **only after** the write
+   matched nothing, and only to pick the wording. This is the one owner-serving
+   path allowed to select that column; the value never leaves the function, and
+   it must never migrate into `OWNER_WISH_COLUMNS`, `getWishListFor` or
+   `OwnerWish`.
+3. `refusalFor` (`src/lib/wishes.ts`) is pure and holds both sentences.
+4. `src/lib/wishes.test.ts` pins it down, including that no claimer id appears.
+
+### A refusal ends the dialog it happens in
+
+`ActionResult` carries an optional **`final`** alongside `error`: this call will
+fail the same way however often it is repeated. Every refusal above sets it; a
+Zod message or a dropped connection does not. Without that distinction the
+shared `WishForm` could not tell "somebody reserved it" from "the title is too
+long", and fixing a typo and resubmitting would stop working.
+
+Both dialogs then swap the way forward for the way out, because a button that
+visibly does nothing reads as a bug:
+
+- `DeleteWishButton` becomes "Nedá sa vymazať" with the reason as its
+  description and a single **Zavrieť**. It is a controlled `AlertDialog` purely
+  so the failure clears on close — reopening asks again, and by then the wish
+  may have been released.
+- `WishForm` replaces its submit button with **Zavrieť** (`onDone`). Its state
+  resets by itself: Radix unmounts dialog content when closed.
+
+A non-final failure keeps the old behaviour — the question stands, the error
+sits above the buttons, and the button can be pressed again.
+
+Because a reserved wish can no longer change or vanish, there is nothing left to
+tell the buyer after the fact. `claim_notices`, its two triggers and the whole
+`/buying` notice UI were removed in `0005_drop_claim_notices.sql`. Removing a
+member was never a third producer — the delete trigger's `select … from
+family_members` found no row by then and inserted nothing.
 
 Never do these:
 
-- Read `claim_notices` from any code path that serves a list's owner. It is
-  addressed to the buyer; there is no owner-shaped view of it and there must not
-  be one.
 - Add an RLS policy to any table. RLS is on with **zero policies** on purpose.
 - Enable `postgres_changes` — it is RLS-filtered and would push `claimed_by` to owners.
 - Put anything in `LIVE_PAYLOAD` (`src/lib/live.ts`). The ping is empty by design.
@@ -106,7 +142,9 @@ Reachable by direct POST, so each one must, in order:
    the first. A menu item you hid is not a guard; the URL is guessable.
 3. Validate input with Zod. **Error messages are Slovak.**
 4. Put ownership in the `WHERE` clause (`.eq("member_id", current.id)`) and check
-   `data.length === 0` rather than pre-checking with a separate read.
+   `data.length === 0` rather than pre-checking with a separate read. Anything
+   else that must hold at write time belongs in the same predicate — that is
+   where `.is("claimed_by", null)` lives on the owner's edit and delete.
 5. `revalidatePath("/", "layout")` then `await notifyChanged()`.
 
 Return `ActionResult`, never throw for expected failures.
@@ -119,9 +157,11 @@ Return `ActionResult`, never throw for expected failures.
   `0002_realtime.sql` is a comment file — **do not run it there**.
   `0003_auth.sql` truncates all data. `0004_claim_notices.sql` adds the
   buyer-notice table and its triggers; it deletes nothing and alters no existing
-  table.
+  table. `0005_drop_claim_notices.sql` drops all three again — it is a forward
+  migration rather than a deletion of `0004`, because production already had
+  `0004` pasted in by hand. It touches no wish and no member.
 
-  Locally they are applied by `npm run db:reset`, which runs all four in order.
+  Locally they are applied by `npm run db:reset`, which runs all five in order.
   It runs `0002` too — harmless, since that file is comments with no DDL. The
   CLI accepts the `0001_`-style names; they need no timestamp prefix.
 

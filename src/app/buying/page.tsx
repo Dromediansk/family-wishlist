@@ -2,14 +2,12 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { ArrowLeftIcon } from "lucide-react";
 
-import { ClaimNotice } from "@/components/claim-notice";
 import { ClaimButton } from "@/components/claim-button";
 import { SetupRequired } from "@/components/setup-required";
 import { WishRow } from "@/components/wish-row";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { toBuyingItems } from "@/lib/notices";
-import { getAccess, getClaimedBy, getNoticesFor } from "@/lib/queries";
+import { getAccess, getClaimedBy } from "@/lib/queries";
 import { isConfigured } from "@/lib/supabase";
 
 export default async function BuyingPage() {
@@ -22,13 +20,10 @@ export default async function BuyingPage() {
 
   const currentMember = access.member;
 
-  const [claimed, notices] = await Promise.all([
-    getClaimedBy(currentMember.id),
-    getNoticesFor(currentMember.id),
-  ]);
-
-  // Cancellations and rewrites sort to the top; see toBuyingItems.
-  const items = toBuyingItems(claimed, notices);
+  // Every row here still exists: an owner cannot delete or rewrite a wish once
+  // it has been reserved, so nothing you hold can change or vanish underneath
+  // you. Releasing it yourself is the only way one leaves this page.
+  const claimed = await getClaimedBy(currentMember.id);
 
   return (
     <div className="space-y-6">
@@ -48,39 +43,29 @@ export default async function BuyingPage() {
         </p>
       </div>
 
-      {items.length === 0 ? (
+      {claimed.length === 0 ? (
         <Card className="text-muted-foreground items-center py-12 text-center">
           Zatiaľ nemáš nič rezervované.
         </Card>
       ) : (
         <Card className="py-2">
           <ul className="flex flex-col">
-            {/*
-             * One row shape for both halves. A cancelled row is dimmed and has
-             * nothing left to release — the wish it described is already gone —
-             * but is otherwise the same row, so it renders through the same
-             * call rather than a near-copy that drifts.
-             */}
-            {items.map((item) => (
+            {claimed.map((wish) => (
               <WishRow
-                key={item.key}
-                wish={item.wish}
-                dimmed={item.kind === "cancelled"}
+                key={wish.id}
+                wish={wish}
                 action={
                   <div className="flex flex-col items-end gap-2">
                     <span className="text-muted-foreground text-sm">
-                      pre: {item.ownerName}
+                      pre: {wish.owner.name}
                     </span>
-                    {item.kind === "active" ? (
-                      <ClaimButton
-                        wishId={item.wish.id}
-                        claimedByCurrentMember
-                        claimedByName={currentMember.name}
-                      />
-                    ) : null}
+                    <ClaimButton
+                      wishId={wish.id}
+                      claimedByCurrentMember
+                      claimedByName={currentMember.name}
+                    />
                   </div>
                 }
-                footer={<ClaimNotice item={item} />}
               />
             ))}
           </ul>

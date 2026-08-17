@@ -12,9 +12,10 @@
  * anything they had claimed is released by ON DELETE SET NULL plus the
  * clear_claim_timestamp trigger. Your own account and anything you added by hand survive.
  *
- * Claim notices are not inserted. They are provoked — by editing and deleting wishes that
- * are already claimed — so what ends up in the table is whatever the triggers in
- * 0004_claim_notices.sql actually write, not a guess at it.
+ * The claims are set with the service_role key rather than through claimWish, so this can
+ * put your own list into the one state the UI cannot: two of your wishes reserved, with
+ * nothing on the page saying which. Trying to delete or edit one of them is the refusal
+ * worth looking at.
  */
 
 import { createClient } from "@supabase/supabase-js";
@@ -105,28 +106,17 @@ const main = async () => {
     { title: "Stojan na maľovanie" },
   ]);
 
-  // You are buying for other people. These show up under /buying.
-  //
-  // Three, not two: the notices below can only be provoked on a wish somebody already
-  // holds — both triggers carry `when (old.claimed_by is not null)` — so the wish that
-  // gets rewritten and the wish that gets deleted have to be claimed here first.
+  // You are buying for other people. These show up under /buying, across two lists.
   await claim(hers[0].id, me.id);
   await claim(hers[1].id, me.id);
   await claim(his[0].id, me.id);
 
   // Other people are buying for you. The point of the exercise: none of this may be
   // visible on your own list, and your own card must show a bare total rather than
-  // "free / total".
+  // "free / total". The first and the third are the ones the owner cannot delete or
+  // edit — everything the app will tell you about them is that they are reserved.
   await claim(mine[0].id, zuzana.id);
   await claim(mine[2].id, marek.id);
-
-  // Now provoke the two claim notices, by doing to a claimed wish exactly what an
-  // unwitting owner would do to it.
-  await editAsOwner(hers[1].id, me.id, {
-    title: "Poukaz do kníhkupectva (radšej do papiernictva)",
-    url: "https://example.com/papiernictvo",
-  });
-  await deleteAsOwner(his[0].id, me.id);
 
   await report(me);
 };
@@ -166,14 +156,12 @@ const findAnchor = async () => {
 };
 
 /**
- * Back to a known state, in three parts — because only the first of them is free.
+ * Back to a known state, in two parts — because only the first of them is free.
  *
  * Deleting the seeded members takes their wishes with them (ON DELETE CASCADE) and
  * releases anything they had claimed (ON DELETE SET NULL, with clear_claim_timestamp
  * keeping claim_consistent true). Your own rows are untouched by that, so the wishes this
- * script put on *your* list have to go by title, and the notices addressed to you have to
- * go explicitly — claim_notices.wish_id is deliberately not a foreign key, so nothing
- * collects them when the wish they describe disappears.
+ * script put on *your* list have to go by title.
  */
 const clearPreviousSeed = async (me) => {
   const { data: members, error } = await db
@@ -196,22 +184,9 @@ const clearPreviousSeed = async (me) => {
 
   if (wishError) throw wishError;
 
-  // Every notice addressed to you, including any you provoked by hand — this script
-  // produces a known state, not a merge with whatever was there before. Nothing else
-  // collects them: claim_notices.wish_id is deliberately not a foreign key, so notices
-  // outlive the wishes and members they describe.
-  const { data: notices, error: noticeError } = await db
-    .from("claim_notices")
-    .delete()
-    .eq("claimer_id", me.id)
-    .select("id");
-
-  if (noticeError) throw noticeError;
-
   const removed = [
     members.length && `${members.length} member(s)`,
     wishes.length && `${wishes.length} of your wishes`,
-    notices.length && `${notices.length} notice(s)`,
   ].filter(Boolean);
 
   if (removed.length) console.log(`Cleared from a previous seed: ${removed.join(", ")}.`);
@@ -273,49 +248,9 @@ const claim = async (wishId, claimerId) => {
   if (error) throw error;
 };
 
-/**
- * The owner rewrites something that is already reserved, knowing nothing about the claim.
- * wishes_notice_edited turns that into a "bolo … → teraz …" row for whoever holds it.
- */
-const editAsOwner = async (wishId, expectedClaimer, changes) => {
-  const { error } = await db.from("wishes").update(changes).eq("id", wishId);
-  if (error) throw error;
-  await expectNotice(wishId, expectedClaimer, "edited");
-};
-
-/** Same idea, for wishes_notice_deleted. The wish is gone; the notice is not. */
-const deleteAsOwner = async (wishId, expectedClaimer) => {
-  const { error } = await db.from("wishes").delete().eq("id", wishId);
-  if (error) throw error;
-  await expectNotice(wishId, expectedClaimer, "deleted");
-};
-
-/**
- * The notices are the whole reason those two writes happen, so a silent trigger is a
- * failed seed rather than a cosmetic problem. Better to say so here than to leave an
- * empty /buying page looking like a bug in the page.
- */
-const expectNotice = async (wishId, claimerId, kind) => {
-  const { data, error } = await db
-    .from("claim_notices")
-    .select("id")
-    .eq("wish_id", wishId)
-    .eq("claimer_id", claimerId)
-    .eq("kind", kind);
-
-  if (error) throw error;
-  if (!data.length) {
-    fail(
-      `Expected a '${kind}' claim notice for wish ${wishId} and none was written.\n` +
-        "The triggers from 0004_claim_notices.sql are missing or did not fire — check\n" +
-        "`npm run db:reset` output for a migration that failed.",
-    );
-  }
-};
-
 const report = async (me) => {
   const counts = await Promise.all(
-    ["family_members", "wishes", "claim_notices"].map(async (table) => {
+    ["family_members", "wishes"].map(async (table) => {
       const { count, error } = await db.from(table).select("*", { count: "exact", head: true });
       if (error) throw error;
       return `${count} ${table}`;
@@ -331,8 +266,10 @@ const report = async (me) => {
       "Worth looking at, signed in as " + me.name + ":",
       "  /                 — your own card shows a bare total, not free / total.",
       "                      Two of your four wishes are claimed and none of them says so.",
+      "  /member/<you>     — try the bin on each of your four. Two are refused with",
+      "                      'už má niekto rezervované'; the same goes for editing them.",
       "  /member/<Zuzana>  — one of hers is claimed by you, and it says so.",
-      "  /buying           — two claims, plus an edited and a deleted notice.",
+      "  /buying           — three claims, across two lists.",
     ].join("\n"),
   );
 };
