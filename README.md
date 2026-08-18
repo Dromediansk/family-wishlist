@@ -349,6 +349,23 @@ one, making open tabs re-render. Neither reveals anything — there is nothing i
 the message. The migration note describes how to close the second one and why it
 isn't worth it here.
 
+### Why going back doesn't reload
+
+Tapping a member and then tapping back used to show a loading skeleton both
+ways. Next.js does keep visited pages in memory, but only for as long as
+`experimental.staleTimes.dynamic` allows — and its default is zero, so every
+page here was thrown away the moment you left it. Setting it to 60 seconds is
+what makes going back instant.
+
+That is only honest because of the ping. A page is replayed from memory only
+while nothing has changed anywhere: every write broadcasts, and every broadcast
+empties the whole cache in every tab. The 60 seconds is the ceiling for a tab
+whose socket died without saying so, not a freshness target.
+
+Nothing new is stored by doing this. The cache holds the same per-viewer pages
+the server had already decided to send, in memory, per tab, gone on reload —
+and an owner's own page has no claim data in it to cache in the first place.
+
 ## Sessions
 
 `src/proxy.ts` refreshes the access token on every request and writes the

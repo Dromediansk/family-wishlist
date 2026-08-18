@@ -249,6 +249,15 @@ scrolls, so nothing is unreachable. There is no CSS-only fix.
   prerendered or cached between visitors.
 - **No service worker**, deliberately — cached HTML could show an owner their own
   claims. `experimental.useOffline` in `next.config.ts` covers offline instead.
+- **The browser replays visited pages.** `experimental.staleTimes` in
+  `next.config.ts` (`dynamic: 60`) lets a route the viewer has already visited
+  render from memory instead of re-fetching, which is what stops the skeleton
+  appearing on the way back. It is honest only because every write pings and
+  every ping purges the whole cache via `syncFromLive`; the 60s is the ceiling
+  for a tab whose socket died silently. What is cached is the payload the server
+  had already redacted for that viewer, in memory, per tab, dropped on reload —
+  sign-in is a full page load and sign-out deletes the cookies, either of which
+  empties it, so no payload survives a change of who is looking.
 - Tests cover **pure functions only** (`access`, `live`, `wishes`, `members`,
   `manifest`, `utils`) —
   no mocks, no DB. Keep new logic pure enough to test that way.
