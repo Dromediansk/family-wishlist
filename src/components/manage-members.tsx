@@ -66,8 +66,8 @@ export function ManageMembers({
           </div>
           <ul className="flex flex-col gap-2">
             {waiting.map((account) => (
-              <li key={account.id} className="flex flex-wrap items-center gap-2">
-                <div className="min-w-[10rem] flex-1">
+              <li key={account.id} className="flex items-center gap-2">
+                <div className="min-w-0 flex-1">
                   <p className="truncate font-semibold">{account.name}</p>
                   <p className="text-muted-foreground truncate text-sm">
                     {account.email ?? "bez e-mailu"}
@@ -135,56 +135,68 @@ function MemberAdminRow({
 
   const renamed = name.trim() !== member.name && name.trim() !== "";
 
+  // Below sm: the role button is its icon alone, so this carries the name.
+  const roleHint =
+    member.role === "admin"
+      ? "Zmeniť na bežného člena"
+      : "Umožniť spravovať členov rodiny";
+
   return (
     <li className="flex flex-col gap-2 py-4">
-      {/* Wraps: at 44px tall the name field plus three controls no longer fit
-          across a phone, so the buttons drop to a second line instead. */}
-      <div className="flex flex-wrap items-center gap-2">
+      {/* The name field is three quarters of the row at every width and the two
+          controls share the rest — the role button is its icon alone below sm:,
+          which is what lets them fit a quarter of a phone. Nothing wraps:
+          `min-w-0` beats an input's ~20-character intrinsic minimum, so the
+          field is what yields the few pixels the two 44px targets need on a
+          narrow phone, and the wider yield when `Uložiť` appears mid-rename. */}
+      <div className="flex items-center gap-2">
         <Input
-          className="min-w-[10rem] flex-1"
+          className="w-3/4 min-w-0"
           value={name}
           onChange={(event) => setName(event.target.value)}
           maxLength={50}
           aria-label={`Meno pre ${member.name}`}
         />
-        {renamed ? (
+        <div className="flex flex-1 items-center justify-end gap-2">
+          {renamed ? (
+            <Button
+              disabled={pending}
+              onClick={() => run(() => renameMember(member.id, name))}
+            >
+              Uložiť
+            </Button>
+          ) : null}
           <Button
+            variant="outline"
+            className="px-3 sm:px-5"
             disabled={pending}
-            onClick={() => run(() => renameMember(member.id, name))}
+            title={roleHint}
+            aria-label={roleHint}
+            onClick={() =>
+              run(() =>
+                setMemberRole(
+                  member.id,
+                  member.role === "admin" ? "member" : "admin",
+                ),
+              )
+            }
           >
-            Uložiť
+            {member.role === "admin" ? <ShieldIcon /> : <UserRoundIcon />}
+            <span className="hidden sm:inline">
+              {member.role === "admin" ? "Správca" : "Člen"}
+            </span>
           </Button>
-        ) : null}
-        <Button
-          variant="outline"
-          disabled={pending}
-          title={
-            member.role === "admin"
-              ? "Zmeniť na bežného člena"
-              : "Umožniť spravovať členov rodiny"
-          }
-          onClick={() =>
-            run(() =>
-              setMemberRole(
-                member.id,
-                member.role === "admin" ? "member" : "admin",
-              ),
-            )
-          }
-        >
-          {member.role === "admin" ? <ShieldIcon /> : <UserRoundIcon />}
-          {member.role === "admin" ? "Správca" : "Člen"}
-        </Button>
-        <Button
-          variant="ghost"
-          size="icon"
-          className="text-muted-foreground hover:text-destructive"
-          aria-label={`Odstrániť ${member.name}`}
-          disabled={pending}
-          onClick={() => setConfirmingRemove((previous) => !previous)}
-        >
-          <Trash2Icon />
-        </Button>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="text-muted-foreground hover:text-destructive"
+            aria-label={`Odstrániť ${member.name}`}
+            disabled={pending}
+            onClick={() => setConfirmingRemove((previous) => !previous)}
+          >
+            <Trash2Icon />
+          </Button>
+        </div>
       </div>
 
       {email ? (
