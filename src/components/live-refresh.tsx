@@ -72,10 +72,20 @@ export function LiveRefresh() {
     let timer: ReturnType<typeof setTimeout> | undefined;
     let live = false;
     let everLive = false;
+    // At most one syncFromLive outstanding at a time. Without this, the 30s
+    // deaf-poll queues a fresh Server Action every tick it's down, and with
+    // useOffline holding failed actions rather than rejecting them, a phone
+    // left visible and offline for ten minutes would have ~20 of them fire at
+    // once on reconnect — each a full route re-render with its own auth call
+    // and queries. `router.refresh()` never had this problem: it queued
+    // refresh *navigations*, of which only the last survives.
+    let pending = false;
 
     const refresh = () => {
       clearTimeout(timer);
       timer = setTimeout(() => {
+        if (pending) return;
+        pending = true;
         startTransition(async () => {
           try {
             await syncFromLive();
@@ -84,6 +94,17 @@ export function LiveRefresh() {
             // catch up. But say so — a permanently failing sync and a healthy
             // one look identical from the outside otherwise.
             console.warn("Live sync failed:", error);
+          } finally {
+            // Runs even if syncFromLive rejects, so a failure can't wedge the
+            // guard shut. While offline, useOffline holds the pending action
+            // rather than rejecting it, so this may not run until
+            // reconnection — that's the point, one outstanding action rather
+            // than a pile of them — but it does mean the guard stays closed
+            // for the whole outage. It still opens the moment that action
+            // settles, and the tab recovers from there: the next ping, the
+            // next deaf-poll tick, or the visibilitychange catch-up will all
+            // schedule a fresh one.
+            pending = false;
           }
         });
       }, DEBOUNCE_MS);

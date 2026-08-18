@@ -63,13 +63,26 @@ flips without waiting for the round trip. No Zustand required for it either.
 
 A cached page is served **only** while no write has happened anywhere since it
 was rendered. The existing "something changed" broadcast is the invalidation
-signal — it already covers every mutation, because every Server Action in
-`src/app/actions/` calls both `revalidatePath("/", "layout")` and
-`notifyChanged()`, `approveMember` / `rejectMember` / `removeMember` included.
+signal — it covers every Server Action in `src/app/actions/`, because every one
+calls both `revalidatePath("/", "layout")` and `notifyChanged()`,
+`approveMember` / `rejectMember` / `removeMember` included, and it now also
+covers `rejoinTheQueue`'s own insert in `src/app/auth/callback/route.ts`. It
+does **not** cover every mutation in the app: when the `auth.users` trigger
+creates the member row
+first, on a genuinely new sign-up, `rejoinTheQueue` finds the row already there
+and returns before it would ping. That gap is bounded (an admin's cached
+`/family` queue) and is documented rather than fixed — see the callback route.
 
-Underneath that sits a 60-second ceiling, for a tab whose socket died silently
-and whose deaf-poll and visibility handler both missed. It is a safety net, not
-a freshness target.
+Underneath the Server Action path sits a 60-second ceiling, and it bounds only
+a `<Link>` navigation's replay. The browser's own Back/Forward buttons replay a
+cached page regardless of `staleTimes`, bounded solely by invalidation and
+never by time — Next keeps that behaviour "to prevent layout shift and to
+prevent losing the browser scroll position" independent of this setting. So the
+60s is a safety net for a tab whose socket believes it is still subscribed but
+has gone silent — where the deaf-poll and the visibility handler both stay
+quiet because they gate on `live`, which is still `true` — and only for the
+`<Link>` case; in that same tab, a Back navigation can replay a page that is
+arbitrarily old, with no ceiling under it at all.
 
 ### 1. Configuration
 
@@ -175,8 +188,17 @@ leak the render did not already have; it replays a decision the server made.
 
 - **Offline.** `useOffline: true` holds failed Server Actions and retries them on
   reconnect, so a ping landing during a signal drop is queued rather than lost —
-  better than `router.refresh()`, which simply fails. The debounce keeps that
-  queue from growing per ping.
+  better than `router.refresh()`, which simply fails. But it is worse on
+  amplification: Next's own docs say only the last pending *navigation*
+  collapses on reconnect, and Server Actions are explicitly called out as not
+  collapsing — each one fires once. The 30s deaf-poll would otherwise queue a
+  fresh `syncFromLive` call every tick it's down, so a tab left visible and
+  offline for ten minutes could fire ~20 of them at once at reconnect, each a
+  full route re-render. `live-refresh.tsx` guards against this with an
+  in-flight flag: at most one `syncFromLive` outstanding at a time, cleared in
+  a `finally` so a failure can't wedge it shut. The debounce still keeps a
+  healthy tab's queue from growing per ping; the guard is what keeps a dead one
+  from growing per poll.
 - **Silently dead socket.** Caught by the existing 30 s deaf-poll and the
   visibilitychange handler, with the 60 s TTL underneath as the last resort.
 - **`notifyChanged()` itself fails.** It catches and warns. The socket is

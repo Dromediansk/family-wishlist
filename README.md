@@ -351,16 +351,32 @@ isn't worth it here.
 
 ### Why going back doesn't reload
 
-Tapping a member and then tapping back used to show a loading skeleton both
-ways. Next.js does keep visited pages in memory, but only for as long as
-`experimental.staleTimes.dynamic` allows — and its default is zero, so every
-page here was thrown away the moment you left it. Setting it to 60 seconds is
-what makes going back instant.
+Tapping a member and then tapping "Všetci" to return used to show a loading
+skeleton both ways. That tap is a normal `<Link>` navigation, and Next only
+keeps a page like that in memory for as long as
+`experimental.staleTimes.dynamic` allows — 0 by default, so every page reached
+by a link was re-fetched the moment you tapped back to it. Setting it to 60
+seconds is what makes that instant.
 
-That is only honest because of the ping. A page is replayed from memory only
-while nothing has changed anywhere: every write broadcasts, and every broadcast
-empties the whole cache in every tab. The 60 seconds is the ceiling for a tab
-whose socket died without saying so, not a freshness target.
+The browser's own Back/Forward buttons were never subject to that default.
+Next replays a page across those regardless of `staleTimes`, to avoid layout
+shift and preserve scroll position, bounded only by invalidation and never by
+a time ceiling — pages were retained for history navigation all along; only
+`<Link>` navigations were the ones being thrown away. Which means the family
+grid could already go stale silently before this branch: sit on `/`, follow a
+member's list, have someone claim one of that member's wishes, then press the
+browser's Back button — the grid replayed from memory with its pre-claim
+counts, and nothing was going to correct it, because the only invalidation at
+the time was `router.refresh()`, which clears the Client Cache for the current
+route alone and is never even involved in a history navigation. `syncFromLive`
+(`revalidatePath("/", "layout")`) fixes that for real, not just for the new
+`<Link>` caching this branch turns on — it purges every route in the tab's
+cache on every ping, including ones only reachable by history navigation. So
+the 60 seconds bounds the `<Link>` case alone; a Back/Forward replay is bounded
+by the ping and nothing else, which matters for exactly one scenario: a tab
+whose socket believes it is still subscribed but has gone silent, where
+nothing else corrects it and a Back navigation there can replay a page that is
+arbitrarily old.
 
 Nothing new is stored by doing this. The cache holds the same per-viewer pages
 the server had already decided to send, in memory, per tab, gone on reload —

@@ -14,9 +14,20 @@ import { revalidatePath } from "next/cache";
  * it is on a first visit.
  *
  * An anonymous POST to this therefore re-renders the poster's own current route
- * and learns nothing. Re-deriving the caller here would put two auth round trips
- * back on the hottest path in the app — in every open tab, on every write — and
- * buy no safety at all.
+ * and learns nothing — there is nothing here to authorize, which is the whole
+ * reason for the exception. It does not rest on cost: `proxy.ts` already runs
+ * `getUser()` on this same POST and the re-render that follows pays
+ * `getAccess()` anyway, so deriving the caller here would add one duplicate
+ * auth call and one small `family_members` select, not "two round trips", and
+ * this is a family app with single-digit open tabs, not "the hottest path in
+ * the app".
+ *
+ * It stays safe only as long as nothing is cached server-side. `revalidatePath`
+ * is a cache-*mutating* primitive; today it's a no-op because of
+ * `force-dynamic` and no `use cache` anywhere in the app. The day this app
+ * adopts Cache Components, an unauthenticated call here becomes an
+ * unauthenticated, repeatable, global cache purge, and the caller check goes
+ * back in.
  */
 export async function syncFromLive(): Promise<void> {
   revalidatePath("/", "layout");
