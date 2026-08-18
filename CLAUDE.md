@@ -121,6 +121,10 @@ Never do these:
 - Put anything in `LIVE_PAYLOAD` (`src/lib/live.ts`). The ping is empty by design.
 - Skip the ping for the owner's tab. Every tab refreshes on every change; a tab
   that *didn't* refresh would itself be the tell.
+- Answer the ping with `router.refresh()`. It clears the Client Cache for the
+  current route only, so a family grid the viewer tapped away from would keep
+  its pre-change counts and be replayed from memory. `syncFromLive`
+  (`src/app/actions/live.ts`) purges all of it.
 
 ## Two Supabase clients — never mix them
 
@@ -148,6 +152,15 @@ Reachable by direct POST, so each one must, in order:
 5. `revalidatePath("/", "layout")` then `await notifyChanged()`.
 
 Return `ActionResult`, never throw for expected failures.
+
+Those five steps bind every action that touches data. There is exactly one
+exception, and it is not a precedent: `syncFromLive` (`src/app/actions/live.ts`)
+takes no input, reads no table and writes no row, so there is nothing to
+authorize — and step 1 could not apply anyway, since `getCurrentMember()`
+returns only approved members and a `pending` tab needs this ping to learn it
+was approved. Its docblock records the condition that keeps it safe: the day
+this app adopts Cache Components, the caller check goes back in. Anything that
+touches data follows all five.
 
 ## Dialogs
 
@@ -236,6 +249,15 @@ scrolls, so nothing is unreachable. There is no CSS-only fix.
   prerendered or cached between visitors.
 - **No service worker**, deliberately — cached HTML could show an owner their own
   claims. `experimental.useOffline` in `next.config.ts` covers offline instead.
+- **The browser replays visited pages.** `experimental.staleTimes` in
+  `next.config.ts` (`dynamic: 60`) lets a route the viewer has already visited
+  render from memory on a `<Link>` navigation, which is what stops the skeleton
+  appearing on the way back. It does not touch Back/Forward — Next replays
+  those regardless, bounded by invalidation alone. Both are honest because every
+  write pings and `syncFromLive` purges the whole cache; the 60s bounds only the
+  `<Link>` case, for a tab whose socket has gone silently deaf. What is cached
+  is the payload the server already redacted for that viewer, in memory, per
+  tab, dropped on reload. README, "Why going back doesn't reload", has the why.
 - Tests cover **pure functions only** (`access`, `live`, `wishes`, `members`,
   `manifest`, `utils`) —
   no mocks, no DB. Keep new logic pure enough to test that way.

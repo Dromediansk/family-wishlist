@@ -319,8 +319,9 @@ as nobody opened devtools.
 
 So the server broadcasts an **empty message**. It says "something changed" and
 nothing else — not what changed, not whose list, not who did it. Every open tab
-answers it by calling `router.refresh()`, which re-runs the page on the server
-as whoever is signed in there. The redaction is applied where it always was, in
+answers it by calling `syncFromLive`, a Server Action that throws away
+everything that tab has cached and re-runs the page on the server as whoever is
+signed in there. The redaction is applied where it always was, in
 `getWishListFor`, and no wish data ever travels over the socket.
 
 It also does one job it wasn't designed for: when an admin approves someone, the
@@ -335,6 +336,8 @@ adding a wish.
 - `src/lib/live.ts` — the channel name and the deliberately empty payload,
   pinned by `src/lib/live.test.ts`
 - `src/lib/realtime.ts` — the server side, called by every Server Action
+- `src/app/actions/live.ts` — `syncFromLive`, the one Server Action that reads
+  nothing and writes nothing
 - `src/components/live-refresh.tsx` — the browser side, mounted once in the root
   layout
 - `supabase/migrations/0002_realtime.sql` — no DDL, just the reasoning above
@@ -345,6 +348,33 @@ finds it two things: they can watch an empty message go past, and they can send
 one, making open tabs re-render. Neither reveals anything — there is nothing in
 the message. The migration note describes how to close the second one and why it
 isn't worth it here.
+
+### Why going back doesn't reload
+
+Tapping a member and then tapping "Všetci" to return used to show a loading
+skeleton both ways. That tap is a normal `<Link>` navigation, and Next only
+keeps a page like that in memory for as long as
+`experimental.staleTimes.dynamic` allows — 0 by default, so every page reached
+by a link was re-fetched the moment you tapped back to it. Setting it to 60
+seconds is what makes that instant.
+
+The browser's own Back/Forward buttons were never subject to that default —
+Next replays a page across those regardless of `staleTimes`, to avoid layout
+shift and keep scroll position. Which means the family grid could already go
+stale before any of this: sit on `/`, follow a member's list, have someone
+claim one of that member's wishes, then press Back — the grid replayed with its
+pre-claim counts, and `router.refresh()` was never going to correct it, because
+it clears the current route alone and is not involved in a history navigation
+at all. `syncFromLive` (`revalidatePath("/", "layout")`) purges every route in
+the tab's cache on every ping, which fixes that too. So the 60 seconds bounds
+the `<Link>` case alone; a Back/Forward replay is bounded by the ping, which
+leaves exactly one scenario — a tab whose socket believes it is still
+subscribed but has gone silent, where a Back navigation can replay a page that
+is arbitrarily old.
+
+Nothing new is stored by doing this. The cache holds the same per-viewer pages
+the server had already decided to send, in memory, per tab, gone on reload —
+and an owner's own page has no claim data in it to cache in the first place.
 
 ## Sessions
 

@@ -1,22 +1,23 @@
 "use client";
 
-import { useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { startTransition, useEffect } from "react";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 
+import { syncFromLive } from "@/app/actions/live";
 import { LIVE_EVENT, LIVE_TOPIC } from "@/lib/live";
 
 /**
  * Keeps every open tab in step with the database.
  *
  * Listens for the content-free "something changed" ping sent by the Server
- * Actions (see `src/lib/realtime.ts`) and answers it with `router.refresh()`.
- * That re-runs the Server Components for the current route with this visitor's
- * cookie, so the per-viewer claim redaction is re-applied on the server and no
- * wish data ever has to travel over the socket.
+ * Actions (see `src/lib/realtime.ts`) and answers it with `syncFromLive`, which
+ * purges this tab's whole Client Cache and re-renders under this visitor's
+ * cookie — so the per-viewer claim redaction is re-applied on the server and no
+ * wish data ever travels over the socket. Not `router.refresh()`, which reaches
+ * the current route only; CLAUDE.md has the rule and `live.ts` the mechanism.
  *
- * `router.refresh()` merges the new RSC payload without discarding client
- * state, so an open dialog and its half-typed input survive an update landing.
+ * The response is merged into the running tree rather than replacing it, so an
+ * open dialog and its half-typed input survive an update landing.
  */
 
 /** A burst of writes should cost one re-render, not one each. */
@@ -55,8 +56,6 @@ function getClient(): SupabaseClient | null {
 }
 
 export function LiveRefresh() {
-  const router = useRouter();
-
   useEffect(() => {
     const supabase = getClient();
     if (!supabase) return;
@@ -64,10 +63,35 @@ export function LiveRefresh() {
     let timer: ReturnType<typeof setTimeout> | undefined;
     let live = false;
     let everLive = false;
+    // At most one syncFromLive outstanding. The debounce collapses a burst of
+    // pings, but not the 30s deaf-poll, which would queue one action per tick
+    // while offline — useOffline holds those rather than rejecting them, so the
+    // whole pile would fire at reconnect, each a full route re-render. A ping
+    // arriving while one is in flight is dropped, not queued; the next ping,
+    // poll tick or visibility change picks it up.
+    let pending = false;
 
     const refresh = () => {
       clearTimeout(timer);
-      timer = setTimeout(() => router.refresh(), DEBOUNCE_MS);
+      timer = setTimeout(() => {
+        if (pending) return;
+        pending = true;
+        startTransition(async () => {
+          try {
+            await syncFromLive();
+          } catch (error) {
+            // Cosmetic — the deaf-poll and the staleTimes ceiling both catch
+            // up. Logged anyway: a permanently failing sync is invisible
+            // otherwise.
+            console.warn("Live sync failed:", error);
+          } finally {
+            // Runs even if syncFromLive rejects, so a failure can't wedge the
+            // guard shut. Offline, useOffline holds the action, so this waits
+            // for reconnection — one outstanding call instead of a pile.
+            pending = false;
+          }
+        });
+      }, DEBOUNCE_MS);
     };
 
     const channel = supabase
@@ -107,7 +131,7 @@ export function LiveRefresh() {
       // for the next mount.
       void supabase.removeChannel(channel);
     };
-  }, [router]);
+  }, []);
 
   return null;
 }
