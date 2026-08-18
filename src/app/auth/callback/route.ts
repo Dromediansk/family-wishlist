@@ -83,13 +83,12 @@ async function rejoinTheQueue(
     console.warn("Could not check for an existing member row:", lookupError);
     return;
   }
-  // The known gap: on a genuinely new sign-up the auth.users trigger
-  // (0003_auth.sql) always wins this race, so `existing` is already set and we
-  // return here without ever pinging. That leaves an admin's cached /family
-  // queue stale for up to the staleTimes ceiling. Detecting "was this insert
-  // done by the trigger, just now" would need more than this handler has
-  // cheaply available, for a bounded staleness on one admin-only page — not
-  // worth it. Not fixed here.
+  // Known gap: on a genuinely new sign-up the auth.users trigger
+  // (0003_auth.sql) wins this race, so we return here without pinging and an
+  // admin's cached /family queue goes uncorrected — until they reload or
+  // navigate by <Link> past the staleTimes ceiling, since a Back/Forward replay
+  // has no ceiling under it. Telling a trigger insert from any other is not
+  // worth it for one admin-only page.
   if (existing) return;
 
   const { error: insertError } = await supabase.from("family_members").insert({
@@ -107,11 +106,9 @@ async function rejoinTheQueue(
     return;
   }
 
-  // Only other open tabs need this: the browser that just signed in is doing a
-  // full document load, so its own Client Cache is empty regardless of
-  // whether we ping. No revalidatePath here — this handler responds with a
-  // redirect, not a render, so there is no route on this request to
-  // revalidate; the point is telling *other* tabs a member row appeared.
+  // For other tabs only — the browser that just signed in is doing a full
+  // document load, so its own cache is empty either way. No revalidatePath:
+  // this handler answers with a redirect, so there is no route to revalidate.
   await notifyChanged();
 }
 

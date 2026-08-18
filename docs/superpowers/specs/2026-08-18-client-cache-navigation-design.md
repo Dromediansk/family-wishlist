@@ -1,7 +1,9 @@
 # Instant back-navigation via the Next.js Client Cache
 
 Date: 2026-08-18
-Status: approved, not yet implemented
+Status: implemented 2026-08-18. A design record, not living documentation —
+the shipped reasoning lives in README ("Why going back doesn't reload"),
+CLAUDE.md and the code comments; this file is frozen at what was decided.
 
 ## The problem
 
@@ -74,15 +76,10 @@ and returns before it would ping. That gap is bounded (an admin's cached
 `/family` queue) and is documented rather than fixed — see the callback route.
 
 Underneath the Server Action path sits a 60-second ceiling, and it bounds only
-a `<Link>` navigation's replay. The browser's own Back/Forward buttons replay a
-cached page regardless of `staleTimes`, bounded solely by invalidation and
-never by time — Next keeps that behaviour "to prevent layout shift and to
-prevent losing the browser scroll position" independent of this setting. So the
-60s is a safety net for a tab whose socket believes it is still subscribed but
-has gone silent — where the deaf-poll and the visibility handler both stay
-quiet because they gate on `live`, which is still `true` — and only for the
-`<Link>` case; in that same tab, a Back navigation can replay a page that is
-arbitrarily old, with no ceiling under it at all.
+a `<Link>` navigation's replay — Back/Forward replays are bounded by
+invalidation alone. It is a safety net for a tab whose socket believes it is
+still subscribed but has gone silent, where the deaf-poll and the visibility
+handler both stay quiet because they gate on `live`.
 
 ### 1. Configuration
 
@@ -96,10 +93,9 @@ experimental: {
 
 `dynamic: 60` is what lets a visited dynamic route's payload survive in memory,
 so returning to it replays instantly with no skeleton and no server request.
-`static` is absent: every route here is dynamic, so it would only govern how long
-the prefetched `loading.tsx` shells stay reusable, and Next's 5-minute default is
-already correct for a skeleton. Overriding it would cost extra requests and buy
-nothing.
+`static` is absent: every route here is dynamic, so it would only govern how
+long the prefetched `loading.tsx` shells stay reusable, and Next's 5-minute
+default is already correct for a skeleton.
 
 This fixes repeat visits. It does **not** fix a first visit: a route never
 visited is still a dynamic route with a `loading.tsx`, so Next prefetches only
@@ -188,17 +184,11 @@ leak the render did not already have; it replays a decision the server made.
 
 - **Offline.** `useOffline: true` holds failed Server Actions and retries them on
   reconnect, so a ping landing during a signal drop is queued rather than lost —
-  better than `router.refresh()`, which simply fails. But it is worse on
-  amplification: Next's own docs say only the last pending *navigation*
-  collapses on reconnect, and Server Actions are explicitly called out as not
-  collapsing — each one fires once. The 30s deaf-poll would otherwise queue a
-  fresh `syncFromLive` call every tick it's down, so a tab left visible and
-  offline for ten minutes could fire ~20 of them at once at reconnect, each a
-  full route re-render. `live-refresh.tsx` guards against this with an
-  in-flight flag: at most one `syncFromLive` outstanding at a time, cleared in
-  a `finally` so a failure can't wedge it shut. The debounce still keeps a
-  healthy tab's queue from growing per ping; the guard is what keeps a dead one
-  from growing per poll.
+  better than `router.refresh()`, which simply fails. It is worse on
+  amplification: only the last pending *navigation* collapses on reconnect,
+  never Server Actions, so the 30s deaf-poll would queue one `syncFromLive` per
+  tick it's down and fire the pile at reconnect. `live-refresh.tsx` carries an
+  in-flight flag against that; the debounce alone only covers a healthy tab.
 - **Silently dead socket.** Caught by the existing 30 s deaf-poll and the
   visibilitychange handler, with the 60 s TTL underneath as the last resort.
 - **`notifyChanged()` itself fails.** It catches and warns. The socket is

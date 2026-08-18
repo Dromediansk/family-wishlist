@@ -10,23 +10,14 @@ import { LIVE_EVENT, LIVE_TOPIC } from "@/lib/live";
  * Keeps every open tab in step with the database.
  *
  * Listens for the content-free "something changed" ping sent by the Server
- * Actions (see `src/lib/realtime.ts`) and answers it by calling `syncFromLive`,
- * whose whole body is `revalidatePath("/", "layout")`. That purges this tab's
- * Client Cache — every route it has visited, not only the one on screen — and
- * the action's response re-renders the current route with this visitor's
- * cookie, so the per-viewer claim redaction is re-applied on the server and no
- * wish data ever has to travel over the socket.
+ * Actions (see `src/lib/realtime.ts`) and answers it with `syncFromLive`, which
+ * purges this tab's whole Client Cache and re-renders under this visitor's
+ * cookie — so the per-viewer claim redaction is re-applied on the server and no
+ * wish data ever travels over the socket. Not `router.refresh()`, which reaches
+ * the current route only; CLAUDE.md has the rule and `live.ts` the mechanism.
  *
- * `router.refresh()` used to do the second half of that, and cannot do the
- * first: it clears the Client Cache for the *current route only*. With
- * `staleTimes.dynamic` switched on in `next.config.ts`, a ping arriving while
- * the viewer sits on a wish list would refresh that list and leave the cached
- * family grid holding its pre-change counts — so tapping "Všetci" would land on
- * stale numbers, instantly, with no request to correct them.
- *
- * As with `router.refresh()` before it, the response is merged into the running
- * tree without discarding client state, so an open dialog and its half-typed
- * input survive an update landing.
+ * The response is merged into the running tree rather than replacing it, so an
+ * open dialog and its half-typed input survive an update landing.
  */
 
 /** A burst of writes should cost one re-render, not one each. */
@@ -72,13 +63,12 @@ export function LiveRefresh() {
     let timer: ReturnType<typeof setTimeout> | undefined;
     let live = false;
     let everLive = false;
-    // At most one syncFromLive outstanding at a time. Without this, the 30s
-    // deaf-poll queues a fresh Server Action every tick it's down, and with
-    // useOffline holding failed actions rather than rejecting them, a phone
-    // left visible and offline for ten minutes would have ~20 of them fire at
-    // once on reconnect — each a full route re-render with its own auth call
-    // and queries. `router.refresh()` never had this problem: it queued
-    // refresh *navigations*, of which only the last survives.
+    // At most one syncFromLive outstanding. The debounce collapses a burst of
+    // pings, but not the 30s deaf-poll, which would queue one action per tick
+    // while offline — useOffline holds those rather than rejecting them, so the
+    // whole pile would fire at reconnect, each a full route re-render. A ping
+    // arriving while one is in flight is dropped, not queued; the next ping,
+    // poll tick or visibility change picks it up.
     let pending = false;
 
     const refresh = () => {
@@ -90,20 +80,14 @@ export function LiveRefresh() {
           try {
             await syncFromLive();
           } catch (error) {
-            // Cosmetic: the deaf-poll below and the staleTimes ceiling both
-            // catch up. But say so — a permanently failing sync and a healthy
-            // one look identical from the outside otherwise.
+            // Cosmetic — the deaf-poll and the staleTimes ceiling both catch
+            // up. Logged anyway: a permanently failing sync is invisible
+            // otherwise.
             console.warn("Live sync failed:", error);
           } finally {
             // Runs even if syncFromLive rejects, so a failure can't wedge the
-            // guard shut. While offline, useOffline holds the pending action
-            // rather than rejecting it, so this may not run until
-            // reconnection — that's the point, one outstanding action rather
-            // than a pile of them — but it does mean the guard stays closed
-            // for the whole outage. It still opens the moment that action
-            // settles, and the tab recovers from there: the next ping, the
-            // next deaf-poll tick, or the visibilitychange catch-up will all
-            // schedule a fresh one.
+            // guard shut. Offline, useOffline holds the action, so this waits
+            // for reconnection — one outstanding call instead of a pile.
             pending = false;
           }
         });

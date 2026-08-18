@@ -155,22 +155,12 @@ Return `ActionResult`, never throw for expected failures.
 
 Those five steps bind every action that touches data. There is exactly one
 exception, and it is not a precedent: `syncFromLive` (`src/app/actions/live.ts`)
-takes no input, reads no table and writes no row — its whole body is
-`revalidatePath("/", "layout")`, which purges the *caller's own* Client Cache.
-An anonymous POST re-renders the poster's own current route and learns nothing.
-The exception stands on that alone, not on cost: `proxy.ts` already runs
-`getUser()` on this same POST and the re-render that follows pays `getAccess()`
-anyway, so deriving the caller here would add one duplicate auth call and one
-small `family_members` select — not "two round trips", and not on "the hottest
-path in the app" for a family-sized deployment. It is still skipped, because
-there is nothing here to authorize.
-
-It also stays safe only because nothing is cached server-side. `revalidatePath`
-is a cache-mutating primitive; today it is a no-op because of
-`force-dynamic` and no `use cache` anywhere, but the day this app adopts Cache
-Components, an unauthenticated `syncFromLive` becomes a repeatable, global
-cache purge, and the caller check has to go back in. Anything that touches data
-follows all five.
+takes no input, reads no table and writes no row, so there is nothing to
+authorize — and step 1 could not apply anyway, since `getCurrentMember()`
+returns only approved members and a `pending` tab needs this ping to learn it
+was approved. Its docblock records the condition that keeps it safe: the day
+this app adopts Cache Components, the caller check goes back in. Anything that
+touches data follows all five.
 
 ## Dialogs
 
@@ -261,18 +251,13 @@ scrolls, so nothing is unreachable. There is no CSS-only fix.
   claims. `experimental.useOffline` in `next.config.ts` covers offline instead.
 - **The browser replays visited pages.** `experimental.staleTimes` in
   `next.config.ts` (`dynamic: 60`) lets a route the viewer has already visited
-  render from memory instead of re-fetching on a `<Link>` navigation, which is
-  what stops the skeleton appearing on the way back. It does not touch the
-  browser's own Back/Forward buttons — Next replays those regardless of this
-  setting, bounded only by invalidation, never by a time ceiling. Both kinds of
-  replay are honest because every write pings and every ping purges the whole
-  cache via `syncFromLive`; the 60s only bounds the `<Link>` case, and exists
-  for a tab whose socket believes it is still subscribed but has gone silent —
-  the one case where a Back navigation in that tab can replay an arbitrarily
-  old page. What is cached is the payload the server had already redacted for
-  that viewer, in memory, per tab, dropped on reload — sign-in is a full page
-  load and sign-out deletes the cookies, either of which empties it, so no
-  payload survives a change of who is looking.
+  render from memory on a `<Link>` navigation, which is what stops the skeleton
+  appearing on the way back. It does not touch Back/Forward — Next replays
+  those regardless, bounded by invalidation alone. Both are honest because every
+  write pings and `syncFromLive` purges the whole cache; the 60s bounds only the
+  `<Link>` case, for a tab whose socket has gone silently deaf. What is cached
+  is the payload the server already redacted for that viewer, in memory, per
+  tab, dropped on reload. README, "Why going back doesn't reload", has the why.
 - Tests cover **pure functions only** (`access`, `live`, `wishes`, `members`,
   `manifest`, `utils`) —
   no mocks, no DB. Keep new logic pure enough to test that way.
