@@ -319,8 +319,9 @@ as nobody opened devtools.
 
 So the server broadcasts an **empty message**. It says "something changed" and
 nothing else — not what changed, not whose list, not who did it. Every open tab
-answers it by calling `router.refresh()`, which re-runs the page on the server
-as whoever is signed in there. The redaction is applied where it always was, in
+answers it by calling `syncFromLive`, a Server Action that throws away
+everything that tab has cached and re-runs the page on the server as whoever is
+signed in there. The redaction is applied where it always was, in
 `getWishListFor`, and no wish data ever travels over the socket.
 
 It also does one job it wasn't designed for: when an admin approves someone, the
@@ -335,6 +336,8 @@ adding a wish.
 - `src/lib/live.ts` — the channel name and the deliberately empty payload,
   pinned by `src/lib/live.test.ts`
 - `src/lib/realtime.ts` — the server side, called by every Server Action
+- `src/app/actions/live.ts` — `syncFromLive`, the one Server Action that reads
+  nothing and writes nothing
 - `src/components/live-refresh.tsx` — the browser side, mounted once in the root
   layout
 - `supabase/migrations/0002_realtime.sql` — no DDL, just the reasoning above

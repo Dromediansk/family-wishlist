@@ -121,6 +121,10 @@ Never do these:
 - Put anything in `LIVE_PAYLOAD` (`src/lib/live.ts`). The ping is empty by design.
 - Skip the ping for the owner's tab. Every tab refreshes on every change; a tab
   that *didn't* refresh would itself be the tell.
+- Answer the ping with `router.refresh()`. It clears the Client Cache for the
+  current route only, so a family grid the viewer tapped away from would keep
+  its pre-change counts and be replayed from memory. `syncFromLive`
+  (`src/app/actions/live.ts`) purges all of it.
 
 ## Two Supabase clients — never mix them
 
@@ -148,6 +152,15 @@ Reachable by direct POST, so each one must, in order:
 5. `revalidatePath("/", "layout")` then `await notifyChanged()`.
 
 Return `ActionResult`, never throw for expected failures.
+
+Those five steps bind every action that touches data. There is exactly one
+exception, and it is not a precedent: `syncFromLive` (`src/app/actions/live.ts`)
+takes no input, reads no table and writes no row — its whole body is
+`revalidatePath("/", "layout")`, which purges the *caller's own* Client Cache.
+An anonymous POST re-renders the poster's own current route and learns nothing.
+Deriving the caller there would put two auth round trips back on the hottest
+path in the app, in every open tab, on every write. Anything that touches data
+follows all five.
 
 ## Dialogs
 

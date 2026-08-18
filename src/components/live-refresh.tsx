@@ -1,22 +1,32 @@
 "use client";
 
-import { useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { startTransition, useEffect } from "react";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 
+import { syncFromLive } from "@/app/actions/live";
 import { LIVE_EVENT, LIVE_TOPIC } from "@/lib/live";
 
 /**
  * Keeps every open tab in step with the database.
  *
  * Listens for the content-free "something changed" ping sent by the Server
- * Actions (see `src/lib/realtime.ts`) and answers it with `router.refresh()`.
- * That re-runs the Server Components for the current route with this visitor's
+ * Actions (see `src/lib/realtime.ts`) and answers it by calling `syncFromLive`,
+ * whose whole body is `revalidatePath("/", "layout")`. That purges this tab's
+ * Client Cache — every route it has visited, not only the one on screen — and
+ * the action's response re-renders the current route with this visitor's
  * cookie, so the per-viewer claim redaction is re-applied on the server and no
  * wish data ever has to travel over the socket.
  *
- * `router.refresh()` merges the new RSC payload without discarding client
- * state, so an open dialog and its half-typed input survive an update landing.
+ * `router.refresh()` used to do the second half of that, and cannot do the
+ * first: it clears the Client Cache for the *current route only*. With
+ * `staleTimes.dynamic` switched on in `next.config.ts`, a ping arriving while
+ * the viewer sits on a wish list would refresh that list and leave the cached
+ * family grid holding its pre-change counts — so tapping "Všetci" would land on
+ * stale numbers, instantly, with no request to correct them.
+ *
+ * As with `router.refresh()` before it, the response is merged into the running
+ * tree without discarding client state, so an open dialog and its half-typed
+ * input survive an update landing.
  */
 
 /** A burst of writes should cost one re-render, not one each. */
@@ -55,8 +65,6 @@ function getClient(): SupabaseClient | null {
 }
 
 export function LiveRefresh() {
-  const router = useRouter();
-
   useEffect(() => {
     const supabase = getClient();
     if (!supabase) return;
@@ -67,7 +75,18 @@ export function LiveRefresh() {
 
     const refresh = () => {
       clearTimeout(timer);
-      timer = setTimeout(() => router.refresh(), DEBOUNCE_MS);
+      timer = setTimeout(() => {
+        startTransition(async () => {
+          try {
+            await syncFromLive();
+          } catch (error) {
+            // Cosmetic: the deaf-poll below and the staleTimes ceiling both
+            // catch up. But say so — a permanently failing sync and a healthy
+            // one look identical from the outside otherwise.
+            console.warn("Live sync failed:", error);
+          }
+        });
+      }, DEBOUNCE_MS);
     };
 
     const channel = supabase
@@ -107,7 +126,7 @@ export function LiveRefresh() {
       // for the next mount.
       void supabase.removeChannel(channel);
     };
-  }, [router]);
+  }, []);
 
   return null;
 }
