@@ -23,8 +23,13 @@ const nextConfig: NextConfig = {
      * replayed only while nothing has changed anywhere. This is the ceiling for
      * a tab whose socket died without saying so and whose 30s deaf-poll and
      * visibilitychange catch-up both missed.
+     *
+     * `static` is deliberately absent: with every route dynamic it governs only
+     * how long a prefetched `loading.tsx` shell stays reusable, and Next's
+     * 5-minute default is already the right answer for a skeleton. Overriding it
+     * would cost extra requests and buy nothing.
      */
-    staleTimes: { dynamic: 60, static: 180 },
+    staleTimes: { dynamic: 60 },
   },
 };
 

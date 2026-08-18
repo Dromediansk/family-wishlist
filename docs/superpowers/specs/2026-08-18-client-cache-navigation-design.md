@@ -77,14 +77,16 @@ a freshness target.
 // next.config.ts
 experimental: {
   useOffline: true,
-  staleTimes: { dynamic: 60, static: 180 },
+  staleTimes: { dynamic: 60 },
 }
 ```
 
 `dynamic: 60` is what lets a visited dynamic route's payload survive in memory,
 so returning to it replays instantly with no skeleton and no server request.
-`static: 180` mostly governs how long the prefetched `loading.tsx` shells stay
-reusable.
+`static` is absent: every route here is dynamic, so it would only govern how long
+the prefetched `loading.tsx` shells stay reusable, and Next's 5-minute default is
+already correct for a skeleton. Overriding it would cost extra requests and buy
+nothing.
 
 This fixes repeat visits. It does **not** fix a first visit: a route never
 visited is still a dynamic route with a `loading.tsx`, so Next prefetches only
