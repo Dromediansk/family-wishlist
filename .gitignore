@@ -48,7 +48,5 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
-# superpowers working notes — plans and specs are scratch for the agent that
-# wrote them, not documentation. The shipped reasoning lives in README and
-# CLAUDE.md; keeping these out of the repo stops them rotting into a second copy.
+
 /docs/superpowers/
