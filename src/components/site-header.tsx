@@ -9,13 +9,18 @@ import { countPendingAccounts, getAccess } from "@/lib/queries";
 import { isConfigured } from "@/lib/supabase";
 
 /**
- * The bar at the top of every page: the wordmark, and — for whoever is signed in
- * and approved — navigation and the account menu.
+ * The bar at the top of every signed-in page: the wordmark, and — for whoever is
+ * approved — navigation and the account menu.
  *
- * The right-hand half renders nothing until there is an approved member to
- * render it for. /login has nobody yet, and /pending has somebody the rest of
- * the app is meant to treat as a stranger; that page carries its own sign-out
- * button instead.
+ * Mounted by `src/app/(app)/layout.tsx`, not the root layout. That is the whole
+ * reason the route group exists: `/login` and the 404 sit outside it and render
+ * without a header, so this component is never asked to be chrome for a stranger.
+ *
+ * The right-hand half still renders nothing until there is an approved member to
+ * render it for, because two cases remain. /pending has somebody the rest of the
+ * app is meant to treat as a stranger; that page carries its own sign-out button
+ * instead. And a page's `redirect()` for an anonymous visitor races this layout,
+ * which can observe `anonymous` before the redirect lands.
  *
  * `getAccess` is memoised per render (see src/lib/queries.ts), so asking here
  * costs nothing on top of the page below asking the same question.

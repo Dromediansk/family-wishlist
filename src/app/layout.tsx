@@ -4,7 +4,6 @@ import localFont from "next/font/local";
 import { InstallPrompt } from "@/components/install-prompt";
 import { LiveRefresh } from "@/components/live-refresh";
 import { OfflineBanner } from "@/components/offline-banner";
-import { SiteHeader } from "@/components/site-header";
 import { THEME_COLORS } from "@/lib/theme-colors";
 
 import "./globals.css";
@@ -83,7 +82,10 @@ export const viewport: Viewport = {
       media: "(prefers-color-scheme: light)",
       color: THEME_COLORS.backgroundLight,
     },
-    { media: "(prefers-color-scheme: dark)", color: THEME_COLORS.backgroundDark },
+    {
+      media: "(prefers-color-scheme: dark)",
+      color: THEME_COLORS.backgroundDark,
+    },
   ],
   colorScheme: "light dark",
   viewportFit: "cover",
@@ -98,6 +100,23 @@ export const viewport: Viewport = {
  */
 export const dynamic = "force-dynamic";
 
+/**
+ * Everything here is for every visitor, signed in or not: the document, the
+ * font, the safe-area frame, the offline notice and the install nudge. The
+ * header is not — it lives in `(app)/layout.tsx`, so `/login` and the 404 render
+ * without it.
+ *
+ * `<InstallPrompt />` in particular stays document-level on purpose. The person
+ * most likely to install this is someone who has just landed on `/login` on a
+ * phone; putting the nudge behind sign-in would be a regression, not a tidy-up.
+ * The same goes for the offline notice, since signing in is itself a Server
+ * Action that would otherwise fail silently.
+ *
+ * There is deliberately no `<main>` at this level. Each child supplies its own,
+ * because a `<header>` nested inside `<main>` stops being the `banner` landmark:
+ * `(app)/layout.tsx` for the signed-in routes, `login/layout.tsx` for `/login`,
+ * and `not-found.tsx` for itself. A new route outside `(app)` owes one too.
+ */
 export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
@@ -108,8 +127,7 @@ export default function RootLayout({
         <LiveRefresh />
         <div className="mx-auto flex min-h-dvh w-full max-w-5xl flex-col px-4 pt-[max(1.5rem,env(safe-area-inset-top))] pb-[max(1.5rem,env(safe-area-inset-bottom))] sm:px-6 sm:pt-10 sm:pb-10">
           <OfflineBanner />
-          <SiteHeader />
-          <main className="flex-1">{children}</main>
+          {children}
           <InstallPrompt />
         </div>
       </body>
