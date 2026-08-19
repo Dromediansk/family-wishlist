@@ -8,7 +8,7 @@ person's hands; the wish is deleted and a permanent record takes its place.
 
 ## What happens
 
-One SQL statement — `fulfil_wish` in `0006_fulfilled_wishes.sql` — deletes the
+One SQL statement — `fulfil_wish` in `0007_fulfilled_wishes.sql` — deletes the
 wish and inserts the record together. Either both happen or neither does, so a
 gift can never be lost between the two.
 

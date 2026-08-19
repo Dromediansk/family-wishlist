@@ -155,7 +155,7 @@ in their hands.
 2. **`fulfilled_wishes` holds no live claims,** by construction: a row exists
    only because the wish it describes was deleted in the same statement. So
    `/received` can never become an oracle for what is currently reserved.
-3. **The `revoke execute` in `0006_fulfilled_wishes.sql` is load-bearing.**
+3. **The `revoke execute` in `0007_fulfilled_wishes.sql` is load-bearing.**
    Postgres grants `EXECUTE` on a new function to `PUBLIC`, so without it
    anyone holding the anon key could call `fulfil_wish` from devtools and
    delete a claimed wish while forging a history row — past the zero-policy
