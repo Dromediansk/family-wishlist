@@ -123,6 +123,25 @@ The preview is a `data:` URL rather than `URL.createObjectURL`. An object URL ha
 to be revoked by hand, and every path that forgets — a re-pick, a removal, a
 closed dialog — leaks a whole image for the life of the tab.
 
+## Looking at a photo
+
+A thumbnail on a wish opens the full picture in a `Dialog`
+([`WishPhotoDialog`](../../src/components/wish-photo-dialog.tsx)), not in a new
+tab. The tab was the first attempt and it was wrong in both places it runs:
+installed, the app is `display: "standalone"`, so `target="_blank"` hands the
+photo to a separate browser and the way back is a task switch; in a desktop tab
+it is whatever browser chrome is on screen, which is not the app's business. A
+dialog closes four ways — the X, the footer button, Escape, a click outside —
+and the list is still underneath, scrolled where it was.
+
+The footer button is not a spare X. The X sits in the top-right corner, which on
+a phone is the corner a thumb reaches last; the footer is where it reaches first.
+
+Inside the dialog the picture is **full width and its own height**, scrolling in
+the body. Fitting it to the panel instead would undo the reason the thumbnail
+opens at all: what people attach is usually a screenshot of a shop's page, and a
+screenshot scaled to fit a phone-tall panel is back to being unreadable.
+
 ## Layout contract
 
 The root layout deliberately has **no `<main>`**. Each child supplies its own

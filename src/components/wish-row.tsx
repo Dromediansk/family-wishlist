@@ -2,6 +2,7 @@ import { ExternalLinkIcon } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 import type { Displayable } from "@/lib/types";
+import { WishPhotoDialog } from "@/components/wish-photo-dialog";
 import { wishPhotoUrl } from "@/lib/wishes";
 
 /**
@@ -34,28 +35,10 @@ export function WishRow({
           {photo ? (
             /*
              * A thumbnail is too small to read a screenshot in, so it opens the
-             * full picture the same way the link beneath it opens a shop.
+             * full picture — in a dialog, so that closing it is one button and
+             * not a hunt for the browser's back.
              */
-            <a
-              href={photo}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="shrink-0"
-              aria-label={`Zobraziť fotku: ${wish.title}`}
-            >
-              {/*
-               * A plain <img>, as in the photo field: the optimizer would fetch
-               * /wish-photo server-side, without the visitor's session, and be
-               * answered with a 404, so there is nothing for it to do.
-               */}
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={photo}
-                alt=""
-                loading="lazy"
-                className="size-16 rounded-lg border object-cover sm:size-24"
-              />
-            </a>
+            <WishPhotoDialog src={photo} title={wish.title} />
           ) : null}
           <div className="min-w-0 space-y-1.5">
             <p className="text-lg leading-snug font-semibold break-words">
