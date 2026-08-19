@@ -36,7 +36,7 @@ data work).
 
 ## Where the rule is enforced
 
-Eight places, in two groups. Change one and the rest need checking.
+Nine places, in three groups. Change one and the rest need checking.
 
 ### Reading a list
 
@@ -68,6 +68,17 @@ already taken. So your own card shows the bare total.
 8. [`src/lib/members.test.ts`](../../src/lib/members.test.ts) pins it down.
 
 An empty list also shows a bare total, because "0 / 0" is noise.
+
+### Serving a photo
+
+An owner looking at their own list fetches their own photos, so the route that
+serves them is an owner-serving path like any other.
+
+9. The handler at
+   [`src/app/wish-photo/[wishId]/route.ts`](../../src/app/wish-photo/%5BwishId%5D/route.ts)
+   selects `photo_path` alone and never `claimed_by`. It answers 404 — not 403 —
+   to anyone it will not serve, so the response says nothing about which wishes
+   exist either.
 
 Live updates are the third surface the rule reaches — see
 [Live updates](live-updates.md).

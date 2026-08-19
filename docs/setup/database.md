@@ -26,6 +26,7 @@ in production.
 | `title` | 1–120 chars |
 | `description` | ≤ 1000 chars, nullable |
 | `url` | must match `^https?://`, nullable |
+| `photo_path` | Storage object key, nullable. Shape enforced by CHECK; the bytes live in the `wish-photos` bucket |
 | `claimed_by` | → `family_members(id)` `ON DELETE SET NULL`, indexed |
 | `claimed_at` | paired with `claimed_by` |
 | `created_at` | lists are ordered oldest first |
@@ -66,6 +67,7 @@ explicit `GRANT`s — in production too.
 | `0003_auth.sql` | Google sign-in: `auth_user_id`, `email`, `status`, the provisioning trigger | **`truncate family_members cascade`** |
 | `0004_claim_notices.sql` | The buyer-notice table and its two triggers | no |
 | `0005_drop_claim_notices.sql` | Drops all three again | touches no wish and no member |
+| `0006_wish_photo.sql` | Adds the nullable `photo_path` column | no |
 
 `0003_auth.sql` deletes every member and every wish. Identity moved from "a name
 you picked" to "a Google account", and there is no way to tell which account an
@@ -83,9 +85,29 @@ order. Why the notices went away at all:
 **In production: by hand**, pasted into the Supabase SQL editor, in order,
 skipping `0002`.
 
-**Locally**: `npm run db:reset` applies all five. It runs `0002` too, which is
+**Locally**: `npm run db:reset` applies all six. It runs `0002` too, which is
 harmless — that file is entirely comments with no DDL. The CLI accepts the
 `0001_`-style names; they need no timestamp prefix.
+
+## The `wish-photos` bucket
+
+`0006` adds the column that points at a photo; it does not create the place the
+photo goes. That is a Storage bucket, private, 2 MiB, and limited to
+`image/webp`, `image/jpeg` and `image/png`.
+
+**Locally** it is declared in `supabase/config.toml` and created by
+`npm run db:reset` — *not* by `supabase start`, which leaves an existing project
+alone. A stack that was running with `[storage] enabled = false` needs
+`npm run db:stop` before `npm run db:start`, or the storage containers never come
+up.
+
+**In production**: by hand in the dashboard, before pasting `0006`. See
+[Production setup](production.md).
+
+Like every table, the bucket has RLS on and **no policy**. Creating a bucket is
+not creating a policy; the `service_role` client is what reads and writes it, and
+[the route that serves a photo](../content/wishes.md#getting-one-out) is the only
+way anyone sees one.
 
 ## Never run these
 

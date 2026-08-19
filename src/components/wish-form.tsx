@@ -7,23 +7,36 @@ import { DialogBody, DialogFooter } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import {
+  WishPhotoField,
+  type WishPhotoChoice,
+} from "@/components/wish-photo-field";
 import type { ActionFailure, ActionResult } from "@/lib/types";
 
 export type WishFormValues = {
   title: string;
   description: string;
   url: string;
+  photo: WishPhotoChoice;
 };
 
 type Props = {
   initial?: WishFormValues;
+  /** The wish's current photo, when editing one that already has it. */
+  initialPhotoUrl?: string | null;
   submitLabel: string;
   pendingLabel: string;
   onSubmit: (values: WishFormValues) => Promise<ActionResult>;
   onDone: () => void;
 };
 
-const EMPTY: WishFormValues = { title: "", description: "", url: "" };
+const EMPTY: WishFormValues = {
+  title: "",
+  description: "",
+  url: "",
+  // On a new wish there is nothing to change, which is the same as no photo.
+  photo: { kind: "unchanged" },
+};
 
 /** Full width on a phone so the thumb has the whole edge to aim at. */
 const ACTION_BUTTON = "w-full sm:w-auto";
@@ -31,6 +44,7 @@ const ACTION_BUTTON = "w-full sm:w-auto";
 /** Shared by the add and edit dialogs — title required, the rest optional. */
 export function WishForm({
   initial,
+  initialPhotoUrl = null,
   submitLabel,
   pendingLabel,
   onSubmit,
@@ -47,7 +61,10 @@ export function WishForm({
    */
   const refused = failure?.final === true;
 
-  function update(field: keyof WishFormValues, value: string) {
+  function update<Field extends keyof WishFormValues>(
+    field: Field,
+    value: WishFormValues[Field],
+  ) {
     setValues((previous) => ({ ...previous, [field]: value }));
   }
 
@@ -110,6 +127,19 @@ export function WishForm({
             value={values.url}
             onChange={(event) => update("url", event.target.value)}
             placeholder="https://…"
+          />
+        </div>
+
+        <div className="flex flex-col gap-2">
+          <Label htmlFor="wish-photo">
+            Fotka <span className="text-muted-foreground">(nepovinné)</span>
+          </Label>
+          <WishPhotoField
+            id="wish-photo"
+            value={values.photo}
+            existingUrl={initialPhotoUrl}
+            disabled={pending}
+            onChange={(photo) => update("photo", photo)}
           />
         </div>
 
