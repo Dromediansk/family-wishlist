@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { ArrowLeftIcon } from "lucide-react";
+import { ArrowLeftIcon, HistoryIcon } from "lucide-react";
 
 import { ClaimButton } from "@/components/claim-button";
 import { FulfilWishButton } from "@/components/fulfil-wish-button";
@@ -36,11 +36,19 @@ export default async function BuyingPage() {
         </Button>
       </div>
 
-      <div>
-        <h1 className="text-2xl font-semibold text-balance">Čo kupujem</h1>
-        <p className="text-muted-foreground mt-1 max-w-[62ch]">
-          Všetko, čo máš rezervované naprieč všetkými zoznamami.
-        </p>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <h1 className="text-2xl font-semibold text-balance">Čo kupujem</h1>
+          <p className="text-muted-foreground mt-1 max-w-[62ch]">
+            Všetko, čo máš rezervované naprieč všetkými zoznamami.
+          </p>
+        </div>
+        <Button variant="ghost" size="sm" asChild>
+          <Link href="/buying/history">
+            <HistoryIcon />
+            História
+          </Link>
+        </Button>
       </div>
 
       {claimed.length === 0 ? (
