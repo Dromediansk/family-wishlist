@@ -14,10 +14,24 @@ import {
  *
  * A root `not-found.tsx` catches two different things: the `notFound()` thrown
  * by /member/[id] when the id in the URL belongs to nobody, and any URL the app
- * has no route for at all. Both land here, rendered inside the root layout — so
- * the wordmark, the font and the safe-area container come with it and there is
- * nothing to restate. `global-not-found.tsx` would bypass that layout and is
- * meant for apps with more than one root; this app has one.
+ * has no route for at all. Both land here, and both land here *without* the
+ * header: the boundary a root `not-found.tsx` creates sits inside the root
+ * layout but above `(app)/layout.tsx`, so a `notFound()` thrown inside the group
+ * unwinds past the header on its way out. Which is why this file brings its own
+ * `<main>` — and why the card below carries its own way back.
+ *
+ * Keeping a single file is deliberate. An `(app)/not-found.tsx` would restore
+ * the header for the member case, but it would not catch unmatched URLs, so the
+ * root file would have to stay and the card would end up written into two
+ * boundaries — or pulled into a shared component serving both, which is a real
+ * option this repo uses elsewhere (`SetupRequired`) and simply is not worth two
+ * files and an import for one variant of one page. The trade taken instead: a
+ * signed-in member following a stale /member link loses the chrome, and gets
+ * back through the card's own link. `global-not-found.tsx` is
+ * not the answer either — it bypasses the root layout, losing the font and the
+ * safe-area frame, and it is meant for apps with more than one root. This app
+ * has one, and under this file the font and the safe-area frame do still come
+ * with it.
  *
  * Nothing is fetched and nobody is redirected. A signed-out visitor who guesses
  * a URL sees this rather than the login page, because bouncing them would hide
@@ -26,21 +40,23 @@ import {
  */
 export default function NotFound() {
   return (
-    <Card className="mx-auto max-w-md">
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <MapPinOffIcon className="text-primary size-6 shrink-0" />
-          Takáto stránka tu nie je
-        </CardTitle>
-        <CardDescription>
-          Možno je odkaz zastaraný, alebo sa v adrese stratilo písmenko. Skús to
-          od začiatku.
-        </CardDescription>
-      </CardHeader>
+    <main className="flex-1">
+      <Card className="mx-auto max-w-md">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <MapPinOffIcon className="text-primary size-6 shrink-0" />
+            Takáto stránka tu nie je
+          </CardTitle>
+          <CardDescription>
+            Možno je odkaz zastaraný, alebo sa v adrese stratilo písmenko. Skús
+            to od začiatku.
+          </CardDescription>
+        </CardHeader>
 
-      <Button size="lg" asChild className="w-full">
-        <Link href="/">Späť na zoznam rodiny</Link>
-      </Button>
-    </Card>
+        <Button size="lg" asChild className="w-full">
+          <Link href="/">Späť na zoznam rodiny</Link>
+        </Button>
+      </Card>
+    </main>
   );
 }
