@@ -1,12 +1,13 @@
 /**
  * `/login` sits outside `(app)` — no header, on purpose — so it owns the
- * `<main>` the root layout no longer provides.
+ * `<main className="flex-1">` the root layout no longer provides; that file
+ * holds the reason, including why the `flex-1` is load-bearing.
  *
  * A layout rather than a wrapper inside the page, because the page has an early
- * `return <SetupRequired />` that a per-page wrapper would escape. `flex-1` is
- * load-bearing: it fills `min-h-dvh`, which is both what lets the hero centre
- * itself against `min-h-full` and what keeps <InstallPrompt /> on the bottom
- * edge under a short page.
+ * `return <SetupRequired />` that a per-page wrapper would escape, and wrapping
+ * both returns would write the same element twice in one file. The centring
+ * stays on the page rather than moving here: `SetupRequired` is a card, not a
+ * hero, and `max-w-sm text-center` would be wrong for it.
  */
 export default function LoginLayout({
   children,

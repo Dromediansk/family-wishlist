@@ -112,10 +112,24 @@ export const dynamic = "force-dynamic";
  * The same goes for the offline notice, since signing in is itself a Server
  * Action that would otherwise fail silently.
  *
- * There is deliberately no `<main>` at this level. Each child supplies its own,
- * because a `<header>` nested inside `<main>` stops being the `banner` landmark:
- * `(app)/layout.tsx` for the signed-in routes, `login/layout.tsx` for `/login`,
- * and `not-found.tsx` for itself. A new route outside `(app)` owes one too.
+ * There is deliberately no `<main>` at this level, and that is the one contract
+ * this file hands out — the sites that honour it point back here rather than
+ * restating the reasoning.
+ *
+ * Each child supplies its own `<main className="flex-1">`, and both halves are
+ * load-bearing. The element, because a `<header>` nested inside `<main>` stops
+ * being the `banner` landmark; keeping `<main>` here would have nested one in
+ * the other and quietly demoted the header for anyone navigating by landmark.
+ * The class, because `flex-1` is what fills the `min-h-dvh` column below — it
+ * lets a short page centre itself against `min-h-full` and holds
+ * <InstallPrompt /> to the bottom edge. Miss the element and the landmark goes
+ * silently; miss the class and the install nudge floats up under the content,
+ * which reads as a CSS glitch rather than a missing convention.
+ *
+ * Three files own one today: `(app)/layout.tsx` for the signed-in routes,
+ * `login/layout.tsx` for `/login`, and `not-found.tsx` for itself. Anything else
+ * rendered directly under this layout owes one — a second route group, or the
+ * root `error.tsx` this app has not needed yet.
  */
 export default function RootLayout({
   children,

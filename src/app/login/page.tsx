@@ -44,9 +44,9 @@ export default async function LoginPage({
       {/*
        * The app mark, drawn to the same recipe as the installed home-screen icon
        * (src/lib/icon-artwork.tsx): full-bleed primary, gift glyph at 56% of the
-       * tile, strokeWidth 1.75 rather than lucide's default 2. 36/64 = 56.25% is
-       * the only pair of stock spacing steps that hits that ratio, which is why
-       * this size is fixed rather than responsive.
+       * tile, strokeWidth 1.75 rather than lucide's default 2. The ratio is the
+       * rule, not the pair of sizes: size-9 in size-16 is 36/64, and any rescale
+       * has to keep that 56%.
        *
        * `rounded-xl` over `rounded-2xl`: the two are both 16px today, but
        * --radius-xl is derived from the app's own --radius while --radius-2xl is
@@ -76,8 +76,9 @@ export default async function LoginPage({
       </h1>
 
       <p className="text-muted-foreground mt-3 text-balance">
-        Zapíš si, čo by si chcel. Ostatní potichu vyberú darček a ty sa do
-        poslednej chvíle nič nedozvieš.
+        Zapíš si, čo by si chcel.
+        <br /> Ostatní potichu vyberú darček a ty sa do poslednej chvíle nič
+        nedozvieš.
       </p>
 
       {/*
@@ -95,7 +96,7 @@ export default async function LoginPage({
       <form action={signInWithGoogle} className="mt-8">
         <Button type="submit" variant="outline" size="lg" className="w-full">
           <GoogleIcon />
-          Prihlásiť sa cez Google
+          Prihlásiť sa
         </Button>
       </form>
 

@@ -22,12 +22,16 @@ import {
  *
  * Keeping a single file is deliberate. An `(app)/not-found.tsx` would restore
  * the header for the member case, but it would not catch unmatched URLs, so the
- * root file could never be deleted and the card would have to live in a third
- * place to avoid being written twice. `global-not-found.tsx` is not the answer
- * either: it bypasses the root layout, losing the font and the safe-area frame,
- * and it is meant for apps with more than one root. This app has one.
- *
- * The font and the safe-area container do still come with it.
+ * root file would have to stay and the card would end up written into two
+ * boundaries — or pulled into a shared component serving both, which is a real
+ * option this repo uses elsewhere (`SetupRequired`) and simply is not worth two
+ * files and an import for one variant of one page. The trade taken instead: a
+ * signed-in member following a stale /member link loses the chrome, and gets
+ * back through the card's own link. `global-not-found.tsx` is
+ * not the answer either — it bypasses the root layout, losing the font and the
+ * safe-area frame, and it is meant for apps with more than one root. This app
+ * has one, and under this file the font and the safe-area frame do still come
+ * with it.
  *
  * Nothing is fetched and nobody is redirected. A signed-out visitor who guesses
  * a URL sees this rather than the login page, because bouncing them would hide

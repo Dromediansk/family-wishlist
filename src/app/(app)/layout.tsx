@@ -5,27 +5,28 @@ import { SiteHeader } from "@/components/site-header";
  *
  * `(app)` adds nothing to any URL — `(app)/(home)/page.tsx` is still `/`, and
  * `(app)/member/[id]` is still `/member/[id]`. Its only job is to draw a line
- * between the routes that have somebody behind them and the two surfaces a
+ * between the routes that have a session behind them and the two surfaces a
  * stranger can reach: `/login` and the 404. A sign-in screen topped by a
  * wordmark linking to a route that redirects straight back, beside a `Suspense`
  * hole where an account menu is never going to arrive, is chrome pretending
  * there is an app behind it.
  *
- * `<main>` had to come along. `<header>` is the `banner` landmark only while it
- * is *not* inside `<main>`; leaving `<main>` in the root layout would have
- * nested one in the other and quietly demoted the header to a plain element for
- * anyone navigating by landmark. Routes outside this group bring their own —
- * see `login/layout.tsx` and `not-found.tsx` — and they need the `flex-1` too:
- * it is what fills `min-h-dvh` and keeps <InstallPrompt /> on the bottom edge of
- * a short page.
+ * The line is "has a session", not "is approved": `/pending` sits inside the
+ * group and does get the header, with the account half empty because
+ * `SiteHeader` fills it only for an approved member. That is the accepted edge —
+ * a pending visitor is somebody, just not somebody the app will talk to yet —
+ * and that page carries its own sign-out button. A future route for a
+ * half-signed-in state belongs on the same side of the line.
+ *
+ * `<main>` had to come along, and it needs its `flex-1`; the root layout holds
+ * the reason every child owns one.
  *
  * Deliberately absent:
  *
- * - No `dynamic` export. Route segment config is reduced over every segment from
- *   the root down and the last *defined* value wins, so the root layout's
- *   `force-dynamic` still governs everything here. Declaring it again would only
- *   create a second place to get it wrong — and a different value here would
- *   silently override the root for the whole group.
+ * - No `dynamic` export. The root layout's `force-dynamic` already governs this
+ *   group, so re-declaring it would only add a second place to get it wrong —
+ *   and a *different* value here would silently override the root for every
+ *   route under it.
  * - No `loading.tsx` beside this file. It would become the fallback for the
  *   entire group and flash in front of each route's own skeleton, which is
  *   exactly what `(home)/loading.tsx` exists to prevent. Nothing here awaits:
