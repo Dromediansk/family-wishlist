@@ -25,8 +25,9 @@ create table if not exists fulfilled_wishes (
   giver_id     uuid references family_members (id) on delete set null,
   giver_name   text not null,
 
-  -- The wish itself, copied: the same statement that writes this row deletes
-  -- the row it describes.
+  -- The wish itself, copied: the same statement that writes this row deletes the
+  -- row it describes. A snapshot, not a duplicate — why a wish_id reference is
+  -- the wrong shape here is in docs/setup/database.md#fulfilled_wishes.
   title        text not null,
   description  text,
   url          text,

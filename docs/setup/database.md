@@ -54,12 +54,21 @@ why it is a trigger is in
 | `owner_name` | copied, not joined — see below |
 | `giver_id` | → `family_members(id)` `ON DELETE SET NULL`, indexed with `fulfilled_at` |
 | `giver_name` | copied, not joined — see below |
-| `title`, `description`, `url` | copied from the wish at the moment it is handed over |
+| `title`, `description`, `url` | a snapshot of the wish at the moment it is handed over — see below |
 | `fulfilled_at` | defaults to `now()` |
 
 Names are copied rather than joined so that removing a member takes neither
 their own history nor the other party's record with them — the id nulls out,
 the name stays readable. `no_self_gift` mirrors `no_self_claim` on `wishes`.
+
+`title`, `description` and `url` are copied for the same reason and one more.
+They are a **snapshot**, not a duplicate: what the gift was called when it
+changed hands, which stops being the same fact as the wish's title the moment
+the wish is deleted — and `fulfil_wish` deletes it in that very statement.
+Referencing the wish instead would mean keeping the row, and then an owner
+editing their old wish would rewrite the giver's history, while a member
+deletion would cascade the title away. The three columns are the price of
+history that nobody can edit and that outlives its people.
 
 What this table is for and the two pages that read it:
 [History](../content/history.md).
