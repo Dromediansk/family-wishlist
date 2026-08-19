@@ -78,6 +78,58 @@ fixed element's percentage height resolves against the layout viewport, which is
 the thing that actually shrinks; viewport units track the browser's own toolbars
 instead and would leave the footer below the fold with a keyboard up.
 
+## A busy button keeps its label
+
+There is one busy affordance in the app and `Button` owns it: pass `loading`.
+The surface mutes, a spinner appears in the centre, and **the label does not
+change**.
+
+Nothing at a call site invents a Slovak verb any more. The old habit — swapping
+`Toto kúpim` for `Rezervujem…`, `Pridať želanie` for `Pridávam…` — put six
+different phrasings of the same idea in six files and resized the button
+mid-action, which on a phone moves the thing under the thumb that just pressed
+it.
+
+- `loading` implies `disabled`, so a call site passes one or the other, never
+  both for the same reason. `WishForm` still passes `disabled` separately,
+  because an empty title is a different objection from "already working".
+- The mute is `disabled:opacity-75`, not the `disabled:opacity-50` a plain
+  disabled button gets. The spinner is *inside* that fade — an `opacity` group
+  applies to every descendant, so there is no way to keep it crisp over a
+  half-faded surface. 75% is what leaves it legible on all six variants in both
+  themes.
+- The label then drops to `opacity-25` inside that, ending near a fifth. It has
+  to be that faint: the spinner lands in the middle of the word, and at anything
+  more readable the two collide and `Uložiť zmeny` renders as `Uloži⟳zmeny` —
+  broken text rather than a busy control. Both numbers were settled by looking at
+  every variant and size, not by arithmetic; change one and look again.
+- **`size="icon"` hides its content instead of dimming it.** There is one glyph
+  and no room beside it, and a spinner drawn over a glyph is unreadable. The box
+  still holds its `size-11`.
+- `aria-busy` replaces what the label swap used to announce. There is no
+  `sr-only` alternative text, because that would be a label swap again.
+- `loading` cannot be combined with `asChild`: `Slot` takes exactly one child and
+  has nowhere to put the spinner.
+
+Two places need more than the prop:
+
+- **A plain `<form action={serverAction}>`** has no transition to read, so its
+  button is `SubmitButton` (`src/components/submit-button.tsx`) — one
+  `useFormStatus` call and nothing else. It is the only client component
+  `/login` is allowed; the page around it stays a Server Component and the form
+  still posts with JavaScript off.
+- **`ManageMembers`** drives every control on `/family` from a single
+  `useTransition`, which cannot say which button was pressed. `run()` therefore
+  takes a `verb:id` key, and only the button whose key is running spins. Its
+  siblings are disabled and silent — six spinners at once says nothing about
+  which one you asked for.
+
+Buttons that wait on something outside the app keep no busy state at all:
+`InstallPrompt` awaits the *browser's* install sheet, and a spinner behind a
+native modal is not feedback. Sign-out from the account menu is a raw `<button>`
+aimed at a form it does not sit inside, and Radix unmounts the menu on select —
+there is nothing left on screen to spin.
+
 ## A refusal ends the dialog
 
 When an action returns `final` ([Wishes](wishes.md#errors-and-results)), the

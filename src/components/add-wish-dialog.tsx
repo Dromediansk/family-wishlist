@@ -50,7 +50,6 @@ export function AddWishDialog({
         </DialogHeader>
         <WishForm
           submitLabel="Pridať želanie"
-          pendingLabel="Pridávam…"
           onSubmit={(values) => addWish(values)}
           onDone={() => setOpen(false)}
         />

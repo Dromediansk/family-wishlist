@@ -35,11 +35,11 @@ export function ClaimButton({
       <div className="flex flex-col items-end gap-1">
         <Button
           variant="outline"
-          disabled={pending}
+          loading={pending}
           onClick={() => run(() => unclaimWish(wishId))}
         >
           <UndoIcon />
-          {pending ? "Ruším…" : "Toto nekupujem"}
+          Toto nekupujem
         </Button>
         {error ? (
           <p className="text-destructive text-sm" role="alert">
@@ -61,9 +61,9 @@ export function ClaimButton({
 
   return (
     <div className="flex flex-col items-end gap-1">
-      <Button disabled={pending} onClick={() => run(() => claimWish(wishId))}>
+      <Button loading={pending} onClick={() => run(() => claimWish(wishId))}>
         <GiftIcon />
-        {pending ? "Rezervujem…" : "Toto kúpim"}
+        Toto kúpim
       </Button>
       {error ? (
         <p className="text-destructive text-sm" role="alert">

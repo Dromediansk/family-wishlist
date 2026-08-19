@@ -51,7 +51,11 @@ export function WishPhotoField({
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  /** One name for "hands off", so the four controls cannot drift apart. */
+  /*
+   * One name for "hands off", so the controls that only wait cannot drift
+   * apart. The two picker buttons take `busy` as `loading` instead — they are
+   * the ones doing the work, and only they carry the spinner.
+   */
   const locked = disabled || busy;
 
   /*
@@ -141,10 +145,11 @@ export function WishPhotoField({
               type="button"
               variant="outline"
               size="sm"
-              disabled={locked}
+              disabled={disabled}
+              loading={busy}
               onClick={() => input.current?.click()}
             >
-              {busy ? "Načítavam…" : "Vybrať inú"}
+              Vybrať inú
             </Button>
             <Button
               type="button"
@@ -168,11 +173,12 @@ export function WishPhotoField({
             type="button"
             variant="outline"
             size="sm"
-            disabled={locked}
+            disabled={disabled}
+            loading={busy}
             onClick={() => input.current?.click()}
           >
             <ImagePlusIcon />
-            {busy ? "Načítavam…" : "Vybrať fotku"}
+            Vybrať fotku
           </Button>
           {/* Dragging is not a gesture a phone has, so the hint stays off it. */}
           <span className="text-muted-foreground hidden text-sm sm:inline">

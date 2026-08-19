@@ -36,7 +36,6 @@ export function FulfilWishButton({
       refusedTitle={`„${title}“ sa nedá označiť`}
       description={`${ownerName} uvidí, že tento darček je od teba. Želanie zmizne zo zoznamu a späť sa to už vrátiť nedá.`}
       confirmLabel="Darované"
-      pendingLabel="Ukladám…"
       cancelLabel="Ešte nie"
       action={() => fulfilWish(wishId)}
     />

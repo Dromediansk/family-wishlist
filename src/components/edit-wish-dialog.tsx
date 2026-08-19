@@ -44,7 +44,6 @@ export function EditWishDialog({ wish }: { wish: OwnerWish }) {
           }}
           initialPhotoUrl={wishPhotoUrl(wish)}
           submitLabel="Uložiť zmeny"
-          pendingLabel="Ukladám…"
           onSubmit={(values) => updateWish(wish.id, values)}
           onDone={() => setOpen(false)}
         />
@@ -70,7 +69,6 @@ export function DeleteWishButton({ wish }: { wish: OwnerWish }) {
       refusedTitle={`Nedá sa vymazať „${wish.title}“`}
       description="Natrvalo sa odstráni z tvojho zoznamu."
       confirmLabel="Vymazať"
-      pendingLabel="Mažem…"
       cancelLabel="Ponechať"
       action={() => deleteWish(wish.id)}
     />

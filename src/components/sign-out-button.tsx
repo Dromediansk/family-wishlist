@@ -1,24 +1,23 @@
 import { LogOutIcon } from "lucide-react";
 
 import { signOut } from "@/app/actions/auth";
-import { Button } from "@/components/ui/button";
+import { SubmitButton } from "@/components/submit-button";
 
 /**
  * A plain form posting to a Server Action, so signing out works with JavaScript
- * disabled and needs no client component.
+ * disabled. Only the button itself is a client component, for the spinner.
  */
 export function SignOutButton({ fullWidth = false }: { fullWidth?: boolean }) {
   return (
     <form action={signOut}>
-      <Button
-        type="submit"
+      <SubmitButton
         variant="outline"
         size={fullWidth ? "lg" : "sm"}
         className={fullWidth ? "w-full" : undefined}
       >
         <LogOutIcon />
         Odhlásiť sa
-      </Button>
+      </SubmitButton>
     </form>
   );
 }
