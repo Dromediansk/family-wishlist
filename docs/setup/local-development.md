@@ -60,6 +60,12 @@ them. This file is gitignored.
 npm run db:start     # first run fetches the CLI and pulls images; several minutes
 ```
 
+If you had the stack running from before wish photos existed, stop it first —
+`npm run db:stop` then `npm run db:start`. `supabase start` leaves a project that
+is already up alone, so the storage containers would never appear, and every
+upload would fail. `npm run db:reset` is what creates the `wish-photos` bucket
+declared in `supabase/config.toml`.
+
 There is no fourth step. The address and keys are already in the committed
 [`.env.development`](../../.env.development): the stack's `anon` and
 `service_role` keys are the `supabase-demo` JWTs the CLI ships with, signed with

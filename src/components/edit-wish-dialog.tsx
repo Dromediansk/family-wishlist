@@ -27,6 +27,7 @@ import {
 } from "@/components/ui/dialog";
 import { WishForm } from "@/components/wish-form";
 import type { ActionFailure, OwnerWish } from "@/lib/types";
+import { wishPhotoUrl } from "@/lib/wishes";
 
 /** Edit and delete controls, shown only on your own list. */
 export function EditWishDialog({ wish }: { wish: OwnerWish }) {
@@ -50,7 +51,9 @@ export function EditWishDialog({ wish }: { wish: OwnerWish }) {
             title: wish.title,
             description: wish.description ?? "",
             url: wish.url ?? "",
+            photo: { kind: "unchanged" },
           }}
+          initialPhotoUrl={wishPhotoUrl(wish)}
           submitLabel="Uložiť zmeny"
           pendingLabel="Ukladám…"
           onSubmit={(values) => updateWish(wish.id, values)}

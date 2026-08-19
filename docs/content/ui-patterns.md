@@ -96,6 +96,33 @@ sits above the buttons, and the button can be pressed again. Without the
 distinction, the shared `WishForm` could not tell "somebody reserved it" from
 "the title is too long", and fixing a typo and resubmitting would stop working.
 
+Adding a wish whose *photo* fails is `final` for the same reason, even though
+nothing was reserved: the wish is already saved, so pressing the button again
+would add a second one. The message says so.
+
+## Picking a photo
+
+`WishPhotoField` ([`src/components/wish-photo-field.tsx`](../../src/components/wish-photo-field.tsx))
+is the fourth field of `WishForm`. What it stores in the form is a *choice* —
+unchanged, cleared, or a file — not a nullable file, because an edit has to be
+able to leave the old photo alone and to take it away, and those are different
+answers.
+
+Two things about it are deliberate:
+
+- **No `capture` attribute** on the file input. `capture` opens the camera and
+  takes the photo library away with it, and the thing people most want to attach
+  is a screenshot of a shop's page, which lives in the library. Plain
+  `accept="image/*"` gets a phone to offer camera, library and files.
+- **The drop hint is `hidden sm:block`.** Dropping a file is not a gesture a
+  phone has, and the app is designed for phones first; the line would be noise
+  on the screen most people read it on. The drop target itself is always live —
+  it just goes unmentioned where it cannot be used.
+
+The preview is a `data:` URL rather than `URL.createObjectURL`. An object URL has
+to be revoked by hand, and every path that forgets — a re-pick, a removal, a
+closed dialog — leaks a whole image for the life of the tab.
+
 ## Layout contract
 
 The root layout deliberately has **no `<main>`**. Each child supplies its own

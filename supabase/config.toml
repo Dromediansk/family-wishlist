@@ -128,19 +128,23 @@ port = 54424
 # admin_email = "admin@email.com"
 # sender_name = "Admin"
 
-# Off: the app uploads nothing. @supabase/storage-js is only a transitive dependency of
-# supabase-js. Skipping it drops two containers from every `supabase start`.
+# On since wishes carry a photo — it costs two more containers on every
+# `supabase start`, and without it nothing can be uploaded locally.
 [storage]
-enabled = false
+enabled = true
 # The maximum file size allowed (e.g. "5MB", "500KB").
 file_size_limit = "50MiB"
 
-# Uncomment to configure local storage buckets
-# [storage.buckets.images]
-# public = false
-# file_size_limit = "50MiB"
-# allowed_mime_types = ["image/png", "image/jpeg"]
-# objects_path = "./images"
+# The one bucket. Private: nothing in this app is readable without a session, and
+# photos are no exception — they are served by /wish-photo/[wishId], which
+# re-derives the caller the same way a Server Action does.
+#
+# The three settings are repeated by hand in production; the dashboard is the
+# only way that bucket exists. docs/setup/production.md
+[storage.buckets.wish-photos]
+public = false
+file_size_limit = "2MiB"
+allowed_mime_types = ["image/webp", "image/jpeg", "image/png"]
 
 # Allow connections via S3 compatible clients
 [storage.s3_protocol]

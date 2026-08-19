@@ -41,6 +41,8 @@ export type OwnerWish = {
   title: string;
   description: string | null;
   url: string | null;
+  /** The Storage object key, not a URL. `wishPhotoUrl` turns it into one. */
+  photo: string | null;
   createdAt: string;
 };
 
@@ -64,7 +66,10 @@ export type WishListView =
  * Everything `WishRow` displays. The narrowing is the point: handed a
  * `ViewerWish`, the row still cannot reach `claimedBy` through this type.
  */
-export type Displayable = Pick<OwnerWish, "title" | "description" | "url">;
+export type Displayable = Pick<
+  OwnerWish,
+  "id" | "title" | "description" | "url" | "photo"
+>;
 
 /**
  * What every Server Action returns. Expected failures are values, not throws.

@@ -19,6 +19,15 @@ const nextConfig: NextConfig = {
      * docs/content/live-updates.md#why-going-back-doesnt-reload
      */
     staleTimes: { dynamic: 60 },
+
+    /**
+     * A wish photo travels inside the Server Action's own request body, and
+     * Next caps that at 1MB. The browser downscales to a few hundred KB before
+     * uploading, so this is headroom for the multipart framing and for a photo
+     * that compresses badly — not a target. The bucket's own 2MiB limit and the
+     * Zod check in `addWish` are what actually refuse an oversized one.
+     */
+    serverActions: { bodySizeLimit: "4mb" },
   },
 };
 

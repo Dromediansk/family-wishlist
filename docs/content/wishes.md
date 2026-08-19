@@ -10,6 +10,7 @@ list — its owner's — and only that owner can put it there.
 | `title` | yes | 1–120 chars | Trimmed. The only thing the form insists on |
 | `description` | no | ≤ 1000 chars | Free text, rendered with line breaks kept |
 | `url` | no | must match `https?://…` | Shown as a bare hostname, opens in a new tab |
+| `photo_path` | no | one image, ≤ 2 MiB | The Storage object key, not the bytes — see [Photos](#photos) |
 
 Validation is enforced twice on purpose: Zod in
 [`src/app/actions/wishes.ts`](../../src/app/actions/wishes.ts) produces the
@@ -61,11 +62,75 @@ Two shapes come back, decided by who is looking:
   show *Toto kupuje Zuzana* and dim itself.
 
 `WishListView` is a discriminated union, so a component cannot render the wrong
-view by accident. `WishRow` itself is handed only `Displayable` (title,
-description, url) and cannot reach claim state at all; the caller decides what,
-if anything, goes in the row's action slot.
+view by accident. `WishRow` itself is handed only `Displayable` (id, title,
+description, url, photo) and cannot reach claim state at all; the caller decides
+what, if anything, goes in the row's action slot.
 
 Wishes are ordered oldest first, on every list.
+
+## Photos
+
+A wish may carry one picture — a photo of the thing, or more often a screenshot
+of the page selling it, which survives a link going stale or hiding behind a
+login.
+
+### Where the bytes live
+
+Not in the database. `wishes.photo_path` holds an object key in the private
+`wish-photos` Storage bucket, shaped `{wish id}/{random}.{ext}`:
+
+- The **wish id prefix** is what makes cleanup a prefix listing. Replacing a
+  photo, clearing it and deleting the wish are the same operation with a
+  different survivor, which is the whole of `pruneWishPhotos`
+  ([`src/lib/photos.ts`](../../src/lib/photos.ts)).
+- The **random file name** changes on every upload, and is the `?v=` token on
+  the photo's URL. A new picture is therefore a new URL, which is what lets the
+  route cache for a year without ever serving a stale one.
+
+The bucket is private and carries no policy, like every table. Only the
+`service_role` client can reach it.
+
+### Getting one in
+
+The browser does the work before anything is sent
+([`src/lib/resize-image.ts`](../../src/lib/resize-image.ts)): the picked file is
+drawn into a canvas at most 1200px on its longest edge and re-encoded as WebP.
+
+That is not only about size. It is also the only reason a photo taken on an
+iPhone works at all — Safari decodes HEIC, which nothing on the server can — and
+re-encoding discards EXIF, so the GPS coordinates a phone writes into a photo
+never leave the device.
+
+The result travels as a `File` argument to `addWish` / `updateWish`, inside the
+Server Action's own request body. `serverActions.bodySizeLimit` in
+`next.config.ts` is raised from Next's 1MB default to leave room.
+
+The type the browser puts on a file is a claim, not evidence — a Server Action
+is reachable by direct POST. `sniffImageType`
+([`src/lib/images.ts`](../../src/lib/images.ts)) reads the magic bytes and is the
+only thing allowed to decide what is stored.
+
+### Writing order
+
+The row is always written first and the picture attached second
+(`attachPhoto` in [`src/app/actions/wishes.ts`](../../src/app/actions/wishes.ts)).
+Both halves stay honest that way: an upload that fails costs the photo and not
+the wish, and an edit refused because somebody reserved the wish a moment
+earlier has uploaded nothing to leave lying around.
+
+A failed upload on **add** is reported as `final`, because the wish itself is
+already saved and pressing the button again would add a second one.
+
+### Getting one out
+
+`GET /wish-photo/{wish id}?v={token}`
+([`src/app/wish-photo/[wishId]/route.ts`](../../src/app/wish-photo/%5BwishId%5D/route.ts)).
+It re-derives the caller exactly as a Server Action does, answers 404 to anyone
+it will not serve, and sets `Content-Type` from a whitelist rather than from
+anything stored. It is one of the places the privacy rule is enforced —
+[Serving a photo](privacy-rule.md#serving-a-photo).
+
+Addressed by wish id, never by object key, so no key from a URL is ever trusted.
 
 ## Errors and results
 

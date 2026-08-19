@@ -5,6 +5,7 @@ import {
   refusalFor,
   toOwnerWish,
   toViewerWish,
+  wishPhotoUrl,
   type ViewerWishRow,
 } from "@/lib/wishes";
 
@@ -20,18 +21,20 @@ const claimedRow: ViewerWishRow = {
   title: "Wool socks",
   description: "Size 42",
   url: "https://example.com/socks",
+  photo_path: "11111111-1111-4111-8111-111111111111/abc123.webp",
   created_at: "2026-01-01T00:00:00.000Z",
   claimed_at: "2026-01-02T00:00:00.000Z",
   claimer: { id: "22222222-2222-4222-8222-222222222222", name: "Anna" },
 };
 
 describe("toOwnerWish", () => {
-  it("keeps title, description and link", () => {
+  it("keeps title, description, link and photo", () => {
     expect(toOwnerWish(claimedRow)).toEqual({
       id: claimedRow.id,
       title: "Wool socks",
       description: "Size 42",
       url: "https://example.com/socks",
+      photo: claimedRow.photo_path,
       createdAt: claimedRow.created_at,
     });
   });
@@ -62,6 +65,7 @@ describe("toViewerWish", () => {
       title: "Wool socks",
       description: "Size 42",
       url: "https://example.com/socks",
+      photo: claimedRow.photo_path,
       createdAt: claimedRow.created_at,
       claimedBy: {
         id: "22222222-2222-4222-8222-222222222222",
@@ -144,5 +148,27 @@ describe("refusalFor", () => {
   it("marks a refusal final, so no dialog offers a retry that cannot work", () => {
     expect(refusalFor(reserved, "delete").final).toBe(true);
     expect(refusalFor(null, "update").final).toBe(true);
+  });
+});
+
+describe("wishPhotoUrl", () => {
+  const wish = { id: "11111111-1111-4111-8111-111111111111", photo: null };
+
+  it("addresses the route by wish id, never by object key", () => {
+    const url = wishPhotoUrl({ ...wish, photo: `${wish.id}/abc123.webp` });
+
+    expect(url).toBe(`/wish-photo/${wish.id}?v=abc123`);
+    expect(url).not.toContain(".webp");
+  });
+
+  it("has no URL for a wish without a photo", () => {
+    expect(wishPhotoUrl(wish)).toBeNull();
+  });
+
+  it("changes when the photo does, so a cached one is never shown", () => {
+    const before = wishPhotoUrl({ ...wish, photo: `${wish.id}/aaa.webp` });
+    const after = wishPhotoUrl({ ...wish, photo: `${wish.id}/bbb.webp` });
+
+    expect(before).not.toBe(after);
   });
 });

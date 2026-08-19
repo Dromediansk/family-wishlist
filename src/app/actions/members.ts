@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 
 import { isAdmin } from "@/lib/access";
+import { pruneWishPhotos } from "@/lib/photos";
 import { getCurrentMember } from "@/lib/queries";
 import { notifyChanged } from "@/lib/realtime";
 import { getSupabase } from "@/lib/supabase";
@@ -201,6 +202,16 @@ export async function removeMember(memberId: string): Promise<ActionResult> {
     }
   }
 
+  /*
+   * Which wishes are about to cascade away, collected while their rows still
+   * exist — nothing in Storage cascades. This is not a permission check: the
+   * guard is the delete's own predicate below, unchanged.
+   */
+  const { data: doomed } = await supabase
+    .from("wishes")
+    .select("id")
+    .eq("member_id", id.data);
+
   // Wishes cascade away; their claims on other lists are released by
   // ON DELETE SET NULL. docs/content/membership.md#removing-someone
   const { error } = await supabase
@@ -209,6 +220,10 @@ export async function removeMember(memberId: string): Promise<ActionResult> {
     .eq("id", id.data);
 
   if (error) return { ok: false, error: error.message };
+
+  for (const wish of (doomed ?? []) as { id: string }[]) {
+    await pruneWishPhotos(wish.id, null);
+  }
 
   revalidatePath("/", "layout");
   await notifyChanged();

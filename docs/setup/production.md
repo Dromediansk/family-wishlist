@@ -8,8 +8,15 @@ what makes the app usable by a real family; hosting it is
 ## 1. Create the database
 
 1. Create a project at [supabase.com/dashboard](https://supabase.com/dashboard).
-2. Open the **SQL editor** and run the migrations by hand, in order. Which files,
+2. Under **Storage**, create a bucket named `wish-photos`. Leave it **private**,
+   set the file size limit to **2 MB**, and restrict the allowed MIME types to
+   `image/webp`, `image/jpeg` and `image/png`. Do this before the migrations —
+   `0006` adds the column that points into it.
+3. Open the **SQL editor** and run the migrations by hand, in order. Which files,
    what each one does, and why this stays manual: [Database](database.md).
+
+Add no Storage policy, exactly as you add no table policy. The app reads and
+writes the bucket with the `service_role` key.
 
 ## 2. Set up Google sign-in
 

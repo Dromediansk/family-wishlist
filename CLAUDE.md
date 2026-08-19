@@ -30,7 +30,7 @@ Setup: [`docs/setup/local-development.md`](docs/setup/local-development.md).
 **A list owner must never learn who claimed one of their own wishes, and must
 never be shown claims while reading their own list.**
 
-Enforced in eight places, listed in
+Enforced in nine places, listed in
 [`docs/content/privacy-rule.md`](docs/content/privacy-rule.md#where-the-rule-is-enforced).
 Change one and check the rest.
 
@@ -45,8 +45,12 @@ Never:
 - Put anything in `LIVE_PAYLOAD` (`src/lib/live.ts`).
 - Skip the live ping for the owner's tab.
 - Answer the ping with `router.refresh()` — use `syncFromLive`.
-- Select `claimed_by` on any owner-serving path. `lookUpRefusal`
-  (`src/app/actions/wishes.ts`) is the single exception and stays in that file.
+- Select `claimed_by` on any owner-serving path — including
+  `src/app/wish-photo/[wishId]/route.ts`, which an owner hits for their own
+  photos. `lookUpRefusal` (`src/app/actions/wishes.ts`) is the single exception
+  and stays in that file.
+- Add a Storage policy either. The `wish-photos` bucket is private and reached
+  only through the `service_role` client.
 
 ## Two Supabase clients — never mix them
 

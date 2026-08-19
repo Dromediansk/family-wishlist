@@ -1,3 +1,4 @@
+import { photoVersion } from "@/lib/images";
 import type { ClaimedWish, OwnerWish, ViewerWish } from "@/lib/types";
 
 /**
@@ -6,7 +7,8 @@ import type { ClaimedWish, OwnerWish, ViewerWish } from "@/lib/types";
  */
 
 /** Columns selected when reading a list for its own owner. */
-export const OWNER_WISH_COLUMNS = "id, title, description, url, created_at";
+export const OWNER_WISH_COLUMNS =
+  "id, title, description, url, photo_path, created_at";
 
 /** Columns selected when reading someone else's list. */
 export const VIEWER_WISH_COLUMNS = `${OWNER_WISH_COLUMNS}, claimed_at, claimer:claimed_by (id, name)`;
@@ -16,6 +18,7 @@ export type OwnerWishRow = {
   title: string;
   description: string | null;
   url: string | null;
+  photo_path: string | null;
   created_at: string;
 };
 
@@ -46,6 +49,7 @@ export function toOwnerWish(row: OwnerWishRow): OwnerWish {
     title: row.title,
     description: row.description,
     url: row.url,
+    photo: row.photo_path,
     createdAt: row.created_at,
   };
 }
@@ -67,6 +71,22 @@ export function toClaimedWish(row: ClaimedWishRow): ClaimedWish {
     ...toOwnerWish(row),
     owner: owner ? { id: owner.id, name: owner.name } : { id: "", name: "?" },
   };
+}
+
+/**
+ * Where to fetch a wish's photo, or null if it has none.
+ *
+ * The route is addressed by wish id rather than by object key, so the key never
+ * has to be trusted from a URL. The `?v=` token is the file name, which is fresh
+ * on every upload — that is what lets the route cache for a year and still never
+ * hand back last week's picture. docs/content/wishes.md#photos
+ */
+export function wishPhotoUrl(wish: {
+  id: string;
+  photo: string | null;
+}): string | null {
+  const version = photoVersion(wish.photo);
+  return version ? `/wish-photo/${wish.id}?v=${version}` : null;
 }
 
 /** Every way an owner's delete or edit can be turned down, in one place. */
