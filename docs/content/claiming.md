@@ -64,7 +64,8 @@ to your own list. Everyone else follows by name, collated for Slovak so that
 `/buying` (*Čo kupujem*) lists everything you hold, across every list, newest
 reservation first, with whose list each came from.
 
-Nothing on this page can change or disappear underneath you: an owner cannot
-edit or delete a reserved wish. Releasing it yourself is the only way an item
-leaves the page — except when the owner is
-[removed from the family](membership.md#removing-someone).
+An owner cannot edit or delete a reserved wish, so nothing on this page changes
+underneath you. Two things take an item off it: releasing it yourself, and
+pressing **Darované** once you have handed the gift over — which moves it to
+[History](history.md) for good. The third way is out of your hands: the owner
+being [removed from the family](membership.md#removing-someone).

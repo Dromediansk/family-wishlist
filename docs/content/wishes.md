@@ -53,6 +53,19 @@ Because a reserved wish can no longer change or vanish, nothing on
 [*Čo kupujem*](claiming.md#what-im-buying) can disappear from under its buyer —
 with one exception, [removing a member](membership.md#removing-someone).
 
+## How a wish ends
+
+Three ways, and only three:
+
+| Ending | Who | What is left |
+|---|---|---|
+| Deleted | the owner, while it is unreserved | nothing |
+| Owner removed | an admin | nothing; the claim is released first |
+| **Darované** | the person holding the claim | a permanent record in [History](history.md) |
+
+The third is the only one that outlives the wish, and the only one an owner
+cannot do.
+
 ## Reading a list
 
 Two shapes come back, decided by who is looking:
@@ -80,9 +93,9 @@ Not in the database. `wishes.photo_path` holds an object key in the private
 `wish-photos` Storage bucket, shaped `{wish id}/{random}.{ext}`:
 
 - The **wish id prefix** is what makes cleanup a prefix listing. Replacing a
-  photo, clearing it and deleting the wish are the same operation with a
-  different survivor, which is the whole of `pruneWishPhotos`
-  ([`src/lib/photos.ts`](../../src/lib/photos.ts)).
+  photo, clearing it, deleting the wish and [handing it over](history.md) are
+  the same operation with a different survivor, which is the whole of
+  `pruneWishPhotos` ([`src/lib/photos.ts`](../../src/lib/photos.ts)).
 - The **random file name** changes on every upload, and is the `?v=` token on
   the photo's URL. A new picture is therefore a new URL, which is what lets the
   route cache for a year without ever serving a stale one.

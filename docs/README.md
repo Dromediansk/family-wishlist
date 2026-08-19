@@ -13,6 +13,7 @@ other.
 | [The privacy rule](content/privacy-rule.md) | The rule the whole app is built around, why it cannot be an RLS policy, where it is enforced, and the one accepted hole in it |
 | [Wishes](content/wishes.md) | What a wish is, who may change one, and what happens when an owner is refused |
 | [Claiming](content/claiming.md) | Reserving and releasing items on other people's lists |
+| [History](content/history.md) | Marking a gift handed over, and the two pages that remember it |
 | [Membership and roles](content/membership.md) | Sign-in, the approval queue, admins, and sessions |
 | [Live updates](content/live-updates.md) | How every tab stays current without being told what changed |
 | [UI patterns](content/ui-patterns.md) | Dialogs, refusals, language, typography and the installable app |

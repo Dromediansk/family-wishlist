@@ -13,10 +13,16 @@ import { wishPhotoUrl } from "@/lib/wishes";
 export function WishRow({
   wish,
   action,
+  actionBeside = false,
   dimmed = false,
 }: {
   wish: Displayable;
   action?: React.ReactNode;
+  /**
+   * Keep `action` beside the wish on a phone too. Two lines of small text fit
+   * there; buttons do not, so they keep the default full-width row of their own.
+   */
+  actionBeside?: boolean;
   dimmed?: boolean;
 }) {
   const photo = wishPhotoUrl(wish);
@@ -25,7 +31,10 @@ export function WishRow({
     <li className="border-b py-5 last:border-b-0">
       <div
         className={cn(
-          "flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between sm:gap-6",
+          "flex gap-3 sm:gap-6",
+          actionBeside
+            ? "items-start justify-between"
+            : "flex-col sm:flex-row sm:items-start sm:justify-between",
           // 70, not 60: still reads as "taken, move on", but the title stays
           // legible to an older eye rather than dissolving into the paper.
           dimmed && "opacity-70",

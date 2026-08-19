@@ -342,3 +342,40 @@ export async function unclaimWish(wishId: string): Promise<ActionResult> {
   await notifyChanged();
   return { ok: true };
 }
+
+/**
+ * Mark a wish you reserved as handed over. One way: the wish leaves the owner's
+ * list for good, and the record — including your name — becomes visible to
+ * them. docs/content/privacy-rule.md#when-the-secret-ends
+ *
+ * The whole guard is `claimed_by = p_giver_id` inside `fulfil_wish`, which
+ * deletes the wish and writes the record in one statement. No pre-check read,
+ * and no way for the pair to half-happen.
+ */
+export async function fulfilWish(wishId: string): Promise<ActionResult> {
+  const current = await getCurrentMember();
+  if (!current) return { ok: false, error: "Najprv si vyber, kto si." };
+
+  const id = idSchema.safeParse(wishId);
+  if (!id.success) return { ok: false, error: "Neplatné želanie." };
+
+  const { data, error } = await getSupabase().rpc("fulfil_wish", {
+    p_wish_id: id.data,
+    p_giver_id: current.id,
+  });
+
+  if (error) return { ok: false, error: error.message };
+  if (!data) {
+    // Final: the wish is gone, so pressing again cannot make this work.
+    return { ok: false, error: "Toto už nemáš rezervované.", final: true };
+  }
+
+  // `fulfil_wish` deletes the wish in SQL, which Storage knows nothing about,
+  // so the sweep that `deleteWish` does has to happen here too. The history row
+  // carries no photo.
+  await pruneWishPhotos(id.data, null);
+
+  revalidatePath("/", "layout");
+  await notifyChanged();
+  return { ok: true };
+}

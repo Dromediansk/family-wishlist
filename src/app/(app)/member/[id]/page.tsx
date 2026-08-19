@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
-import { ArrowLeftIcon } from "lucide-react";
+import { ArrowLeftIcon, PackageCheckIcon } from "lucide-react";
 
 import { AddWishDialog } from "@/components/add-wish-dialog";
 import { ClaimButton } from "@/components/claim-button";
@@ -59,7 +59,17 @@ export default async function MemberPage({
               : "Rezervuj si to, aby to nekúpil ešte niekto ďalší."}
           </p>
         </div>
-        {list.viewerIsOwner ? <AddWishDialog size="default" /> : null}
+        {list.viewerIsOwner ? (
+          <div className="flex items-center gap-2">
+            <Button variant="ghost" size="sm" asChild>
+              <Link href="/received">
+                <PackageCheckIcon />
+                Čo som dostal
+              </Link>
+            </Button>
+            <AddWishDialog size="default" />
+          </div>
+        ) : null}
       </div>
 
       {list.wishes.length === 0 ? (

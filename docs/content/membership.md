@@ -87,6 +87,11 @@ paired timestamp so the delete does not trip `claim_consistent`).
 
 This is the one remaining way a reserved wish disappears from under its buyer.
 
+Their **history** is not removed. `fulfilled_wishes` copies both names rather
+than joining to them, so the records survive with the ids nulled and the names
+intact — otherwise removing one person would quietly rewrite everybody else's
+record of gifts they really received. See [History](history.md).
+
 ## Rejoining the queue
 
 After a rejection or removal the person's auth user still exists, so signing in

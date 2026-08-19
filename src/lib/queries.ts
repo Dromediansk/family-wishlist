@@ -3,11 +3,17 @@ import "server-only";
 import { cache } from "react";
 
 import { resolveAccess, type Access } from "@/lib/access";
+import {
+  FULFILLED_WISH_COLUMNS,
+  toFulfilledWish,
+  type FulfilledWishRow,
+} from "@/lib/fulfilled";
 import { sortMemberSummaries, toMemberSummary } from "@/lib/members";
 import { getSupabase } from "@/lib/supabase";
 import { getAuthUser } from "@/lib/supabase-auth";
 import type {
   ClaimedWish,
+  FulfilledWish,
   Member,
   MemberAccount,
   MemberStatus,
@@ -259,4 +265,34 @@ export async function getClaimedBy(memberId: string): Promise<ClaimedWish[]> {
 
   if (error) throw error;
   return ((data ?? []) as unknown as ClaimedWishRow[]).map(toClaimedWish);
+}
+
+/**
+ * The two halves of history. Each `eq` hits one of the composite indexes on
+ * fulfilled_wishes, which are already in "one person's rows, newest first"
+ * order, so neither read needs a sort step.
+ *
+ * Neither is `cache`d: one page calls one of them, once.
+ */
+export async function getGivenBy(memberId: string): Promise<FulfilledWish[]> {
+  return readFulfilled("giver_id", memberId);
+}
+
+export async function getReceivedBy(memberId: string): Promise<FulfilledWish[]> {
+  return readFulfilled("owner_id", memberId);
+}
+
+async function readFulfilled(
+  column: "giver_id" | "owner_id",
+  memberId: string,
+): Promise<FulfilledWish[]> {
+  const supabase = getSupabase();
+  const { data, error } = await supabase
+    .from("fulfilled_wishes")
+    .select(FULFILLED_WISH_COLUMNS)
+    .eq(column, memberId)
+    .order("fulfilled_at", { ascending: false });
+
+  if (error) throw error;
+  return ((data ?? []) as unknown as FulfilledWishRow[]).map(toFulfilledWish);
 }

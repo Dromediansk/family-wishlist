@@ -84,10 +84,12 @@ When an action returns `final` ([Wishes](wishes.md#errors-and-results)), the
 dialog swaps the way forward for the way out — a button that visibly does nothing
 reads as a bug.
 
-- **`DeleteWishButton`** becomes "Nedá sa vymazať" with the reason as its
-  description and a single **Zavrieť**. It is a controlled `AlertDialog` purely
-  so the failure clears on close: reopening asks again, and by then the wish may
-  have been released.
+- **`ConfirmActionDialog`** becomes its refused title — "Nedá sa vymazať" for
+  `DeleteWishButton`, "sa nedá označiť" for `FulfilWishButton` — with the reason
+  as its description and a single **Zavrieť**. It is a controlled `AlertDialog`
+  purely so the failure clears on close: reopening asks again, and by then the
+  wish may have been released. Both buttons are thin wrappers over it, so the
+  behaviour is defined once.
 - **`WishForm`** replaces its submit button with **Zavrieť**. Its state resets by
   itself, because Radix unmounts dialog content when closed.
 

@@ -28,7 +28,8 @@ Setup: [`docs/setup/local-development.md`](docs/setup/local-development.md).
 ## The one rule
 
 **A list owner must never learn who claimed one of their own wishes, and must
-never be shown claims while reading their own list.**
+never be shown claims while reading their own list. The secret ends only when
+the giver ends it, by marking the gift handed over — and never any other way.**
 
 Enforced in nine places, listed in
 [`docs/content/privacy-rule.md`](docs/content/privacy-rule.md#where-the-rule-is-enforced).
@@ -37,6 +38,10 @@ Change one and check the rest.
 One deliberate exception: an owner cannot edit or delete a **reserved** wish, and
 the refusal says so without saying by whom. Do not hide that refusal, and do not
 extend it by showing claim state on the owner's list.
+
+The end of the secret is `fulfilWish` and the two history pages
+([`docs/content/history.md`](docs/content/history.md)). It is the giver's
+decision alone.
 
 Never:
 
@@ -51,6 +56,9 @@ Never:
   and stays in that file.
 - Add a Storage policy either. The `wish-photos` bucket is private and reached
   only through the `service_role` client.
+- Write `fulfilled_wishes` from anywhere but `fulfil_wish`, or call
+  `fulfil_wish` for anybody but the holder of the claim.
+- End the secret on the giver's behalf — no cron, no admin override, no date.
 
 ## Two Supabase clients — never mix them
 

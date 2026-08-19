@@ -57,6 +57,18 @@ export type ClaimedWish = OwnerWish & {
   owner: { id: string; name: string };
 };
 
+/**
+ * A gift that was handed over. Both names are snapshots taken at that moment,
+ * so removing either person leaves the record readable — and the giver's name
+ * is here on purpose: the claim it came from is over.
+ * docs/content/privacy-rule.md#when-the-secret-ends
+ */
+export type FulfilledWish = Displayable & {
+  ownerName: string;
+  giverName: string;
+  fulfilledAt: string;
+};
+
 /** Discriminated so a component can never render the wrong view by accident. */
 export type WishListView =
   | { viewerIsOwner: true; wishes: OwnerWish[] }
