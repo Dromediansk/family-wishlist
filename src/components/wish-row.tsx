@@ -30,7 +30,7 @@ export function WishRow({
           dimmed && "opacity-70",
         )}
       >
-        <div className="flex min-w-0 flex-col gap-3 sm:flex-row sm:items-start sm:gap-4">
+        <div className="flex min-w-0 items-start gap-3 sm:gap-4">
           {photo ? (
             /*
              * A thumbnail is too small to read a screenshot in, so it opens the
@@ -53,7 +53,7 @@ export function WishRow({
                 src={photo}
                 alt=""
                 loading="lazy"
-                className="size-24 rounded-lg border object-cover"
+                className="size-16 rounded-lg border object-cover sm:size-24"
               />
             </a>
           ) : null}
