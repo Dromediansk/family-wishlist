@@ -61,14 +61,13 @@ export function HistoryPage({
               <WishRow
                 key={wish.id}
                 wish={wish}
+                actionBeside
                 action={
-                  <div className="flex flex-col items-end gap-1 text-sm">
-                    <span className="text-muted-foreground">
+                  <div className="text-muted-foreground flex flex-col items-end gap-1 text-right text-sm">
+                    <span>
                       {personLabel} {personName(wish)}
                     </span>
-                    <span className="text-muted-foreground">
-                      {formatDate(wish.fulfilledAt)}
-                    </span>
+                    <span>{formatDate(wish.fulfilledAt)}</span>
                   </div>
                 }
               />
