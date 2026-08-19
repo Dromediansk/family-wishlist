@@ -53,6 +53,19 @@ Because a reserved wish can no longer change or vanish, nothing on
 [*Čo kupujem*](claiming.md#what-im-buying) can disappear from under its buyer —
 with one exception, [removing a member](membership.md#removing-someone).
 
+## How a wish ends
+
+Three ways, and only three:
+
+| Ending | Who | What is left |
+|---|---|---|
+| Deleted | the owner, while it is unreserved | nothing |
+| Owner removed | an admin | nothing; the claim is released first |
+| **Darované** | the person holding the claim | a permanent record in [History](history.md) |
+
+The third is the only one that outlives the wish, and the only one an owner
+cannot do.
+
 ## Reading a list
 
 Two shapes come back, decided by who is looking:

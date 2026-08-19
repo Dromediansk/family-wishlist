@@ -1,7 +1,9 @@
 # The privacy rule
 
 > **A list owner must never learn *who* claimed one of their own wishes, and
-> must never be shown claims while reading their own list.**
+> must never be shown claims while reading their own list. The secret ends only
+> when the giver ends it, by marking the gift handed over — and never any other
+> way.**
 
 Everyone else sees claims. The owner does not. Every unusual decision in this
 codebase follows from that sentence.
@@ -129,6 +131,56 @@ showing claim state on the owner's list.
 
 What the owner sees when refused is covered in
 [UI patterns → A refusal ends the dialog](ui-patterns.md#a-refusal-ends-the-dialog).
+
+## When the secret ends
+
+A claim is a secret. A gift that has been handed over is not.
+
+The buyer presses **Darované** on [*Čo kupujem*](claiming.md#what-im-buying).
+The wish is deleted from its owner's list and a row is written to
+`fulfilled_wishes` that names both people to each other. The owner reads it at
+`/received`; the giver reads their side at `/buying/history`.
+
+This is the only place in the app where an owner is told who bought them
+something, and it is not a leak: by the time the button is pressed, the gift is
+in their hands.
+
+### Four invariants
+
+1. **Only the holder ends it.** `fulfilled_wishes` is written by `fulfil_wish`
+   and by nothing else, and `fulfil_wish` matches on `claimed_by = p_giver_id`
+   and on nothing else. No admin override, no cron, no "auto-fulfil after
+   Christmas" — an app that ends the secret on the giver's behalf has taken the
+   one decision that was theirs.
+2. **`fulfilled_wishes` holds no live claims,** by construction: a row exists
+   only because the wish it describes was deleted in the same statement. So
+   `/received` can never become an oracle for what is currently reserved.
+3. **The `revoke execute` in `0006_fulfilled_wishes.sql` is load-bearing.**
+   Postgres grants `EXECUTE` on a new function to `PUBLIC`, so without it
+   anyone holding the anon key could call `fulfil_wish` from devtools and
+   delete a claimed wish while forging a history row — past the zero-policy
+   wall, because a function is not a table. `PUBLIC` includes `service_role`,
+   so the revoke is always paired with an explicit grant back.
+4. **The owner's count falling is accepted.** Their list shrinks by one at that
+   moment. They learn "one of mine was bought and given", which is exactly what
+   they already know, because they are holding it.
+
+### The second accepted hole
+
+A giver who presses **Darované** before actually handing the gift over spoils
+their own surprise, live, in the owner's open tab.
+
+The mitigation is the confirmation dialog's second sentence and nothing else.
+This is deliberately not a code problem: no delay, no scheduling, no "hold until
+December". Any of those would mean the app deciding when a gift was given, which
+it cannot know.
+
+### What did not change
+
+The nine enforcement points above all govern `wishes`, and a fulfilled record
+is no longer a wish. In particular, *never select `claimed_by` on an
+owner-serving path* stands exactly as written: `/received` reads a different
+table and learns nothing about any live claim.
 
 ## Never do these
 
