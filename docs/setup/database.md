@@ -1,7 +1,7 @@
 # Database
 
-Two tables, no policies, and a migration process that stays deliberately manual
-in production.
+Three tables, no policies, and a migration process that stays deliberately
+manual in production.
 
 ## Schema
 
@@ -45,18 +45,46 @@ ahead of constraint checks — and clears the timestamp.
 why it is a trigger is in
 [Membership and roles](../content/membership.md#the-first-person-becomes-the-admin).
 
+### `fulfilled_wishes`
+
+| Column | Notes |
+|---|---|
+| `id` | uuid, primary key |
+| `owner_id` | → `family_members(id)` `ON DELETE SET NULL`, indexed with `fulfilled_at` |
+| `owner_name` | copied, not joined — see below |
+| `giver_id` | → `family_members(id)` `ON DELETE SET NULL`, indexed with `fulfilled_at` |
+| `giver_name` | copied, not joined — see below |
+| `title`, `description`, `url` | copied from the wish at the moment it is handed over |
+| `fulfilled_at` | defaults to `now()` |
+
+Names are copied rather than joined so that removing a member takes neither
+their own history nor the other party's record with them — the id nulls out,
+the name stays readable. `no_self_gift` mirrors `no_self_claim` on `wishes`.
+
+What this table is for and the two pages that read it:
+[History](../content/history.md).
+
 ## Row level security
 
 Enabled on every table, with **zero policies**, on purpose. Never add one — see
 [The privacy rule](../content/privacy-rule.md#why-it-cannot-be-a-database-policy).
 
 `auto_expose_new_tables = true` in `supabase/config.toml` has to stay. Every read
-and write goes through PostgREST as `service_role` and no migration issues a
-`GRANT`; the hosted project predates the always-revoked default. Without it the
-tables exist locally and answer "permission denied".
+and write goes through PostgREST as `service_role` and no migration grants
+table access; the hosted project predates the always-revoked default. Without
+it the tables exist locally and answer "permission denied".
+
+One exception: `0007_fulfilled_wishes.sql` does issue a `GRANT`, on the
+`fulfil_wish` function rather than a table. Postgres grants `EXECUTE` on a new
+function to `PUBLIC` by default, which would let the anon key call it straight
+past the zero-policy wall — a function is not a table, so `auto_expose_new_tables`
+does nothing for it either way. The migration revokes from
+`public, anon, authenticated` and grants back to `service_role` alone, because
+`PUBLIC` includes `service_role` and the revoke would otherwise take that with
+it.
 
 **That field is removed on 2026-10-30**, at which point the migrations need
-explicit `GRANT`s — in production too.
+explicit table `GRANT`s as well — in production too.
 
 ## Migrations
 
@@ -68,6 +96,7 @@ explicit `GRANT`s — in production too.
 | `0004_claim_notices.sql` | The buyer-notice table and its two triggers | no |
 | `0005_drop_claim_notices.sql` | Drops all three again | touches no wish and no member |
 | `0006_wish_photo.sql` | Adds the nullable `photo_path` column | no |
+| `0007_fulfilled_wishes.sql` | The `fulfilled_wishes` table and the `fulfil_wish` function | no |
 
 `0003_auth.sql` deletes every member and every wish. Identity moved from "a name
 you picked" to "a Google account", and there is no way to tell which account an
@@ -85,7 +114,7 @@ order. Why the notices went away at all:
 **In production: by hand**, pasted into the Supabase SQL editor, in order,
 skipping `0002`.
 
-**Locally**: `npm run db:reset` applies all six. It runs `0002` too, which is
+**Locally**: `npm run db:reset` applies all seven. It runs `0002` too, which is
 harmless — that file is entirely comments with no DDL. The CLI accepts the
 `0001_`-style names; they need no timestamp prefix.
 
