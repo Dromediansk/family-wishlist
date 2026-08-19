@@ -132,6 +132,10 @@ anything stored. It is one of the places the privacy rule is enforced —
 
 Addressed by wish id, never by object key, so no key from a URL is ever trusted.
 
+The list shows the photo as a thumbnail that opens the full picture in a dialog,
+never in a new tab —
+[Looking at a photo](ui-patterns.md#looking-at-a-photo).
+
 ## Errors and results
 
 Every Server Action returns an `ActionResult` rather than throwing. Expected
