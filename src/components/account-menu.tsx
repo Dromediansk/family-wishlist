@@ -48,7 +48,7 @@ export function AccountMenu({
         <DropdownMenuTrigger
           className={cn(
             buttonVariants({ variant: "secondary", size: "icon" }),
-            "relative rounded-full border text-lg font-semibold",
+            "rounded-full border text-lg font-semibold",
           )}
           aria-label={`Účet – ${name}${waiting ? `, ${pendingCount} čaká na schválenie` : ""}`}
         >

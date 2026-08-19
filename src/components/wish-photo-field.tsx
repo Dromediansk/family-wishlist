@@ -52,9 +52,9 @@ export function WishPhotoField({
   const [error, setError] = useState<string | null>(null);
 
   /*
-   * One name for "hands off", so the controls that only wait cannot drift
-   * apart. The two picker buttons take `busy` as `loading` instead — they are
-   * the ones doing the work, and only they carry the spinner.
+   * One name for "hands off", so the four controls cannot drift apart. The two
+   * picker buttons pass `busy` as `loading` on top of it — they are the ones
+   * doing the work, so only they carry the spinner.
    */
   const locked = disabled || busy;
 
@@ -145,7 +145,7 @@ export function WishPhotoField({
               type="button"
               variant="outline"
               size="sm"
-              disabled={disabled}
+              disabled={locked}
               loading={busy}
               onClick={() => input.current?.click()}
             >
@@ -173,7 +173,7 @@ export function WishPhotoField({
             type="button"
             variant="outline"
             size="sm"
-            disabled={disabled}
+            disabled={locked}
             loading={busy}
             onClick={() => input.current?.click()}
           >

@@ -6,8 +6,8 @@ import { LoaderCircleIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const buttonVariants = cva(
-  // `relative` anchors the busy spinner, and is also what CountBadge asks of
-  // whatever it sits in the corner of.
+  // `relative` anchors the busy spinner, and the corner CountBadge that
+  // `account-menu` hangs off these same classes.
   "relative inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md font-medium transition-colors disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-5 [&_svg]:shrink-0 cursor-pointer",
   {
     variants: {
@@ -43,9 +43,10 @@ const buttonVariants = cva(
 
 /**
  * `loading` is the app's only busy affordance —
- * docs/content/ui-patterns.md#a-busy-button-keeps-its-label. It cannot be
- * combined with `asChild`: `Slot` takes a single child and has nowhere to put
- * the spinner.
+ * docs/content/ui-patterns.md#a-busy-button-keeps-its-label. The prop type
+ * forbids combining it with `asChild`: `Slot` would clone the spinner fragment
+ * instead of an element and drop every class, silently rendering an unstyled,
+ * still-clickable control rather than failing.
  */
 function Button({
   className,
@@ -57,10 +58,8 @@ function Button({
   children,
   ...props
 }: React.ComponentProps<"button"> &
-  VariantProps<typeof buttonVariants> & {
-    asChild?: boolean;
-    loading?: boolean;
-  }) {
+  VariantProps<typeof buttonVariants> &
+  ({ asChild?: false; loading?: boolean } | { asChild: true; loading?: never })) {
   const Comp = asChild ? Slot : "button";
   return (
     <Comp
@@ -79,15 +78,9 @@ function Button({
       {loading ? (
         <>
           {/*
-           * The wrapper repeats the button's own `items-center gap-2`, so one
-           * centred flex item measures what the loose children measured and the
-           * width cannot move mid-action.
-           *
-           * It fades to a ghost rather than merely dimming, because the spinner
-           * lands in the middle of the label: at anything more legible the two
-           * collide and read as broken text instead of a busy control. An
-           * icon-size button has one glyph and no room beside it, so there the
-           * content goes away entirely.
+           * The wrapper repeats the button's own `items-center gap-2` so the
+           * width cannot move mid-action. Both opacities were settled by eye —
+           * see the doc link above before changing either.
            */}
           <span
             className={cn(
