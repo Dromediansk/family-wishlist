@@ -19,12 +19,9 @@ const idSchema = z.uuid("Neplatný člen.");
 const roleSchema = z.enum(["admin", "member"]);
 
 /**
- * Server Actions are reachable by direct POST, not just through our UI, so
- * every one of them re-derives who the caller is from their session and checks
- * permission here. Nothing trusts an id supplied by the client.
- *
- * getCurrentMember() only ever returns an approved member, so somebody still
- * waiting at the door fails this the same way a stranger does.
+ * Server Actions are reachable by direct POST, so every one re-derives its
+ * caller from the session. Nothing trusts a client-supplied id, and
+ * `getCurrentMember()` returns only approved members.
  */
 async function requireAdmin(): Promise<
   { ok: true } | { ok: false; error: string }
@@ -38,13 +35,9 @@ async function requireAdmin(): Promise<
 }
 
 /**
- * Let someone in.
- *
- * Members are not created here — signing in with Google creates them, as
- * `pending` (see supabase/migrations/0003_auth.sql). This is the step that turns
- * a stranger who found the link into a member of the family, and it is the only
- * thing standing between the two, because Supabase will let any Google account
- * in the world finish the sign-in flow.
+ * Let someone in. Members are created by a database trigger on sign-in, as
+ * `pending`; this is the door, and the only thing between a stranger who found
+ * the link and the family. docs/content/membership.md
  */
 export async function approveMember(memberId: string): Promise<ActionResult> {
   const permitted = await requireAdmin();
@@ -72,13 +65,9 @@ export async function approveMember(memberId: string): Promise<ActionResult> {
 }
 
 /**
- * Turn someone away.
- *
- * Deletes the family_members row, which is what the app goes by. Their Google
- * account still exists in Supabase Auth, so signing in again puts them back in
- * the queue — the database recreates the row on insert only, and this is not an
- * insert. To bar someone for good, delete the user under Authentication in the
- * Supabase dashboard; that cascades back to here.
+ * Turn someone away. Their Google account survives, so signing in again puts
+ * them back in the queue — rejecting is a "not today", not a ban.
+ * docs/content/membership.md#rejecting-vs-removing
  */
 export async function rejectMember(memberId: string): Promise<ActionResult> {
   const permitted = await requireAdmin();
@@ -91,8 +80,8 @@ export async function rejectMember(memberId: string): Promise<ActionResult> {
   const { data, error } = await supabase
     .from("family_members")
     .delete()
-    // Never let this path touch an approved member. Removing one of those is
-    // removeMember's job, which checks that the last admin cannot be deleted.
+    // Never touch an approved member here — that is removeMember's job, and only
+    // it enforces the last-admin rule.
     .eq("id", id.data)
     .eq("status", "pending")
     .select("id");
@@ -121,9 +110,7 @@ export async function renameMember(
   if (!name.success) return { ok: false, error: name.error.issues[0].message };
 
   const supabase = getSupabase();
-  // Names stopped being unique in 0003_auth.sql — they come from Google
-  // profiles now, and two people really can share one. This is a label on a
-  // card; identity is the linked account.
+  // Names are not unique: identity is auth_user_id, this is a label on a card.
   const { error } = await supabase
     .from("family_members")
     .update({ name: name.data })
@@ -151,8 +138,7 @@ export async function setMemberRole(
 
   const supabase = getSupabase();
 
-  // Don't let the last admin demote themselves — that would lock everyone out
-  // of member management with no way back except editing the database.
+  // The last admin cannot be demoted, or nobody can ever approve anybody again.
   if (parsedRole.data === "member") {
     const { count, error: countError } = await supabase
       .from("family_members")
@@ -215,8 +201,8 @@ export async function removeMember(memberId: string): Promise<ActionResult> {
     }
   }
 
-  // Their own wishes cascade away; any claims they had made on other people's
-  // lists are released back to unclaimed by the ON DELETE SET NULL rule.
+  // Wishes cascade away; their claims on other lists are released by
+  // ON DELETE SET NULL. docs/content/membership.md#removing-someone
   const { error } = await supabase
     .from("family_members")
     .delete()

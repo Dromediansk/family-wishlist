@@ -20,14 +20,9 @@ import { cn, initial } from "@/lib/utils";
 const SIGN_OUT_FORM = "sign-out";
 
 /**
- * The account chrome, in the header on every page a signed-in member sees.
- *
- * Takes only a name, a role flag and a count — never a member row and never
- * anything wish-shaped. The one rule of this app is about what an owner can
- * learn from their own list, and the header stays well clear of it.
- *
- * `isAdmin` is not derivable from `pendingCount`: an admin with an empty queue
- * still needs the link to /family.
+ * Takes a name, a role flag and a count — never a member row and never anything
+ * wish-shaped. `isAdmin` is not derivable from `pendingCount`: an admin with an
+ * empty queue still needs the link to /family.
  */
 export function AccountMenu({
   name,
@@ -44,10 +39,8 @@ export function AccountMenu({
   return (
     <>
       {/*
-       * Outside the menu on purpose. Radix portals the menu content and unmounts
-       * it on select, so a form in there would be torn down mid-submit; here the
-       * browser owns the post and the item below just points at it. Same
-       * server action, same one way to sign out, as sign-out-button.tsx.
+       * Outside the menu on purpose: Radix unmounts menu content on select, so a
+       * form in there would be torn down mid-submit.
        */}
       <form action={signOut} id={SIGN_OUT_FORM} className="hidden" />
 

@@ -1,29 +1,18 @@
 /**
- * Fills the LOCAL database with a fake family, so the interesting states can be looked at
- * instead of clicked into existence.
+ * Fills the LOCAL database with a fake family.
  *
  *   npm run db:seed
  *
- * Run it after signing in — see supabase/seed.sql for why the fake members cannot be
- * created before that. The full loop is: db:reset → sign in with Google → db:seed.
+ * Run it after signing in; the loop is db:reset → sign in → db:seed, and the middle step
+ * cannot be skipped. Re-running is safe — every seeded member carries an @seed.local
+ * email and is deleted first.
  *
- * Re-running is safe. Every seeded member carries an @seed.local email, and the first
- * thing this does is delete them; their wishes go with them via ON DELETE CASCADE, and
- * anything they had claimed is released by ON DELETE SET NULL plus the
- * clear_claim_timestamp trigger. Your own account and anything you added by hand survive.
- *
- * The claims are set with the service_role key rather than through claimWish, so this can
- * put your own list into the one state the UI cannot: two of your wishes reserved, with
- * nothing on the page saying which. Trying to delete or edit one of them is the refusal
- * worth looking at.
+ * docs/setup/local-development.md#resetting-and-seeding
  */
 
 import { createClient } from "@supabase/supabase-js";
 
-/**
- * Every giving-up path in this file. Defined first because the two checks below run at
- * import time, before anything else exists.
- */
+/** Defined first: the two checks below run at import time. */
 const fail = (message) => {
   console.error(`\n${message}\n`);
   process.exit(1);
@@ -41,10 +30,8 @@ if (!url || !serviceKey) {
 }
 
 /**
- * The guardrail. This script writes fabricated data with a key that bypasses row level
- * security, so it has to be incapable of reaching the hosted project — not merely
- * unlikely to. A hostname check is the one thing that cannot be got wrong by editing the
- * wrong dotenv file.
+ * The guardrail. This writes fabricated data with a key that bypasses RLS, so it has to be
+ * *incapable* of reaching the hosted project, not merely unlikely to.
  */
 const LOOPBACK = new Set(["127.0.0.1", "localhost", "::1", "[::1]"]);
 const host = new URL(url).hostname;
@@ -66,12 +53,10 @@ const SEED_DOMAIN = "@seed.local";
 const RELATIVES = ["Zuzana", "Marek", "Elena"];
 
 /**
- * Your own list. Two of these get claimed below — by design you must not be able to tell
- * which, and that is the thing worth looking at after this runs.
+ * Your own list. Two of these get claimed below, and you must not be able to tell which.
  *
- * Declared up here rather than inline because these are the one set of rows the cleanup
- * cannot get for free: they hang off your account, not off a seeded member, so no cascade
- * reaches them and they have to be removed by title.
+ * Declared up here because these are the one set of rows the cleanup cannot get for free:
+ * they hang off your account, so no cascade reaches them and they go by title.
  */
 const MY_WISHES = [
   { title: "Bezdrôtové slúchadlá", url: "https://example.com/sluchadla" },

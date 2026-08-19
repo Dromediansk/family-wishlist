@@ -1,11 +1,7 @@
 import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 
-/**
- * The root `loading.tsx` used to stand in for this route by accident; now that
- * it is scoped to `/`, admin navigation needs its own shell or the menu item
- * looks dead until the member list arrives.
- */
+/** Its own shell, or the admin menu item looks dead until the list arrives. */
 export default function FamilyLoading() {
   return (
     <div className="space-y-6">

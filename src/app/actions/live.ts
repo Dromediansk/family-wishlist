@@ -3,31 +3,19 @@
 import { revalidatePath } from "next/cache";
 
 /**
- * Throws away everything the calling tab has cached — the browser's answer to
- * the live ping.
+ * The browser's answer to the live ping: throw away everything this tab has
+ * cached and re-render under its own cookie.
  *
- * `revalidatePath` purges the *caller's own* Client Cache, every route that tab
- * has visited rather than only the one on screen, and the action's response
- * re-renders the current route under the caller's cookie, so `getWishListFor`
- * redacts for this viewer exactly as it does on a first visit.
+ * Must be `revalidatePath`, not `router.refresh()` or `next/cache`'s
+ * `refresh()` — both leave a cached `/` payload alive.
  *
- * Not `refresh()` from `next/cache`, which looks like the tighter primitive: it
- * marks the response dynamic-only, and the client reducer skips
- * `invalidateEntirePrefetchCache` for that kind, so a cached `/` payload would
- * survive the ping — the exact staleness this exists to clear.
+ * The one Server Action that skips the CLAUDE.md checklist: no input, no table
+ * read, no row written. Gating it on `getCurrentMember()` would leave a
+ * `pending` tab deaf to the ping that tells it it was approved.
  *
- * This is the one Server Action that skips the checklist in CLAUDE.md: no
- * input, no table read, no row written, so an anonymous POST re-renders the
- * poster's own route and learns nothing. Step 1 in particular cannot apply —
- * `getCurrentMember()` returns only *approved* members, so gating the ping on
- * it would leave a `pending` tab deaf to the very ping that tells it it was
- * approved (`src/app/pending/page.tsx`).
- *
- * It stays safe only as long as nothing is cached server-side.
- * `revalidatePath` is a cache-*mutating* primitive; today it's a no-op because
- * of `force-dynamic` and no `use cache` anywhere. The day this app adopts Cache
- * Components, an unauthenticated call here becomes a repeatable, global cache
- * purge, and the caller check goes back in.
+ * **Safe only while nothing is cached server-side.** Adopt Cache Components and
+ * an unauthenticated call becomes a global cache purge; the caller check goes
+ * back in. docs/content/live-updates.md#syncfromlive-is-the-one-unauthorized-action
  */
 export async function syncFromLive(): Promise<void> {
   revalidatePath("/", "layout");

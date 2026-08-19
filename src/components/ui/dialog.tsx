@@ -37,22 +37,12 @@ function DialogOverlay({
 }
 
 /**
- * Full-screen on a phone, the centred card it always was from `sm:` up.
+ * Full-screen on a phone, centred card from `sm:` up — expressed as *size*, not
+ * by re-anchoring, so the breakpoint changes nothing but the dimensions.
  *
- * Full-screen is expressed as *size* — a full-width, full-height box that is
- * already centred — rather than by re-anchoring it to all four edges. Zeroing
- * the inset would need an auto inset to undo it at the breakpoint, and that
- * only works while the auto one sits earlier in the class string:
- * tailwind-merge treats the inset shorthand as owning top and left, so moving
- * it later would delete them and drop the desktop card into the top-left
- * corner. One anchor for both sizes means the breakpoint changes nothing but
- * the dimensions.
- *
- * A direct child of this may be a `DialogHeader`, `DialogBody` or
- * `DialogFooter` — the padding lives on those, so anything else renders flush
- * against the panel edge. The one other thing allowed here is a wrapper that
- * passes the regions straight through, which is what `WishForm`'s
- * `flex min-h-0 flex-1 flex-col` form element is for.
+ * A direct child must be a `DialogHeader`, `DialogBody` or `DialogFooter`, or a
+ * wrapper that passes those straight through (`WishForm`). The padding lives on
+ * the regions. docs/content/ui-patterns.md#three-things-that-will-bite
  */
 function DialogContent({
   className,
@@ -91,12 +81,8 @@ function DialogContent({
 }
 
 /**
- * Pinned to the top. Rules off against the scrolling body only on a phone,
- * where there is something to rule off against.
- *
- * `pr-14` keeps the title clear of the close button in the corner — a 44px
- * target inset by 10px. `AlertDialogHeader` has no such button and no such
- * padding.
+ * Pinned to the top; rules off against the scrolling body only on a phone.
+ * `pr-14` clears the close button — a 44px target inset by 10px.
  */
 function DialogHeader({ className, ...props }: React.ComponentProps<"div">) {
   return (

@@ -10,14 +10,13 @@ export default async function HomePage() {
 
   const access = await getAccess();
 
-  // proxy.ts sends signed-out visitors to /login before a render ever starts.
-  // This is the check that actually decides, though — the proxy is an
-  // optimisation, and the pending case needs the database anyway.
+  // proxy.ts already bounced signed-out visitors, but that is an optimisation —
+  // this is the check that decides, and the pending case needs the database.
   if (access.kind === "anonymous") redirect("/login");
   if (access.kind === "pending") redirect("/pending");
 
   const currentMember = access.member;
-  // The viewer's id is what decides whose availability count is withheld.
+  // The viewer's id decides whose availability count is withheld.
   const members = await getMemberSummaries(currentMember.id);
 
   return (

@@ -2,10 +2,7 @@ import { DatabaseIcon } from "lucide-react";
 
 import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
-/**
- * Shown instead of a stack trace when the Supabase environment variables are
- * missing, which is the state a fresh clone starts in.
- */
+/** Shown instead of a stack trace when the Supabase env vars are missing. */
 export function SetupRequired() {
   return (
     <Card>
@@ -53,7 +50,7 @@ export function SetupRequired() {
         <li>Reštartuj vývojový server.</li>
       </ol>
       <p className="text-muted-foreground text-sm">
-        Kompletný návod nájdeš v súbore README.
+        Kompletný návod nájdeš v priečinku docs/setup.
       </p>
     </Card>
   );

@@ -1,46 +1,16 @@
 -- Family Wish List — live updates
 --
--- There is nothing to run here. This file exists to record a decision, because
--- the obvious "improvement" to it would quietly break the whole app.
+-- There is nothing to run here. This file exists so that the next person to
+-- reach for `postgres_changes` finds the reason not to, next to the schema.
 --
--- Live updates work by broadcasting a content-free ping on a public Supabase
--- Realtime channel; browsers answer it by re-rendering through the Next.js
--- server, which re-applies the per-viewer claim redaction in getWishListFor.
--- See the "Live updates" section of README.md. Broadcast needs no database
--- objects and no policies, so 0001_init.sql stands unchanged: every table has
--- row level security on with zero policies, and the anon key opens nothing.
+-- Live updates broadcast a content-free ping on a public Supabase Realtime
+-- channel. Broadcast needs no database objects and no policies, so 0001_init.sql
+-- stands unchanged: RLS on every table, zero policies, the anon key opens
+-- nothing.
 --
+-- DO NOT add an RLS policy to `wishes` to make postgres_changes work, and DO NOT
+-- put anything in the broadcast payload. Both would hand every list owner their
+-- own claimed_by values, which is the one thing this app exists to prevent.
 --
--- DO NOT add an RLS policy to `wishes` to make postgres_changes work.
---
--- It is tempting: postgres_changes streams row changes straight to the browser
--- and would save a round trip. But it is filtered by RLS, so switching it on
--- means granting the anon role select on `wishes` — and Realtime would then
--- deliver every list owner their own claimed_by values. The whole app exists to
--- keep exactly that from happening. The rule is enforced by the *column list*
--- of a server-side query, which only works if the browser cannot query at all.
---
--- The same goes for putting anything in the broadcast payload. The ping reaches
--- every open tab at once, including the tab of the person whose list was just
--- claimed from. Even "member X's list changed" is enough for that owner to
--- infer a claim from devtools. See LIVE_PAYLOAD in src/lib/live.ts, pinned by
--- src/lib/live.test.ts.
---
---
--- Optional hardening, not enabled:
---
--- A public channel means anyone holding the anon key can also *send* on it, and
--- so force every open tab to re-render. Nothing leaks — there is nothing on the
--- channel to read — it is a nuisance, not a disclosure. Switching to a private
--- channel would close it, via a receive-only policy:
---
---   create policy "anon receives wishlist signal"
---     on realtime.messages for select to anon
---     using (realtime.topic() = 'family-wishlist' and extension = 'broadcast');
---
--- and setting `config: { private: true }` on both sides. The catch is that
--- private broadcasts are persisted into `realtime.messages`, which is
--- partitioned by day: on a project whose partition-creating job isn't running,
--- every send fails with "Missing messages partition" and live updates silently
--- stop. For a family wish list that failure mode costs more than the nuisance
--- it prevents.
+-- Why, in full, including the private-channel option that was considered and
+-- rejected: docs/content/live-updates.md

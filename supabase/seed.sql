@@ -1,18 +1,12 @@
--- Runs automatically at the end of every `npm run db:reset`, after 0001–0004.
+-- Runs automatically at the end of every `npm run db:reset`.
 --
--- It is deliberately empty of family_members rows, and that is the whole point of the
--- file existing at all.
+-- Deliberately empty of family_members rows, and that is the whole point of the file
+-- existing: handle_new_auth_user() picks the admin with
 --
--- handle_new_auth_user() in 0003_auth.sql decides who the admin is with
+--     not exists (select 1 from family_members)
 --
---     is_first := not exists (select 1 from family_members)
+-- so a seeded member would leave your real sign-in stranded as 'pending', waiting on an
+-- admin who does not exist. The fake family is inserted afterwards by `npm run db:seed`
+-- instead, anchored on the row your sign-in created.
 --
--- Seed a single member here and that is false by the time you sign in, so your Google
--- account arrives as 'member'/'pending' — waiting for an approval from an admin who does
--- not exist and cannot be created through the UI. The local database would come up
--- pre-broken, and the bootstrap path that production actually uses would never be
--- exercised.
---
--- So the fake family is inserted afterwards instead, by `npm run db:seed`
--- (scripts/seed-dev.mjs), which anchors on the member row your sign-in created. The loop
--- is: db:reset → sign in with Google → db:seed.
+-- docs/setup/local-development.md#resetting-and-seeding

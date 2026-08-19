@@ -8,9 +8,8 @@ export const contentType = "image/png";
 export const dynamic = "force-static";
 
 /**
- * iOS home screen icon. Same artwork as `icon.tsx`, at the size iOS asks for
- * and with an opaque background — iOS does not composite transparency and
- * renders anything see-through as black.
+ * iOS home screen icon: same artwork, at the size iOS asks for and opaque — iOS
+ * renders transparency as black.
  */
 export default function AppleIcon() {
   return new ImageResponse(<IconArtwork size={size.width} />, { ...size });

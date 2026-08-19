@@ -25,11 +25,7 @@ type Props = {
 
 const EMPTY: WishFormValues = { title: "", description: "", url: "" };
 
-/**
- * Whichever button the footer ends up showing. Full width on a phone, so the
- * thumb has the whole edge to aim at; its natural width once the footer turns
- * into a row.
- */
+/** Full width on a phone so the thumb has the whole edge to aim at. */
 const ACTION_BUTTON = "w-full sm:w-auto";
 
 /** Shared by the add and edit dialogs — title required, the rest optional. */
@@ -45,9 +41,9 @@ export function WishForm({
   const [pending, startTransition] = useTransition();
 
   /**
-   * The action says retrying cannot help, so there is nothing to submit any
-   * more. A validation message leaves this false, and fixing the title and
-   * submitting again works exactly as it always did.
+   * Retrying cannot help, so there is nothing left to submit. A validation
+   * message leaves this false.
+   * docs/content/ui-patterns.md#a-refusal-ends-the-dialog
    */
   const refused = failure?.final === true;
 
@@ -70,12 +66,9 @@ export function WishForm({
   }
 
   /*
-   * The form is the dialog's whole body-and-footer, not a block sitting inside
-   * it: it stretches to fill the panel so the fields can scroll in the middle
-   * while the button stays pinned to the bottom edge. On a phone that edge is
-   * the screen's, which is the point — the thumb never has to go looking for
-   * the button. `min-h-0` is what lets the form shrink to the panel instead of
-   * to its own content; see the region contract on `DialogContent`.
+   * The form *is* the dialog's body and footer, not a block inside them, so the
+   * fields scroll while the button stays pinned to the bottom edge. `min-h-0` is
+   * what lets it shrink to the panel rather than to its own content.
    */
   return (
     <form onSubmit={handleSubmit} className="flex min-h-0 flex-1 flex-col">
@@ -130,8 +123,8 @@ export function WishForm({
       <DialogFooter>
         {refused ? (
           /*
-           * Nothing typed into this form can be saved now, so the way out
-           * replaces the way forward rather than sitting next to it disabled.
+           * The way out replaces the way forward, rather than sitting next to
+           * it disabled.
            */
           <Button
             type="button"

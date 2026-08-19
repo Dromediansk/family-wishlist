@@ -15,21 +15,17 @@ type BeforeInstallPromptEvent = Event & {
 const neverChanges = () => () => {};
 
 /**
- * Reads something that only exists in the browser and never changes for the
- * life of the page — the user agent, the display mode, a stored dismissal.
- * Server-rendering and the first hydration pass both see `false`, so the prompt
- * can only ever appear after mount and there is nothing to mismatch.
+ * Reads a browser-only value that never changes for the life of the page. SSR
+ * and first hydration both see `false`, so there is nothing to mismatch.
  */
 function useBrowserFlag(read: () => boolean) {
   return useSyncExternalStore(neverChanges, read, () => false);
 }
 
 /**
- * Nudge to add the app to the home screen.
- *
- * Two paths, because the platforms don't agree: Chrome fires
- * `beforeinstallprompt` and hands us a real one-tap install, while iOS Safari
- * fires nothing at all and the only way in is the share sheet.
+ * Nudge to add the app to the home screen. Two paths: Chrome fires
+ * `beforeinstallprompt` and gives a real one-tap install, iOS Safari fires
+ * nothing and the only way in is the share sheet.
  */
 export function InstallPrompt() {
   const [installEvent, setInstallEvent] =
@@ -39,7 +35,7 @@ export function InstallPrompt() {
   const previouslyDismissed = useBrowserFlag(
     () => localStorage.getItem(DISMISSED_KEY) === "1",
   );
-  // Already installed — this *is* the app, there is nothing to offer.
+  // Already installed — this *is* the app.
   const isStandalone = useBrowserFlag(
     () => window.matchMedia("(display-mode: standalone)").matches,
   );

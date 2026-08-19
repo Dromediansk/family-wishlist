@@ -8,21 +8,12 @@ import { cn, wishCount } from "@/lib/utils";
 import type { MemberSummary } from "@/lib/types";
 
 /**
- * One family member, as a nameplate you tap to open their list.
+ * One family member, as a nameplate you tap to open their list. The name's
+ * `after` pseudo-element stretches over the whole card, so the tap target is the
+ * card; the bottom row ignores pointer events so it punches no dead hole in it.
  *
- * The name links to the list and its `after` pseudo-element stretches over the
- * whole card, so the tap target is the card itself — far easier to hit on a
- * phone than a small button. The bottom row ignores pointer events so it never
- * punches a dead hole in that target; only the button inside it takes clicks.
- *
- * `viewerIsOwner` says whose card this is, and drives both halves of what that
- * changes: "Pridať želanie" appears, since adding to someone else's list isn't
- * a thing, and the count drops its second number.
- *
- * That count otherwise leads with what is still free to reserve and keeps the
- * total behind it, muted: "2 / 5". Your own card shows the bare total — a
- * smaller number beside it would tell you the difference had been claimed, and
- * the type carries no such number to render.
+ * `viewerIsOwner` adds "Pridať želanie" and drops the count's second number —
+ * docs/content/privacy-rule.md#counting-on-the-family-grid.
  */
 export function MemberCard({ member }: { member: MemberSummary }) {
   // An empty list reads better as a lone "0" than as "0 / 0".
@@ -63,7 +54,7 @@ export function MemberCard({ member }: { member: MemberSummary }) {
         <span
           className={cn(
             "ml-auto inline-flex items-center gap-1.5 text-lg font-semibold tabular-nums",
-            // Tracks what is left to take, so a fully reserved list dims down.
+            // A fully reserved list dims down.
             leadCount > 0 ? "text-primary" : "text-muted-foreground",
           )}
         >

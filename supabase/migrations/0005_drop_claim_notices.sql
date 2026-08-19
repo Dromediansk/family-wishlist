@@ -3,25 +3,14 @@
 -- Run this once in the Supabase SQL editor, after 0004_claim_notices.sql.
 -- It touches no wish and no member: the only table it drops is claim_notices.
 --
--- 0004 existed because an owner could delete or rewrite a wish somebody had
--- already reserved, and warning the owner would have told them the one thing
--- this app hides. The buyer was told afterwards instead.
+-- 0004 told the buyer after the fact, because an owner could still delete or
+-- rewrite a reserved wish. They are now refused outright, so both triggers have
+-- nothing left to report. Removing a member was never a third case: the
+-- trigger's lookup in family_members finds no row by then.
+-- docs/content/privacy-rule.md#this-is-a-known-accepted-hole
 --
--- The owner is now refused outright — `claimed_by is null` sits in the WHERE
--- clause of both updateWish and deleteWish (src/app/actions/wishes.ts), and
--- they are shown "Toto želanie už má niekto rezervované…" without ever being
--- told by whom. So a reserved wish can no longer be changed or removed, and
--- there is nothing left for either trigger to report:
---
---   * wishes_notice_edited fired on an owner's edit. Refused.
---   * wishes_notice_deleted fired on an owner's delete. Refused.
---
--- Removing a member was never a third case. Their wishes cascade away, but the
--- trigger's `select ... from family_members where m.id = old.member_id` finds
--- no row by then and inserts nothing (0004_claim_notices.sql, lines 84-96).
---
--- Dropping the triggers before the table is not required — `drop table` would
--- take them with it — but it is spelled out so the order reads as deliberate.
+-- Dropping the triggers before the table is not required — `drop table` takes
+-- them with it — but it is spelled out so the order reads as deliberate.
 
 begin;
 

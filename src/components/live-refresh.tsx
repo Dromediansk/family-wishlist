@@ -7,17 +7,9 @@ import { syncFromLive } from "@/app/actions/live";
 import { LIVE_EVENT, LIVE_TOPIC } from "@/lib/live";
 
 /**
- * Keeps every open tab in step with the database.
- *
- * Listens for the content-free "something changed" ping sent by the Server
- * Actions (see `src/lib/realtime.ts`) and answers it with `syncFromLive`, which
- * purges this tab's whole Client Cache and re-renders under this visitor's
- * cookie — so the per-viewer claim redaction is re-applied on the server and no
- * wish data ever travels over the socket. Not `router.refresh()`, which reaches
- * the current route only; CLAUDE.md has the rule and `live.ts` the mechanism.
- *
- * The response is merged into the running tree rather than replacing it, so an
- * open dialog and its half-typed input survive an update landing.
+ * Keeps every open tab in step: listens for the content-free ping and answers it
+ * with `syncFromLive`. Never `router.refresh()`, which reaches the current route
+ * only. docs/content/live-updates.md
  */
 
 /** A burst of writes should cost one re-render, not one each. */
@@ -27,14 +19,9 @@ const DEBOUNCE_MS = 250;
 const DISCONNECTED_POLL_MS = 30_000;
 
 /**
- * One Supabase client for the lifetime of the page, not one per effect run.
- *
- * Creating it inside the effect made a fresh client — with its own WebSocket and
- * its own auth instance — every time the effect re-ran, and `removeChannel` only
- * unsubscribes the channel, so the sockets accumulated. React runs effects twice
- * in development, and again on every hot reload, so this piled up quickly and
- * showed as "Multiple GoTrueClient instances detected in the same browser
- * context" in the console.
+ * One client for the lifetime of the page, not one per effect run —
+ * `removeChannel` unsubscribes the channel but leaves the socket, so a
+ * per-effect client accumulates sockets across React's double-invoked effects.
  */
 let client: SupabaseClient | null = null;
 
@@ -45,10 +32,8 @@ function getClient(): SupabaseClient | null {
 
   client ??= createClient(url, key, {
     auth: { persistSession: false, autoRefreshToken: false },
-    // Browsers throttle timers in background tabs hard enough to starve the
-    // socket's heartbeat, so a tab left open in the background drops off the
-    // channel. Running the heartbeat in a web worker keeps it ticking — which
-    // matters here, because background tabs are the normal case for this app.
+    // Background tabs are the normal case here, and browsers throttle timers
+    // hard enough to starve the heartbeat. A worker keeps it ticking.
     realtime: { worker: true },
   });
 
@@ -63,12 +48,9 @@ export function LiveRefresh() {
     let timer: ReturnType<typeof setTimeout> | undefined;
     let live = false;
     let everLive = false;
-    // At most one syncFromLive outstanding. The debounce collapses a burst of
-    // pings, but not the 30s deaf-poll, which would queue one action per tick
-    // while offline — useOffline holds those rather than rejecting them, so the
-    // whole pile would fire at reconnect, each a full route re-render. A ping
-    // arriving while one is in flight is dropped, not queued; the next ping,
-    // poll tick or visibility change picks it up.
+    // At most one syncFromLive outstanding. Without it the 30s deaf-poll would
+    // queue one action per tick while offline and fire the pile at reconnect. A
+    // ping arriving mid-flight is dropped; the next one picks it up.
     let pending = false;
 
     const refresh = () => {
@@ -80,14 +62,11 @@ export function LiveRefresh() {
           try {
             await syncFromLive();
           } catch (error) {
-            // Cosmetic — the deaf-poll and the staleTimes ceiling both catch
-            // up. Logged anyway: a permanently failing sync is invisible
-            // otherwise.
+            // Cosmetic — the deaf-poll and the staleTimes ceiling catch up.
+            // Logged anyway: a permanently failing sync is invisible otherwise.
             console.warn("Live sync failed:", error);
           } finally {
-            // Runs even if syncFromLive rejects, so a failure can't wedge the
-            // guard shut. Offline, useOffline holds the action, so this waits
-            // for reconnection — one outstanding call instead of a pile.
+            // Runs even on rejection, so a failure cannot wedge the guard shut.
             pending = false;
           }
         });
@@ -99,20 +78,15 @@ export function LiveRefresh() {
       .on("broadcast", { event: LIVE_EVENT }, refresh)
       .subscribe((status) => {
         live = status === "SUBSCRIBED";
-        // Re-joining after a drop means we were deaf for a while, so catch up.
-        // The first join needs no refresh: the page was just server-rendered.
+        // Re-joining after a drop means we were deaf; the first join does not,
+        // since the page was just server-rendered.
         if (live && everLive) refresh();
         if (live) everLive = true;
       });
 
     /**
-     * Only worth doing while the socket is down.
-     *
-     * Refreshing on every tab switch looks harmless but doubles the work for a
-     * single change: the ping already refreshed this tab in the background, and
-     * coming back to look at it fired a second, identical render. While the
-     * channel is subscribed, pings are arriving and there is nothing to catch
-     * up on.
+     * Only while the socket is down. Refreshing on every tab switch would double
+     * the work for a single change — the ping already refreshed this tab.
      */
     const catchUpIfDeaf = () => {
       if (document.visibilityState !== "visible") return;
@@ -127,8 +101,7 @@ export function LiveRefresh() {
       clearTimeout(timer);
       clearInterval(poll);
       document.removeEventListener("visibilitychange", catchUpIfDeaf);
-      // Unsubscribes the channel but leaves the shared client connected, ready
-      // for the next mount.
+      // Leaves the shared client connected, ready for the next mount.
       void supabase.removeChannel(channel);
     };
   }, []);
