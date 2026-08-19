@@ -22,7 +22,6 @@ type Props = {
   question: string;
   description: React.ReactNode;
   confirmLabel: string;
-  pendingLabel: string;
   cancelLabel: string;
   /** Replaces `question` once the action has refused for good. */
   refusedTitle: string;
@@ -43,7 +42,6 @@ export function ConfirmActionDialog({
   question,
   description,
   confirmLabel,
-  pendingLabel,
   cancelLabel,
   refusedTitle,
   action,
@@ -81,7 +79,7 @@ export function ConfirmActionDialog({
           <AlertDialogCancel>{refused ? "Zavrieť" : cancelLabel}</AlertDialogCancel>
           {refused ? null : (
             <AlertDialogAction
-              disabled={pending}
+              loading={pending}
               onClick={(event) => {
                 event.preventDefault(); // keeps the dialog open on failure
                 setFailure(null);
@@ -91,7 +89,7 @@ export function ConfirmActionDialog({
                 });
               }}
             >
-              {pending ? pendingLabel : confirmLabel}
+              {confirmLabel}
             </AlertDialogAction>
           )}
         </AlertDialogFooter>

@@ -4,7 +4,7 @@ import { GiftIcon } from "lucide-react";
 import { signInWithGoogle } from "@/app/actions/auth";
 import { GoogleIcon } from "@/components/google-icon";
 import { SetupRequired } from "@/components/setup-required";
-import { Button } from "@/components/ui/button";
+import { SubmitButton } from "@/components/submit-button";
 import { getAccess } from "@/lib/queries";
 import { isConfigured } from "@/lib/supabase";
 
@@ -55,16 +55,18 @@ export default async function LoginPage({
 
       {/*
        * A plain form posting a Server Action, so sign-in works with JavaScript
-       * off. Nothing here may become a client component.
+       * off. `SubmitButton` is the only client component the page is allowed —
+       * it reads this form's pending state for the spinner and nothing else.
+       * The page itself stays a Server Component: keep it that way.
        *
        * `outline`, not primary: Google's green lobe would disappear into
        * --primary's fill, and their branding sanctions a neutral surface.
        */}
       <form action={signInWithGoogle} className="mt-8">
-        <Button type="submit" variant="outline" size="lg" className="w-full">
+        <SubmitButton variant="outline" size="lg" className="w-full">
           <GoogleIcon />
           Prihlásiť sa
-        </Button>
+        </SubmitButton>
       </form>
 
       {error ? (

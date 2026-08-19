@@ -25,7 +25,6 @@ type Props = {
   /** The wish's current photo, when editing one that already has it. */
   initialPhotoUrl?: string | null;
   submitLabel: string;
-  pendingLabel: string;
   onSubmit: (values: WishFormValues) => Promise<ActionResult>;
   onDone: () => void;
 };
@@ -46,7 +45,6 @@ export function WishForm({
   initial,
   initialPhotoUrl = null,
   submitLabel,
-  pendingLabel,
   onSubmit,
   onDone,
 }: Props) {
@@ -170,9 +168,10 @@ export function WishForm({
             type="submit"
             size="lg"
             className={ACTION_BUTTON}
-            disabled={pending || values.title.trim() === ""}
+            loading={pending}
+            disabled={values.title.trim() === ""}
           >
-            {pending ? pendingLabel : submitLabel}
+            {submitLabel}
           </Button>
         )}
       </DialogFooter>

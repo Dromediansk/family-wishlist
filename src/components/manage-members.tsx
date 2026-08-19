@@ -25,10 +25,19 @@ import type {
   MemberWithCount,
 } from "@/lib/types";
 
-type Run = (
+/**
+ * One transition drives every control in the list, so a `verb:id` key is what
+ * says *which* button was pressed and therefore which one spins; its siblings
+ * are held and silent. Handing back the button's props is what keeps the key
+ * from being written twice — spelling it once for the spinner and once for the
+ * action would type-check either way and quietly leave a button that never
+ * spins.
+ */
+type Busy = (
+  key: string,
   action: () => Promise<ActionResult>,
   onSuccess?: () => void,
-) => void;
+) => { disabled: boolean; loading: boolean; onClick: () => void };
 
 /** Admin-only. The body of /family, which is what guards it. */
 export function ManageMembers({
@@ -40,17 +49,28 @@ export function ManageMembers({
 }) {
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
+  /*
+   * Never cleared: a stale key stops mattering once `pending` is false again,
+   * and clearing it inside the transition would take the spinner away while the
+   * button was still disabled.
+   */
+  const [running, setRunning] = useState<string | null>(null);
 
   const waiting = accounts.filter((account) => account.status === "pending");
 
-  const run: Run = (action, onSuccess) => {
-    setError(null);
-    startTransition(async () => {
-      const result = await action();
-      if (!result.ok) setError(result.error);
-      else onSuccess?.();
-    });
-  };
+  const busy: Busy = (key, action, onSuccess) => ({
+    disabled: pending,
+    loading: pending && running === key,
+    onClick: () => {
+      setError(null);
+      setRunning(key);
+      startTransition(async () => {
+        const result = await action();
+        if (!result.ok) setError(result.error);
+        else onSuccess?.();
+      });
+    },
+  });
 
   return (
     <div className="flex flex-col gap-4">
@@ -74,8 +94,9 @@ export function ManageMembers({
                   </p>
                 </div>
                 <Button
-                  disabled={pending}
-                  onClick={() => run(() => approveMember(account.id))}
+                  {...busy(`approve:${account.id}`, () =>
+                    approveMember(account.id),
+                  )}
                 >
                   <CheckIcon />
                   Pustiť dnu
@@ -85,8 +106,9 @@ export function ManageMembers({
                   size="icon"
                   className="text-muted-foreground hover:text-destructive"
                   aria-label={`Zamietnuť ${account.name}`}
-                  disabled={pending}
-                  onClick={() => run(() => rejectMember(account.id))}
+                  {...busy(`reject:${account.id}`, () =>
+                    rejectMember(account.id),
+                  )}
                 >
                   <XIcon />
                 </Button>
@@ -105,7 +127,7 @@ export function ManageMembers({
               accounts.find((account) => account.id === member.id)?.email ?? null
             }
             pending={pending}
-            run={run}
+            busy={busy}
           />
         ))}
       </ul>
@@ -123,12 +145,13 @@ function MemberAdminRow({
   member,
   email,
   pending,
-  run,
+  busy,
 }: {
   member: MemberWithCount;
   email: string | null;
+  /** Held by somebody else's action — the trash toggle runs none of its own. */
   pending: boolean;
-  run: Run;
+  busy: Busy;
 }) {
   const [name, setName] = useState(member.name);
   const [confirmingRemove, setConfirmingRemove] = useState(false);
@@ -160,8 +183,9 @@ function MemberAdminRow({
         <div className="flex flex-1 items-center justify-end gap-2">
           {renamed ? (
             <Button
-              disabled={pending}
-              onClick={() => run(() => renameMember(member.id, name))}
+              {...busy(`rename:${member.id}`, () =>
+                renameMember(member.id, name),
+              )}
             >
               Uložiť
             </Button>
@@ -169,17 +193,14 @@ function MemberAdminRow({
           <Button
             variant="outline"
             className="px-3 sm:px-5"
-            disabled={pending}
             title={roleHint}
             aria-label={roleHint}
-            onClick={() =>
-              run(() =>
-                setMemberRole(
-                  member.id,
-                  member.role === "admin" ? "member" : "admin",
-                ),
-              )
-            }
+            {...busy(`role:${member.id}`, () =>
+              setMemberRole(
+                member.id,
+                member.role === "admin" ? "member" : "admin",
+              ),
+            )}
           >
             {member.role === "admin" ? <ShieldIcon /> : <UserRoundIcon />}
             <span className="hidden sm:inline">
@@ -214,12 +235,11 @@ function MemberAdminRow({
           <div className="flex gap-2">
             <Button
               variant="destructive"
-              disabled={pending}
-              onClick={() =>
-                run(() => removeMember(member.id), () =>
-                  setConfirmingRemove(false),
-                )
-              }
+              {...busy(
+                `remove:${member.id}`,
+                () => removeMember(member.id),
+                () => setConfirmingRemove(false),
+              )}
             >
               Odstrániť
             </Button>

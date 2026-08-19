@@ -34,9 +34,9 @@ tailwind-merge silently gets wrong in one order of classes.
 
 Everything the two share lives in
 [`src/components/ui/dialog-styles.ts`](../../src/components/ui/dialog-styles.ts).
-They are forks of the same shadcn file that had drifted apart once already — the
-title sizes disagreed until somebody noticed — so a shared value belongs there
-rather than in one of them.
+They are forks of the same shadcn file, so a shared value belongs there rather
+than in one of them: kept in a single fork it drifts out of step with the other
+and nothing complains.
 
 ### Three things that will bite
 
@@ -77,6 +77,70 @@ The full-screen panel's height is a percentage, not a dynamic-viewport unit. A
 fixed element's percentage height resolves against the layout viewport, which is
 the thing that actually shrinks; viewport units track the browser's own toolbars
 instead and would leave the footer below the fold with a keyboard up.
+
+## A busy button keeps its label
+
+There is one busy affordance in the app and `Button` owns it: pass `loading`.
+The surface mutes, a spinner appears in the centre, and **the label does not
+change**.
+
+No call site invents a Slovak verb for the wait. A label that swaps `Toto kúpim`
+for `Rezervujem…` puts one idea in as many phrasings as there are files, and it
+resizes the button mid-action — on a phone that moves the thing under the thumb
+that just pressed it.
+
+- `loading` implies `disabled`, so nothing repeats it for the same reason. Pass
+  `disabled` *as well* when something other than this button's own work is
+  holding it: a sibling's action in `ManageMembers`, an empty title in
+  `WishForm`, the parent field's lock in `WishPhotoField`. That is the majority
+  of the call sites, not the exception.
+- The mute is `disabled:opacity-75`, not the `disabled:opacity-50` a plain
+  disabled button gets. The spinner sits *inside* that fade — an `opacity` group
+  applies to every descendant, so there is no keeping it crisp over a half-faded
+  surface. 75% is what leaves it legible on all six variants in both themes.
+- The label drops to `opacity-25` inside that, ending near a fifth. It has to be
+  that faint: the spinner lands in the middle of the word, and at anything more
+  readable the two collide and `Uložiť zmeny` renders as `Uloži⟳zmeny` — broken
+  text rather than a busy control. Neither number is arithmetic; change one and
+  look at every variant and size again.
+- **`size="icon"` hides its content instead of dimming it.** There is one glyph
+  and no room beside it, and a spinner drawn over a glyph is unreadable. The box
+  still holds its `size-11`.
+- A busy button carries `aria-busy`, and its reach is small: on a `<button>` it
+  sits in no announcement path, and the control goes `disabled` in the same
+  breath, so nothing is spoken. There is deliberately no `sr-only` alternative
+  text — that would be a label swap under another name — and a busy control that
+  says nothing is the accepted cost of a label that does not move.
+- **`loading` cannot be combined with `asChild`, and the prop type says so.**
+  `Slot` would not throw: it would take the spinner fragment as its one child
+  and clone *that*, dropping every class and the `disabled` — an unstyled,
+  still-clickable control rather than a failure. `SubmitButton` always passes
+  `loading`, so the pairing is live rather than hypothetical.
+- **`AlertDialogAction` renders a real `Button`** — that is what lets a
+  confirmation spin, and `AlertDialogCancel` matches it rather than keeping a
+  second way to draw the same control. The `asChild` sits on the Radix primitive
+  rather than on the `Button`, so `onClick` stays on the primitive and
+  `event.preventDefault()` can still hold the dialog open on failure.
+
+Two places need more than the prop:
+
+- **A plain `<form action={serverAction}>`** has no transition to read, so its
+  button is [`SubmitButton`](../../src/components/submit-button.tsx) — one
+  `useFormStatus` call and nothing else. It is the only client component
+  `/login` is allowed; the page around it stays a Server Component and the form
+  still posts with JavaScript off.
+- **`ManageMembers`** drives every control on `/family` from a single
+  `useTransition`, which cannot say which button was pressed. `busy()` takes a
+  `verb:id` key and hands back the button's `disabled`, `loading` and `onClick`
+  together, so the key is written once — only the button whose key is running
+  spins, and its siblings are disabled and silent. Six spinners at once says
+  nothing about which one you asked for.
+
+Buttons that wait on something outside the app keep no busy state at all:
+`InstallPrompt` awaits the *browser's* install sheet, and a spinner behind a
+native modal is not feedback. The account menu's sign-out is a raw `<button>`
+aimed at a form it does not sit inside, and Radix unmounts the menu on select —
+there is nothing left on screen to spin.
 
 ## A refusal ends the dialog
 
@@ -129,12 +193,12 @@ closed dialog — leaks a whole image for the life of the tab.
 
 A thumbnail on a wish opens the full picture in a `Dialog`
 ([`WishPhotoDialog`](../../src/components/wish-photo-dialog.tsx)), not in a new
-tab. The tab was the first attempt and it was wrong in both places it runs:
-installed, the app is `display: "standalone"`, so `target="_blank"` hands the
-photo to a separate browser and the way back is a task switch; in a desktop tab
-it is whatever browser chrome is on screen, which is not the app's business. A
-dialog closes four ways — the X, the footer button, Escape, a click outside —
-and the list is still underneath, scrolled where it was.
+tab. A tab is wrong in both places the app runs: installed, the app is
+`display: "standalone"`, so `target="_blank"` hands the photo to a separate
+browser and the way back is a task switch; in a desktop tab it is whatever
+browser chrome is on screen, which is not the app's business. A dialog closes
+four ways — the X, the footer button, Escape, a click outside — and the list is
+still underneath, scrolled where it was.
 
 The footer button is not a spare X. The X sits in the top-right corner, which on
 a phone is the corner a thumb reaches last; the footer is where it reaches first.

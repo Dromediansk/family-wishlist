@@ -4,7 +4,7 @@ import * as React from "react";
 import * as AlertDialogPrimitive from "@radix-ui/react-alert-dialog";
 
 import { cn } from "@/lib/utils";
-import { buttonVariants } from "@/components/ui/button";
+import { Button } from "@/components/ui/button";
 import {
   ANIMATION_FADE,
   ANIMATION_ZOOM,
@@ -103,27 +103,45 @@ function AlertDialogDescription({
   );
 }
 
+/**
+ * A real `Button`, so the action can be `loading`. Everything else — `onClick`
+ * above all — stays on the Radix primitive, which is what keeps
+ * `event.preventDefault()` able to hold the dialog open.
+ */
 function AlertDialogAction({
   className,
+  variant,
+  size,
+  loading,
+  children,
   ...props
-}: React.ComponentProps<typeof AlertDialogPrimitive.Action>) {
+}: React.ComponentProps<typeof AlertDialogPrimitive.Action> &
+  Pick<React.ComponentProps<typeof Button>, "variant" | "size" | "loading">) {
   return (
-    <AlertDialogPrimitive.Action
-      className={cn(buttonVariants(), className)}
-      {...props}
-    />
+    <AlertDialogPrimitive.Action asChild {...props}>
+      <Button
+        className={className}
+        variant={variant}
+        size={size}
+        loading={loading}
+      >
+        {children}
+      </Button>
+    </AlertDialogPrimitive.Action>
   );
 }
 
 function AlertDialogCancel({
   className,
+  children,
   ...props
 }: React.ComponentProps<typeof AlertDialogPrimitive.Cancel>) {
   return (
-    <AlertDialogPrimitive.Cancel
-      className={cn(buttonVariants({ variant: "outline" }), className)}
-      {...props}
-    />
+    <AlertDialogPrimitive.Cancel asChild {...props}>
+      <Button className={className} variant="outline">
+        {children}
+      </Button>
+    </AlertDialogPrimitive.Cancel>
   );
 }
 
