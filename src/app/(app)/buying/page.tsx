@@ -63,20 +63,22 @@ export default async function BuyingPage() {
                 key={wish.id}
                 wish={wish}
                 action={
-                  <div className="flex flex-col items-end gap-2">
+                  <div className="flex flex-col gap-2 sm:items-end">
                     <span className="text-muted-foreground text-sm">
                       pre: {wish.owner.name}
                     </span>
-                    <ClaimButton
-                      wishId={wish.id}
-                      claimedByCurrentMember
-                      claimedByName={currentMember.name}
-                    />
-                    <FulfilWishButton
-                      wishId={wish.id}
-                      title={wish.title}
-                      ownerName={wish.owner.name}
-                    />
+                    <div className="flex flex-wrap items-start gap-2 sm:justify-end">
+                      <ClaimButton
+                        wishId={wish.id}
+                        claimedByCurrentMember
+                        claimedByName={currentMember.name}
+                      />
+                      <FulfilWishButton
+                        wishId={wish.id}
+                        title={wish.title}
+                        ownerName={wish.owner.name}
+                      />
+                    </div>
                   </div>
                 }
               />
