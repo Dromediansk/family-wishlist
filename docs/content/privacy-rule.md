@@ -76,7 +76,7 @@ serves them is an owner-serving path like any other.
 
 9. The handler at
    [`src/app/wish-photo/[wishId]/route.ts`](../../src/app/wish-photo/%5BwishId%5D/route.ts)
-   selects `id, photo_path` and never `claimed_by`. It answers 404 — not 403 —
+   selects `photo_path` alone and never `claimed_by`. It answers 404 — not 403 —
    to anyone it will not serve, so the response says nothing about which wishes
    exist either.
 

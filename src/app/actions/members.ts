@@ -221,9 +221,13 @@ export async function removeMember(memberId: string): Promise<ActionResult> {
 
   if (error) return { ok: false, error: error.message };
 
-  for (const wish of (doomed ?? []) as { id: string }[]) {
-    await pruneWishPhotos(wish.id, null);
-  }
+  // One prefix listing per wish, all at once — a member with a long list would
+  // otherwise pay for them one after another.
+  await Promise.all(
+    ((doomed ?? []) as { id: string }[]).map((wish) =>
+      pruneWishPhotos(wish.id, null),
+    ),
+  );
 
   revalidatePath("/", "layout");
   await notifyChanged();

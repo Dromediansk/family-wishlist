@@ -1,4 +1,3 @@
-import Image from "next/image";
 import { ExternalLinkIcon } from "lucide-react";
 
 import { cn } from "@/lib/utils";
@@ -44,17 +43,16 @@ export function WishRow({
               className="shrink-0"
               aria-label={`Zobraziť fotku: ${wish.title}`}
             >
-              <Image
+              {/*
+               * A plain <img>, as in the photo field: the optimizer would fetch
+               * /wish-photo server-side, without the visitor's session, and be
+               * answered with a 404, so there is nothing for it to do.
+               */}
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
                 src={photo}
                 alt=""
-                width={96}
-                height={96}
-                /*
-                 * `unoptimized` on purpose: the optimizer would fetch
-                 * /wish-photo server-side, without the visitor's session, and
-                 * be answered with a 404.
-                 */
-                unoptimized
+                loading="lazy"
                 className="size-24 rounded-lg border object-cover"
               />
             </a>

@@ -31,12 +31,12 @@ export async function GET(
 
   /*
    * An owner reads their own list through this route too, so it is one of the
-   * owner-serving paths: it selects the photo and the id, and never
+   * owner-serving paths: it selects the photo path and nothing else, and never
    * `claimed_by`. docs/content/privacy-rule.md#where-the-rule-is-enforced
    */
   const { data, error } = await getSupabase()
     .from("wishes")
-    .select("id, photo_path")
+    .select("photo_path")
     .eq("id", id.data)
     .maybeSingle();
 

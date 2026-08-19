@@ -172,15 +172,15 @@ export async function addWish(input: WishInput): Promise<ActionResult> {
       url: parsed.data.url ?? null,
     })
     // The id comes back because a photo is stored under it: the wish has to
-    // exist before its picture has anywhere to go.
-    .select("id");
+    // exist before its picture has anywhere to go. `single` means a row that
+    // did not land is an error rather than a silent skip.
+    .select("id")
+    .single();
 
   if (error) return { ok: false, error: error.message };
 
-  const wishId = (data?.[0] as { id: string } | undefined)?.id;
-  const photo = wishId
-    ? await attachPhoto(wishId, current.id, parsed.data.photo)
-    : ({ ok: true } as ActionResult);
+  const { id: wishId } = data as { id: string };
+  const photo = await attachPhoto(wishId, current.id, parsed.data.photo);
 
   revalidatePath("/", "layout");
   await notifyChanged();

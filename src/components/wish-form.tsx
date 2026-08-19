@@ -13,8 +13,6 @@ import {
 } from "@/components/wish-photo-field";
 import type { ActionFailure, ActionResult } from "@/lib/types";
 
-export type { WishPhotoChoice };
-
 export type WishFormValues = {
   title: string;
   description: string;
@@ -63,7 +61,10 @@ export function WishForm({
    */
   const refused = failure?.final === true;
 
-  function update(field: "title" | "description" | "url", value: string) {
+  function update<Field extends keyof WishFormValues>(
+    field: Field,
+    value: WishFormValues[Field],
+  ) {
     setValues((previous) => ({ ...previous, [field]: value }));
   }
 
@@ -138,9 +139,7 @@ export function WishForm({
             value={values.photo}
             existingUrl={initialPhotoUrl}
             disabled={pending}
-            onChange={(photo) =>
-              setValues((previous) => ({ ...previous, photo }))
-            }
+            onChange={(photo) => update("photo", photo)}
           />
         </div>
 

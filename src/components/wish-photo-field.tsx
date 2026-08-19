@@ -51,6 +51,9 @@ export function WishPhotoField({
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  /** One name for "hands off", so the four controls cannot drift apart. */
+  const locked = disabled || busy;
+
   /*
    * What the field shows, derived rather than stored: the picked photo, the one
    * already on the wish, or nothing. The `preview.file === value.file` check is
@@ -116,7 +119,7 @@ export function WishPhotoField({
         type="file"
         accept="image/*"
         className="sr-only"
-        disabled={disabled || busy}
+        disabled={locked}
         onChange={(event) => void accept(event.target.files?.[0])}
       />
 
@@ -138,7 +141,7 @@ export function WishPhotoField({
               type="button"
               variant="outline"
               size="sm"
-              disabled={disabled || busy}
+              disabled={locked}
               onClick={() => input.current?.click()}
             >
               {busy ? "Načítavam…" : "Vybrať inú"}
@@ -147,7 +150,7 @@ export function WishPhotoField({
               type="button"
               variant="ghost"
               size="sm"
-              disabled={disabled || busy}
+              disabled={locked}
               onClick={() => {
                 setError(null);
                 setPreview(null);
@@ -165,7 +168,7 @@ export function WishPhotoField({
             type="button"
             variant="outline"
             size="sm"
-            disabled={disabled || busy}
+            disabled={locked}
             onClick={() => input.current?.click()}
           >
             <ImagePlusIcon />

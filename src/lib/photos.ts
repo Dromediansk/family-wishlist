@@ -9,7 +9,7 @@ import { getSupabase } from "@/lib/supabase";
  * docs/content/wishes.md#photos
  */
 
-export const PHOTO_BUCKET = "wish-photos";
+const PHOTO_BUCKET = "wish-photos";
 
 function bucket() {
   return getSupabase().storage.from(PHOTO_BUCKET);

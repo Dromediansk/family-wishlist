@@ -1,4 +1,11 @@
-import { MAX_PHOTO_EDGE, fitWithin } from "@/lib/images";
+import "client-only";
+
+import {
+  MAX_PHOTO_EDGE,
+  extensionFor,
+  fitWithin,
+  type PhotoMime,
+} from "@/lib/images";
 
 /**
  * Shrinks and re-encodes a picked photo in the browser, before it is ever sent.
@@ -35,15 +42,14 @@ export async function resizeForUpload(file: File): Promise<File> {
     if (!context) throw new Error("Canvas is unavailable.");
     context.drawImage(image, 0, 0, width, height);
 
-    // WebP where it is understood, JPEG where it is not. `toBlob` answers null
-    // rather than throwing for a format it cannot write.
-    const blob =
-      (await toBlob(canvas, "image/webp")) ??
-      (await toBlob(canvas, "image/jpeg"));
-    if (!blob) throw new Error("The image could not be encoded.");
+    // WebP where it is understood, JPEG where it is not. `encode` answers null
+    // rather than throwing for a format the browser cannot write.
+    const encoded =
+      (await encode(canvas, "image/webp")) ??
+      (await encode(canvas, "image/jpeg"));
+    if (!encoded) throw new Error("The image could not be encoded.");
 
-    const extension = blob.type === "image/webp" ? "webp" : "jpg";
-    return new File([blob], `photo.${extension}`, { type: blob.type });
+    return encoded;
   } finally {
     URL.revokeObjectURL(image.src);
   }
@@ -80,13 +86,22 @@ function loadImage(file: File): Promise<HTMLImageElement> {
   });
 }
 
-function toBlob(canvas: HTMLCanvasElement, type: string): Promise<Blob | null> {
+/** The canvas as one `mime` file, or null if this browser cannot write that. */
+function encode(
+  canvas: HTMLCanvasElement,
+  mime: PhotoMime,
+): Promise<File | null> {
   return new Promise((resolve) => {
     canvas.toBlob(
       // A browser that cannot write the type falls back to PNG rather than
       // failing, so the answer is only accepted when it is what was asked for.
-      (blob) => resolve(blob && blob.type === type ? blob : null),
-      type,
+      (blob) =>
+        resolve(
+          blob && blob.type === mime
+            ? new File([blob], `photo.${extensionFor(mime)}`, { type: mime })
+            : null,
+        ),
+      mime,
       QUALITY,
     );
   });

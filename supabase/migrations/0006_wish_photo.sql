@@ -14,8 +14,10 @@
 -- rather than by keeping a second set of books, and the random file name is
 -- what changes the photo's URL whenever the picture changes.
 --
--- The CHECK mirrors the Zod schema in src/app/actions/wishes.ts, the way every
--- other wish field is validated twice. docs/content/wishes.md
+-- The CHECK guards the shape itself. Unlike the other wish fields there is no
+-- Zod rule to mirror: the key is built by uploadWishPhoto (src/lib/photos.ts)
+-- and never arrives from a form, so the constraint is what keeps a hand-written
+-- SQL insert from putting something unservable here. docs/content/wishes.md
 
 begin;
 
