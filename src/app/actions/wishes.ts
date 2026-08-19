@@ -370,6 +370,11 @@ export async function fulfilWish(wishId: string): Promise<ActionResult> {
     return { ok: false, error: "Toto už nemáš rezervované.", final: true };
   }
 
+  // `fulfil_wish` deletes the wish in SQL, which Storage knows nothing about,
+  // so the sweep that `deleteWish` does has to happen here too. The history row
+  // carries no photo.
+  await pruneWishPhotos(id.data, null);
+
   revalidatePath("/", "layout");
   await notifyChanged();
   return { ok: true };

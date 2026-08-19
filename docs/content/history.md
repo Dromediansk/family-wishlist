@@ -17,6 +17,10 @@ description, the link, and **both names**. Removing a member therefore takes
 neither their own history nor anybody else's with them — the ids null out, the
 names stay readable.
 
+The [photo](wishes.md#photos) does not come along. It hung off the wish, which
+is now deleted, so `fulfilWish` sweeps the bucket exactly as a delete does — the
+record keeps the words, not the picture.
+
 It is one way. There is no undo, which is why the confirmation says so.
 
 ## The two pages

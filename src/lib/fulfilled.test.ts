@@ -30,6 +30,7 @@ describe("toFulfilledWish", () => {
       title: "Wool socks",
       description: "Size 42",
       url: "https://example.com/socks",
+      photo: null,
       ownerName: "Anna",
       giverName: "Boris",
       fulfilledAt: row.fulfilled_at,
@@ -38,6 +39,10 @@ describe("toFulfilledWish", () => {
 
   it("keeps the giver's name — this record is not a secret", () => {
     expect(toFulfilledWish(row).giverName).toBe("Boris");
+  });
+
+  it("carries no photo — the wish it hung off is deleted", () => {
+    expect(toFulfilledWish(row).photo).toBeNull();
   });
 
   it("keeps an absent description and link absent", () => {

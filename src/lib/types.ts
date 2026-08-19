@@ -64,7 +64,6 @@ export type ClaimedWish = OwnerWish & {
  * docs/content/privacy-rule.md#when-the-secret-ends
  */
 export type FulfilledWish = Displayable & {
-  id: string;
   ownerName: string;
   giverName: string;
   fulfilledAt: string;
