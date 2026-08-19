@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { ArrowLeftIcon } from "lucide-react";
 
 import { ClaimButton } from "@/components/claim-button";
+import { FulfilWishButton } from "@/components/fulfil-wish-button";
 import { SetupRequired } from "@/components/setup-required";
 import { WishRow } from "@/components/wish-row";
 import { Button } from "@/components/ui/button";
@@ -62,6 +63,11 @@ export default async function BuyingPage() {
                       wishId={wish.id}
                       claimedByCurrentMember
                       claimedByName={currentMember.name}
+                    />
+                    <FulfilWishButton
+                      wishId={wish.id}
+                      title={wish.title}
+                      ownerName={wish.owner.name}
                     />
                   </div>
                 }
