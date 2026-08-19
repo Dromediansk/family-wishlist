@@ -17,9 +17,8 @@ export default async function FamilyPage() {
   if (access.kind === "anonymous") redirect("/login");
   if (access.kind === "pending") redirect("/pending");
 
-  // The menu item that leads here is admin-only, but the URL is guessable, so
-  // this is the check that actually decides. Every action on the page re-checks
-  // for itself as well.
+  // The menu item is hidden from non-admins, but the URL is guessable. Every
+  // action on the page re-checks for itself as well.
   if (!isAdmin(access.member)) redirect("/");
 
   const [members, accounts] = await Promise.all([

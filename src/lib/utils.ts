@@ -16,12 +16,8 @@ export function wishCount(count: number): string {
 }
 
 /**
- * The single letter shown in the account avatar.
- *
- * Spread rather than `[0]`, so a name starting outside the basic plane yields
- * the whole character instead of half a surrogate pair. A name is required at
- * sign-up, but the avatar renders something rather than collapse if one ever
- * arrives blank.
+ * The account avatar's letter. Spread rather than `[0]`, so a name starting
+ * outside the basic plane yields a whole character, not half a surrogate pair.
  */
 export function initial(name: string): string {
   return [...name.trim()][0]?.toUpperCase() ?? "?";

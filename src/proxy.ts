@@ -2,36 +2,18 @@ import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
 /**
- * Session refresh, and a first cheap look at whether anyone is signed in.
+ * Session refresh, plus a cheap early redirect for signed-out visitors.
  *
- * This file is `proxy.ts`, not `middleware.ts`. Next.js 16 renamed the
- * convention; Supabase's published guides still say middleware, and a file by
- * that name here would simply never run. See
+ * `proxy.ts`, not `middleware.ts` — Next.js 16 renamed the convention, and
+ * Supabase's guides still say middleware. See
  * node_modules/next/dist/docs/01-app/03-api-reference/03-file-conventions/proxy.md
  *
- * Two jobs, in order of importance:
- *
- *   1. Refresh the access token and write the rotated cookies onto the response.
- *      Server Components cannot set cookies, so without this the session would
- *      quietly expire mid-visit and everyone would be thrown back to the login
- *      screen an hour after signing in.
- *   2. Bounce visitors with no session straight to /login, so they never pay for
- *      a render they cannot see.
- *
- * Job 2 is a convenience and nothing more. The Next docs are explicit that a
- * proxy must not be the only line of defence, and it is not: every page resolves
- * access again through resolveAccess, and every Server Action re-derives the
- * caller for itself. Deleting this file would cost speed, not safety.
- *
- * It also cannot do the whole job. Whether someone is *approved* lives in the
- * family_members table, which only the service_role key can read — that key has
- * no business in an edge proxy, so the pending check happens in the pages.
+ * The redirect is an optimisation, never the defence: every page resolves access
+ * again and every Server Action re-derives its caller. Deleting this file would
+ * cost speed, not safety. docs/content/membership.md#sessions
  */
 
-/**
- * Reachable without a session. /auth/* is excluded by the matcher instead, so
- * nothing here can touch the half-finished OAuth exchange.
- */
+/** Reachable without a session. /auth/* is excluded by the matcher instead. */
 function isPublic(pathname: string): boolean {
   return pathname === "/login" || pathname.startsWith("/login/");
 }
@@ -42,9 +24,8 @@ export async function proxy(request: NextRequest) {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
-  // Nothing is configured yet. Let the request through so the pages can render
-  // <SetupRequired /> and say so, rather than redirecting to a login screen that
-  // could not possibly work.
+  // Unconfigured: let the request through so the pages can render
+  // <SetupRequired /> rather than a login screen that could not work.
   if (!url || !key) return response;
 
   const supabase = createServerClient(url, key, {
@@ -64,8 +45,8 @@ export async function proxy(request: NextRequest) {
     },
   });
 
-  // Do not remove this call, and do not put anything between it and the
-  // response. It is what actually performs the refresh above.
+  // Do not remove this call or put anything between it and the response — it is
+  // what performs the refresh.
   const {
     data: { user },
   } = await supabase.auth.getUser();
@@ -83,18 +64,9 @@ export async function proxy(request: NextRequest) {
 export const config = {
   matcher: [
     /**
-     * Everything except:
-     *
-     *   * Next's own static output.
-     *   * /auth/* — the OAuth round trip. The callback route sets the session
-     *     cookies itself, and it holds a one-shot PKCE verifier while it does.
-     *     There is nothing for this file to refresh there and everything to
-     *     get wrong, so it stays out of the way.
-     *   * /manifest.webmanifest, /icon, /apple-icon — the PWA install metadata.
-     *     These are fetched by the browser and the OS outside any normal
-     *     navigation, and redirecting them to an HTML login page breaks
-     *     installing the app.
-     *   * Static image files.
+     * Everything except Next's static output, static images, /auth/* (the
+     * callback sets its own cookies and holds a one-shot PKCE verifier) and the
+     * PWA metadata routes (redirecting those to HTML breaks installing).
      */
     "/((?!_next/static|_next/image|auth/|manifest.webmanifest|icon|apple-icon|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico)$).*)",
   ],

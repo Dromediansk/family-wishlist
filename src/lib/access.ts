@@ -1,12 +1,9 @@
 import type { Member, MemberStatus } from "@/lib/types";
 
 /**
- * Who is looking, in the only three states the app cares about.
- *
- * Kept as a pure function over already-fetched values, with no Supabase import,
- * so the gate can be tested for real instead of through mocks — the same reason
- * the redaction rules live in wishes.ts. Every page routes off this and nothing
- * else, so there is one place to read if you want to know who can see what.
+ * Who is looking. Every page routes off this and nothing else. Pure, with no
+ * Supabase import, so it is tested for real rather than through mocks.
+ * docs/content/membership.md#the-three-states
  */
 export type Access =
   | { kind: "anonymous" }
@@ -19,10 +16,9 @@ export function resolveAccess(input: {
 }): Access {
   if (!input.authUserId) return { kind: "anonymous" };
 
-  // Signed in with no member row. The database creates one on every auth.users
-  // insert (0003_auth.sql), so this only happens if someone deleted the row out
-  // from under a live session — a rejected applicant, most likely. Treat it as
-  // signed out: they get the login screen, and signing in again re-applies.
+  // Signed in with no member row — only possible if it was deleted under a live
+  // session. Treated as signed out; /auth/callback re-applies them on next
+  // sign-in. docs/content/membership.md#rejoining-the-queue
   if (!input.member) return { kind: "anonymous" };
 
   const { status, ...member } = input.member;
@@ -32,13 +28,9 @@ export function resolveAccess(input: {
 }
 
 /**
- * May this member manage the family?
- *
- * One spelling of the check, so the admin-only page, the header that decides
- * whether to offer the link to it, and the Server Actions behind it cannot drift
- * apart. Deliberately takes a `Member` rather than an `Access`: a caller has to
- * have established that someone is signed in and approved before the question
- * even makes sense.
+ * One spelling of the admin check, shared by the page, the header and the
+ * actions. Takes a `Member`, not an `Access`: the caller must already have
+ * established that this person is signed in and approved.
  */
 export function isAdmin(member: Member): boolean {
   return member.role === "admin";

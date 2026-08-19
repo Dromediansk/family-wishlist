@@ -4,11 +4,9 @@ import { useOffline } from "next/offline";
 import { WifiOffIcon } from "lucide-react";
 
 /**
- * Shown while the phone can't reach the server.
- *
- * Next holds any pending navigation or Server Action until the connection
- * returns and then replays it, so nothing is lost — this is here to explain why
- * a tap looks like it did nothing.
+ * Shown while the phone cannot reach the server. Next holds and replays the
+ * pending navigation or action, so nothing is lost — this explains why a tap
+ * looks like it did nothing.
  */
 export function OfflineBanner() {
   const isOffline = useOffline();

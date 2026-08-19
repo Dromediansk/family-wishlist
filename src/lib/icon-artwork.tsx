@@ -1,13 +1,9 @@
 /**
- * The app icon, shared by `src/app/icon.tsx` and `src/app/apple-icon.tsx`.
+ * The app icon, shared by `icon.tsx` and `apple-icon.tsx`.
  *
- * The glyph is lucide's `gift` geometry inlined by hand rather than imported.
- * These routes rasterise through Satori, which draws plain SVG elements but
- * does not render React components, so `<GiftIcon />` would come out blank.
- *
- * The background is full-bleed and the glyph is drawn at 56% of the canvas,
- * comfortably inside Android's inner-80% adaptive-icon safe zone. That is what
- * lets one asset serve both the "any" and "maskable" purposes.
+ * The glyph is lucide's `gift` geometry inlined by hand: these routes rasterise
+ * through Satori, which draws plain SVG but not React components. The 56% ratio
+ * is a rule, not a number — docs/content/ui-patterns.md#icons.
  */
 
 import { THEME_COLORS } from "@/lib/theme-colors";

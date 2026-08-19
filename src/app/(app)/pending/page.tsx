@@ -13,11 +13,9 @@ import { getAccess } from "@/lib/queries";
 import { isConfigured } from "@/lib/supabase";
 
 /**
- * The waiting room.
- *
- * <LiveRefresh /> is mounted in the root layout and reaches this page too, so
- * the moment an admin approves someone their tab refreshes itself and the app
- * appears — no instruction to reload, no polling written for the occasion.
+ * The waiting room. `<LiveRefresh />` reaches this page too, so the moment an
+ * admin approves someone the tab turns into the app by itself.
+ * docs/content/live-updates.md#why-the-owners-tab-refreshes-too
  */
 export default async function PendingPage() {
   if (!isConfigured()) return <SetupRequired />;

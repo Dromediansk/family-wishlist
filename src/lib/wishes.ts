@@ -1,8 +1,8 @@
 import type { ClaimedWish, OwnerWish, ViewerWish } from "@/lib/types";
 
 /**
- * Pure row -> view mappers. Kept free of any Supabase or Next.js import so the
- * surprise rule can be unit tested directly (see wishes.test.ts).
+ * Pure row -> view mappers, free of Supabase and Next.js imports so the privacy
+ * rule can be unit tested directly (wishes.test.ts).
  */
 
 /** Columns selected when reading a list for its own owner. */
@@ -23,10 +23,7 @@ type ClaimerRelation = { id: string; name: string } | null;
 
 export type ViewerWishRow = OwnerWishRow & {
   claimed_at: string | null;
-  /**
-   * PostgREST returns an embedded one-to-one relation as an object, but its
-   * generated types often widen it to an array. Accept both and normalize.
-   */
+  /** PostgREST widens an embedded one-to-one relation to an array. Accept both. */
   claimer: ClaimerRelation | ClaimerRelation[];
 };
 
@@ -40,9 +37,8 @@ function firstOrNull<T>(value: T | T[] | null): T | null {
 }
 
 /**
- * The owner's view. Builds a fresh object with an explicit field list rather
- * than spreading the row, so a claim column can never ride along even if the
- * query is later changed to select more than it should.
+ * The owner's view. Explicit field list rather than a spread, so a claim column
+ * cannot ride along if the query is later widened.
  */
 export function toOwnerWish(row: OwnerWishRow): OwnerWish {
   return {
@@ -86,17 +82,12 @@ const REFUSALS = {
 } as const;
 
 /**
- * Why a delete or an edit was turned down.
+ * Why an owner's delete or edit matched no rows: it isn't theirs, or it is
+ * reserved. Only the wording differs, and it never says by whom. `row` of null
+ * means nothing matched on id and owner at all.
  *
- * An owner may not change a wish somebody has already reserved, so those two
- * actions have two ways to match no rows: the wish isn't theirs, or it is
- * taken. Only the wording differs — and it never says by whom, which is the
- * one thing the owner still must not learn. A `row` of null means nothing
- * matched on id and owner at all.
- *
- * Always `final`: nothing the owner can do in the dialog they are standing in
- * will change either answer, so it closes rather than leaving a button that
- * fails every time it is pressed. Only the person holding it can release it.
+ * Always `final` — only the holder can release it.
+ * docs/content/privacy-rule.md#the-deliberate-exception-a-reserved-wish-is-frozen
  */
 export function refusalFor(
   row: { claimed_by: string | null } | null,

@@ -24,8 +24,7 @@ export default async function MemberPage({
 
   const [{ id }, access] = await Promise.all([params, getAccess()]);
 
-  // Nobody reads a list without being in the family. Guessing this URL used to
-  // be enough; now it is checked here, not just on the way in.
+  // Nobody reads a list without being in the family, and the URL is guessable.
   if (access.kind === "anonymous") redirect("/login");
   if (access.kind === "pending") redirect("/pending");
 

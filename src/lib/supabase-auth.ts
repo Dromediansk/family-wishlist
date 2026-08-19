@@ -4,20 +4,12 @@ import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 
 /**
- * The Supabase client used for sessions — and only for sessions.
+ * The visitor's session, and only that. Runs as *them*, and every table has RLS
+ * on with no policies, so it can read nothing.
  *
- * This is a second client, separate from the service_role one in supabase.ts,
- * and the split is deliberate:
- *
- *   * This client holds the visitor's session and runs as *them*. Every table
- *     has row level security on with no policies, so it can read nothing. That
- *     is correct and must stay that way — see 0002_realtime.sql.
- *   * getSupabase() in supabase.ts holds the service_role key, bypasses RLS,
- *     and does all the actual data work.
- *
- * So: ask this one who you are, ask that one for the data. Never the reverse.
- * Calling `.from(...)` on this client is always a mistake — it would return
- * empty and read as "no rows" rather than "no access".
+ * Ask this client who you are; ask `getSupabase()` for the data. Calling
+ * `.from()` here is always a bug — it returns empty, which reads as "no rows"
+ * rather than "no access". docs/content/privacy-rule.md
  */
 export async function createAuthClient() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -42,9 +34,8 @@ export async function createAuthClient() {
             store.set(name, value, options);
           }
         } catch {
-          // Server Components cannot write cookies. That is fine: proxy.ts
-          // refreshes the session on every request before the render starts,
-          // so by the time we get here the cookies are already current.
+          // Server Components cannot write cookies. proxy.ts has already
+          // refreshed the session, so the cookies are current anyway.
         }
       },
     },
@@ -52,11 +43,9 @@ export async function createAuthClient() {
 }
 
 /**
- * The signed-in Google account, or null.
- *
- * `getUser` revalidates the token with Supabase rather than trusting whatever
- * the cookie decoded to, which is the point — a cookie is something the visitor
- * controls, and this whole change exists because the old one wasn't checked.
+ * The signed-in Google account, or null. `getUser` revalidates the token with
+ * Supabase rather than trusting what the cookie decoded to — the cookie is
+ * something the visitor controls.
  */
 export async function getAuthUser() {
   const supabase = await createAuthClient();

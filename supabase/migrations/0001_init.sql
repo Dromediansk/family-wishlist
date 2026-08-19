@@ -1,19 +1,13 @@
 -- Family Wish List — initial schema
 --
--- Run this once in the Supabase SQL editor (see README.md).
+-- Run this once in the Supabase SQL editor. See docs/setup/database.md.
 --
--- Security model: this app has no login. Identity is a name the visitor picks,
--- stored in a cookie, so Postgres has no per-user identity to key policies off.
--- The "hide claims from the list owner" rule therefore CANNOT be expressed as an
--- RLS policy. Instead:
---
---   * RLS is enabled on every table with ZERO policies, so the anon and
---     authenticated roles can read and write nothing. The anon key is inert.
---   * All access happens server-side in Next.js using the service_role key,
---     which bypasses RLS, and the server strips claim columns before sending
---     the owner's own list to their browser.
---
--- Never expose the service_role key to the browser.
+-- RLS is enabled on every table with ZERO policies, so the anon and
+-- authenticated roles can read and write nothing. All access happens
+-- server-side with the service_role key, which bypasses RLS, and the server
+-- strips claim columns before sending an owner their own list. Never add a
+-- policy, and never expose the service_role key to the browser:
+-- docs/content/privacy-rule.md
 
 create extension if not exists pgcrypto;
 
@@ -44,11 +38,9 @@ create table if not exists wishes (
 create index if not exists wishes_member_id_idx  on wishes (member_id);
 create index if not exists wishes_claimed_by_idx on wishes (claimed_by);
 
--- Removing a family member releases anything they had claimed, via the
--- ON DELETE SET NULL above. That nulls claimed_by but not claimed_at, which on
--- its own would trip the claim_consistent constraint and make the delete fail.
--- A BEFORE UPDATE trigger runs ahead of constraint checks, so clearing the
--- timestamp here keeps the delete working and the invariant true.
+-- ON DELETE SET NULL nulls claimed_by but not claimed_at, which alone would trip
+-- claim_consistent and make deleting a member fail. A BEFORE UPDATE trigger runs
+-- ahead of constraint checks, so clearing the timestamp keeps both true.
 create or replace function clear_claim_timestamp()
 returns trigger
 language plpgsql

@@ -5,23 +5,18 @@ import { getSupabase } from "@/lib/supabase";
 import { createAuthClient } from "@/lib/supabase-auth";
 
 /**
- * The other half of signInWithGoogle: Google sent the browser back here with a
- * one-time code, and we trade it for a session.
+ * The other half of signInWithGoogle: trade Google's one-time code for a
+ * session. The app's only route handler, because Google navigates here directly
+ * with a query string.
  *
- * This is the only route handler in the app — everything else is a Server
- * Component or a Server Action. It has to be a route handler because Google
- * navigates here directly with a query string.
- *
- * A trigger on auth.users creates the member row (0003_auth.sql), so first-time
- * sign-ins arrive here with one already waiting. This handler only repairs the
- * one case the trigger cannot reach — see rejoinTheQueue below.
+ * A trigger creates the member row on first sign-in; this handler only repairs
+ * the one case the trigger cannot reach — see rejoinTheQueue.
  */
 export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url);
   const code = searchParams.get("code");
 
-  // Google's own failures — the user hit "cancel" on the consent screen, most
-  // often. Pass the reason along rather than reporting a generic failure.
+  // Google's own failures — usually "cancel" on the consent screen.
   const oauthError =
     searchParams.get("error_description") ?? searchParams.get("error");
 
@@ -40,30 +35,17 @@ export async function GET(request: Request) {
 
   if (data.user) await rejoinTheQueue(data.user.id, data.user.email ?? null);
 
-  // Straight to the home page. Whether this person is approved yet is decided
-  // there, by resolveAccess — the callback deliberately does not know.
+  // Whether this person is approved is decided by resolveAccess on the way in;
+  // the callback deliberately does not know.
   return NextResponse.redirect(`${redirectBase(request, origin)}/`);
 }
 
 /**
- * Put someone back in the approval queue if they have a Google account here but
- * no member row.
+ * Put someone back in the queue as `pending` when they have a Google account
+ * here but no member row. Without this they loop between /login and / forever.
  *
- * This is the one gap the trigger cannot cover, and without it the app has a
- * trap. The trigger fires on INSERT into auth.users — once, ever. So after an
- * admin rejects or removes someone, their auth user survives, signing in again
- * creates nothing, and they end up with a valid session and no member row:
- * resolveAccess reads that as signed-out, every page sends them to /login, and
- * /login sends them back here. Round and round, with nothing on screen to
- * explain it.
- *
- * So they land back in the queue as `pending`, which is also what the admin
- * would expect: rejecting someone is a "not today", not a ban. To bar someone
- * for good, delete the user under Authentication in the Supabase dashboard —
- * that cascades the member row away and stops them signing in at all.
- *
- * Never bootstraps an admin. That is the trigger's job, on a genuinely empty
- * table; doing it here would hand the family to whoever removed themselves last.
+ * Never bootstraps an admin — that is the trigger's job on a genuinely empty
+ * table. docs/content/membership.md#rejoining-the-queue
  */
 async function rejoinTheQueue(
   authUserId: string,
@@ -77,18 +59,15 @@ async function rejoinTheQueue(
     .eq("auth_user_id", authUserId)
     .maybeSingle();
 
-  // Don't strand a sign-in that otherwise worked. The pages handle a missing
-  // member row by treating them as signed out, which is the safe direction.
+  // Don't strand a sign-in that otherwise worked — a missing member row reads
+  // as signed out, which is the safe direction.
   if (lookupError) {
     console.warn("Could not check for an existing member row:", lookupError);
     return;
   }
-  // Known gap: on a genuinely new sign-up the auth.users trigger
-  // (0003_auth.sql) wins this race, so we return here without pinging and an
-  // admin's cached /family queue goes uncorrected — until they reload or
-  // navigate by <Link> past the staleTimes ceiling, since a Back/Forward replay
-  // has no ceiling under it. Telling a trigger insert from any other is not
-  // worth it for one admin-only page.
+  // Known gap: on a genuinely new sign-up the trigger wins this race, so no
+  // ping is sent and an admin's cached /family queue stays stale until they
+  // reload. Not worth distinguishing, for one admin-only page.
   if (existing) return;
 
   const { error: insertError } = await supabase.from("family_members").insert({
@@ -99,24 +78,20 @@ async function rejoinTheQueue(
     status: "pending",
   });
 
-  // 23505 means the trigger got there first on a genuinely new account, which
-  // is the normal path and not a problem.
+  // 23505 means the trigger got there first — the normal path, not a problem.
   if (insertError && insertError.code !== "23505") {
     console.warn("Could not re-create the member row:", insertError);
     return;
   }
 
-  // For other tabs only — the browser that just signed in is doing a full
-  // document load, so its own cache is empty either way. No revalidatePath:
-  // this handler answers with a redirect, so there is no route to revalidate.
+  // For other tabs only; this one is doing a full document load. No
+  // revalidatePath — the handler answers with a redirect.
   await notifyChanged();
 }
 
 /**
- * `origin` is the URL this handler was reached at, which behind a load balancer
- * is the internal one. Prefer the forwarded host so the browser is sent back to
- * the address it actually typed, and keep the local case simple — there is no
- * balancer in front of `next dev`.
+ * Behind a load balancer `origin` is the internal URL, so prefer the forwarded
+ * host. There is no balancer in front of `next dev`.
  */
 function redirectBase(request: Request, origin: string): string {
   if (process.env.NODE_ENV === "development") return origin;

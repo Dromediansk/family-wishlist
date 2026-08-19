@@ -3,19 +3,14 @@ import "server-only";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 
 /**
- * Server-only Supabase client using the service_role key.
- *
- * The `server-only` import above makes it a build error to pull this into a
- * Client Component, so the key cannot accidentally end up in a browser bundle.
+ * The service_role client: bypasses RLS and does all data work. The
+ * `server-only` import makes it a build error to pull this into a Client
+ * Component. Never use it to answer "who is this" — that is supabase-auth.ts.
  */
 
 let client: SupabaseClient | null = null;
 
-/**
- * The anon key is in here because sign-in needs it. It used to be optional —
- * without it you only lost live updates — but it now carries the session too,
- * and an app nobody can log into is not a working app.
- */
+/** All three are required: the anon key carries the session, not just the ping. */
 export function isConfigured(): boolean {
   return Boolean(
     process.env.NEXT_PUBLIC_SUPABASE_URL &&

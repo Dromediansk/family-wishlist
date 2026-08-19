@@ -66,17 +66,17 @@ export function DeleteWishButton({ wish }: { wish: OwnerWish }) {
   const [pending, startTransition] = useTransition();
 
   /**
-   * A refused delete cannot be retried into working — only the person holding
-   * the wish can change that — so the dialog stops asking and turns into the
-   * answer. Leaving "Vymazať" there to fail again reads as a broken button.
+   * A refused delete cannot be retried into working, so the dialog stops asking
+   * and turns into the answer.
+   * docs/content/ui-patterns.md#a-refusal-ends-the-dialog
    */
   const refused = failure?.final === true;
 
   return (
     <AlertDialog
       onOpenChange={(open) => {
-        // The failure belongs to the attempt, not to the wish: reopening asks
-        // again, because by then the reservation may well have been released.
+        // The failure belongs to the attempt, not the wish — by the time it is
+        // reopened the reservation may have been released.
         if (!open) setFailure(null);
       }}
     >

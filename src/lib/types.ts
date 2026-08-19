@@ -1,12 +1,6 @@
 export type Role = "admin" | "member";
 
-/**
- * Anyone with a Google account can complete the sign-in flow — Supabase does
- * not restrict that — so everyone lands as `pending` and an admin lets them in.
- * The one exception is the first person ever to sign in, who becomes an active
- * admin, because otherwise there is nobody to approve anybody. See
- * `handle_new_auth_user` in supabase/migrations/0003_auth.sql.
- */
+/** docs/content/membership.md — everyone lands `pending` except the first. */
 export type MemberStatus = "pending" | "active";
 
 export type Member = {
@@ -21,23 +15,17 @@ export type MemberWithCount = Member & {
 };
 
 /**
- * A member as shown on the family grid, discriminated the way `WishListView` is.
- *
- * On your own card there is no `availableCount` to render — not null, absent.
- * How many of your wishes are still free would say, in arithmetic, that the
- * rest are not, which is the one thing this app must never do. Splitting the
- * two shapes makes reaching for that number a type error rather than a thing to
- * remember.
+ * A card on the family grid. On your own card `availableCount` is *absent*, not
+ * null — a free count beside your total would say in arithmetic that the rest
+ * are taken. Splitting the union makes reaching for it a type error.
+ * docs/content/privacy-rule.md#counting-on-the-family-grid
  */
 export type MemberSummary = MemberWithCount &
   ({ viewerIsOwner: true } | { viewerIsOwner: false; availableCount: number });
 
 /**
- * A member plus the fields only an admin has any business seeing.
- *
- * Kept separate from `Member` so that email addresses reach the browser on one
- * screen — the admin's approval dialog — rather than being handed to everyone
- * with every member card.
+ * A member plus the fields only an admin may see. Separate from `Member` so
+ * email addresses reach one screen rather than every member card.
  */
 export type MemberAccount = Member & {
   status: MemberStatus;
@@ -45,12 +33,8 @@ export type MemberAccount = Member & {
 };
 
 /**
- * A wish as shown to the person whose list it is.
- *
- * This type deliberately has NO claim fields. If someone claimed this item, the
- * owner must not find out — that is the whole point of the app. Keeping the two
- * read shapes as separate types means a leak is a type error rather than a
- * thing to remember.
+ * A wish as shown to the person whose list it is. Deliberately NO claim fields,
+ * so a leak is a type error. docs/content/privacy-rule.md
  */
 export type OwnerWish = {
   id: string;
@@ -77,19 +61,17 @@ export type WishListView =
   | { viewerIsOwner: false; wishes: ViewerWish[] };
 
 /**
- * Everything `WishRow` displays — and the narrowing is the point. Handed a
- * `ViewerWish` on someone else's list, the row cannot reach `claimedBy` or
- * `claimedAt` through this type, so it cannot render a claim by accident.
+ * Everything `WishRow` displays. The narrowing is the point: handed a
+ * `ViewerWish`, the row still cannot reach `claimedBy` through this type.
  */
 export type Displayable = Pick<OwnerWish, "title" | "description" | "url">;
 
 /**
  * What every Server Action returns. Expected failures are values, not throws.
  *
- * `final` means the same call will fail the same way however many times it is
- * repeated, so the UI should stop offering the button rather than leave one
- * that visibly does nothing. A validation message or a dropped connection is
- * not final; being refused a reserved wish is.
+ * `final` means repeating the call cannot change the outcome, so the UI stops
+ * offering the button. A validation message is not final; a reserved-wish
+ * refusal is. docs/content/ui-patterns.md#a-refusal-ends-the-dialog
  */
 export type ActionResult =
   | { ok: true }

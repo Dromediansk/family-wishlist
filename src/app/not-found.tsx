@@ -10,33 +10,13 @@ import {
 } from "@/components/ui/card";
 
 /**
- * The 404, and there is only one of it.
+ * The 404, and there is only one of it — it catches both `notFound()` from
+ * /member/[id] and any unmatched URL, and both arrive without the header, hence
+ * its own `<main>` and its own way back. Keeping one file is deliberate; see
+ * docs/content/ui-patterns.md#the-404.
  *
- * A root `not-found.tsx` catches two different things: the `notFound()` thrown
- * by /member/[id] when the id in the URL belongs to nobody, and any URL the app
- * has no route for at all. Both land here, and both land here *without* the
- * header: the boundary a root `not-found.tsx` creates sits inside the root
- * layout but above `(app)/layout.tsx`, so a `notFound()` thrown inside the group
- * unwinds past the header on its way out. Which is why this file brings its own
- * `<main>` — and why the card below carries its own way back.
- *
- * Keeping a single file is deliberate. An `(app)/not-found.tsx` would restore
- * the header for the member case, but it would not catch unmatched URLs, so the
- * root file would have to stay and the card would end up written into two
- * boundaries — or pulled into a shared component serving both, which is a real
- * option this repo uses elsewhere (`SetupRequired`) and simply is not worth two
- * files and an import for one variant of one page. The trade taken instead: a
- * signed-in member following a stale /member link loses the chrome, and gets
- * back through the card's own link. `global-not-found.tsx` is
- * not the answer either — it bypasses the root layout, losing the font and the
- * safe-area frame, and it is meant for apps with more than one root. This app
- * has one, and under this file the font and the safe-area frame do still come
- * with it.
- *
- * Nothing is fetched and nobody is redirected. A signed-out visitor who guesses
- * a URL sees this rather than the login page, because bouncing them would hide
- * the fact that the address is simply wrong. There is no data on the page, so
- * there is nothing here for the owner-claim rule to protect.
+ * Nothing is fetched and nobody is redirected: bouncing a signed-out visitor
+ * would hide the fact that the address is simply wrong.
  */
 export default function NotFound() {
   return (

@@ -48,15 +48,13 @@ function firstIssue(error: z.ZodError): string {
 }
 
 /**
- * Work out what to tell an owner whose delete or edit matched no rows.
+ * What to tell an owner whose delete or edit matched no rows. Runs only *after*
+ * the write missed — the conditional WHERE clause is what enforces the refusal,
+ * so a claim landing in between can at worst pick the wrong wording.
  *
- * The read happens only *after* the write missed. The conditional WHERE clause
- * is what enforces the refusal; this decides nothing but which sentence to
- * show, so a claim landing in between can at worst pick the wrong wording.
- *
- * This is the one owner-serving path that looks at `claimed_by`. It stays here,
- * inside the action — never in OWNER_WISH_COLUMNS, getWishListFor or OwnerWish
- * — and the value itself never leaves this function.
+ * The one owner-serving path allowed to select `claimed_by`. It stays in this
+ * function and never migrates into OWNER_WISH_COLUMNS, getWishListFor or
+ * OwnerWish. docs/content/privacy-rule.md#how-the-refusal-works
  */
 async function lookUpRefusal(
   wishId: string,
@@ -121,11 +119,8 @@ export async function updateWish(
       description: parsed.data.description ?? null,
       url: parsed.data.url ?? null,
     })
-    // Ownership is part of the WHERE clause, so someone else's wish simply
-    // doesn't match rather than relying on a separate check. `claimed_by is
-    // null` joins it for the same reason: a wish somebody has reserved is not
-    // the owner's to rewrite, and putting that in the predicate means a claim
-    // landing a moment before this update stops it rather than racing it.
+    // Both guards are in the predicate, never a read-then-write: someone else's
+    // wish does not match, and neither does one a claim has just landed on.
     .eq("id", id.data)
     .eq("member_id", current.id)
     .is("claimed_by", null)
@@ -153,8 +148,8 @@ export async function deleteWish(wishId: string): Promise<ActionResult> {
   const { data, error } = await supabase
     .from("wishes")
     .delete()
-    // Same two guards as updateWish, and the reserved one matters more here:
-    // a hard delete would leave the buyer holding a wish that no longer exists.
+    // Same two guards as updateWish. The reserved one matters more here: a hard
+    // delete would leave the buyer holding a wish that no longer exists.
     .eq("id", id.data)
     .eq("member_id", current.id)
     .is("claimed_by", null)
@@ -171,10 +166,8 @@ export async function deleteWish(wishId: string): Promise<ActionResult> {
 }
 
 /**
- * Claim someone else's wish.
- *
- * `claimed_by is null` is part of the WHERE clause so two people clicking at
- * the same moment can't both win — the second update matches no rows.
+ * Claim someone else's wish. `claimed_by is null` is in the WHERE clause, so two
+ * people clicking at once cannot both win. docs/content/claiming.md
  */
 export async function claimWish(wishId: string): Promise<ActionResult> {
   const current = await getCurrentMember();
@@ -194,8 +187,7 @@ export async function claimWish(wishId: string): Promise<ActionResult> {
 
   if (error) return { ok: false, error: error.message };
   if (!data || data.length === 0) {
-    // Final for the same reason the owner's refusal is: pressing the button
-    // again cannot un-reserve it.
+    // Final: pressing the button again cannot un-reserve it.
     return {
       ok: false,
       error: "Niekto bol rýchlejší — táto položka je už rezervovaná.",

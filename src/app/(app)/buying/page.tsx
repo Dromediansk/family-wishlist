@@ -20,9 +20,8 @@ export default async function BuyingPage() {
 
   const currentMember = access.member;
 
-  // Every row here still exists: an owner cannot delete or rewrite a wish once
-  // it has been reserved, so nothing you hold can change or vanish underneath
-  // you. Releasing it yourself is the only way one leaves this page.
+  // Nothing here can change or vanish underneath you — an owner cannot touch a
+  // reserved wish. docs/content/claiming.md#what-im-buying
   const claimed = await getClaimedBy(currentMember.id);
 
   return (

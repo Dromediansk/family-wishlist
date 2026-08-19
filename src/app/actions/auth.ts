@@ -6,15 +6,12 @@ import { redirect } from "next/navigation";
 import { createAuthClient } from "@/lib/supabase-auth";
 
 /**
- * Where Google should send the browser back to.
+ * Where Google sends the browser back to. Derived from the request so every
+ * environment is correct with nothing to configure; `NEXT_PUBLIC_SITE_URL`
+ * overrides it behind a proxy that rewrites Host.
  *
- * Derived from the incoming request rather than an environment variable, so
- * localhost, preview deployments and production each get their own correct
- * value with nothing to configure. Set NEXT_PUBLIC_SITE_URL to override — worth
- * doing if you ever end up behind a proxy that rewrites Host.
- *
- * Whatever this resolves to must also be listed under Redirect URLs in the
- * Supabase dashboard, or Supabase will refuse to bounce the browser back here.
+ * Whatever this resolves to must be listed under Redirect URLs in Supabase.
+ * docs/setup/deployment.md#after-the-first-deploy
  */
 async function siteOrigin(): Promise<string> {
   const configured = process.env.NEXT_PUBLIC_SITE_URL;
@@ -33,13 +30,9 @@ async function siteOrigin(): Promise<string> {
 }
 
 /**
- * Start the Google sign-in flow.
- *
- * The whole exchange stays on the server: `skipBrowserRedirect` makes Supabase
- * hand back the authorize URL instead of navigating, we store the PKCE verifier
- * in a cookie on the way out, and /auth/callback trades the code for a session
- * on the way back. No Supabase auth client is ever created in the browser, so
- * no session lands in localStorage where a script could read it.
+ * Start the Google sign-in flow. The whole exchange stays on the server, so no
+ * session ever lands in localStorage.
+ * docs/content/membership.md#where-the-oauth-exchange-happens
  */
 export async function signInWithGoogle() {
   const supabase = await createAuthClient();

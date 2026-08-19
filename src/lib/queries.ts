@@ -61,10 +61,7 @@ function toMemberAccount(row: MemberAccountRow): MemberAccount {
   };
 }
 
-/**
- * `cache` dedupes these within a single render, so the header and the page can
- * each ask who the current member is without two round trips.
- */
+/** `cache` dedupes within a render, so the header and the page share one trip. */
 export const getMembers = cache(async (): Promise<MemberWithCount[]> => {
   const supabase = getSupabase();
 
@@ -72,8 +69,7 @@ export const getMembers = cache(async (): Promise<MemberWithCount[]> => {
     supabase
       .from("family_members")
       .select(MEMBER_COLUMNS)
-      // People waiting to be approved are not in the family yet: they must not
-      // appear on the grid, and nobody should be able to claim off their list.
+      // Pending people are not in the family yet — no card, no list to claim from.
       .eq("status", "active")
       .order("created_at", { ascending: true }),
     supabase.from("wishes").select("member_id"),
@@ -92,15 +88,14 @@ export const getMembers = cache(async (): Promise<MemberWithCount[]> => {
 
 /**
  * The family grid: `getMembers` plus, for everyone but the viewer, how many of
- * their wishes nobody has taken yet.
+ * their wishes are still free.
  *
- * The availability query never selects a claim column, and it drops the viewer's
- * own rows in the `WHERE` clause — so the number that would tell them their list
- * has been raided is not computed, let alone sent. `toMemberSummary` withholds
- * it a second time. Kept apart from `getMembers` because the admin screen wants
- * the plain total and has no business receiving anything claim-derived — and,
- * now, because it wants sign-up order while this wants the grid's own: see
- * `sortMemberSummaries`, which is the single authority on that.
+ * The availability query selects no claim column and drops the viewer's own rows
+ * in the `WHERE` clause, so their number is never computed.
+ * docs/content/privacy-rule.md#counting-on-the-family-grid
+ *
+ * Separate from `getMembers` because the admin screen wants the plain total in
+ * sign-up order; `sortMemberSummaries` is the sole authority on the grid's own.
  */
 export const getMemberSummaries = cache(
   async (viewerId: string): Promise<MemberSummary[]> => {
@@ -160,12 +155,9 @@ export const getMemberAccounts = cache(async (): Promise<MemberAccount[]> => {
 });
 
 /**
- * How many people are waiting to be let in — a number, nothing more.
- *
- * The header badges this on every page an admin loads, and `getMemberAccounts`
- * would be the wrong tool for it: that one carries email addresses, which have
- * no business travelling with the layout. `head: true` asks Postgres for the
- * count without returning a single row.
+ * How many people are waiting — a number, nothing more. The header badges this
+ * on every admin page load, and `getMemberAccounts` carries email addresses,
+ * which have no business travelling with the layout.
  */
 export const countPendingAccounts = cache(async (): Promise<number> => {
   const supabase = getSupabase();
@@ -179,13 +171,9 @@ export const countPendingAccounts = cache(async (): Promise<number> => {
 });
 
 /**
- * Who is looking, resolved once per render.
- *
- * Two clients, on purpose: the session comes from Supabase Auth, running as the
- * visitor and able to read no table at all, and the member row is then fetched
- * with the service_role key. The link between them is `auth_user_id`, which the
- * visitor cannot influence — unlike the cookie this replaced, which was simply a
- * member id that anyone could edit to become anyone.
+ * Who is looking, resolved once per render. Two clients on purpose: the session
+ * comes from Supabase Auth, the member row from service_role, and the link
+ * between them is `auth_user_id`, which the visitor cannot influence.
  */
 export const getAccess = cache(async (): Promise<Access> => {
   const user = await getAuthUser();
@@ -211,11 +199,9 @@ export const getAccess = cache(async (): Promise<Access> => {
 });
 
 /**
- * The signed-in, approved member — or null.
- *
- * Every Server Action derives the caller from this, so someone still waiting for
- * approval is treated exactly like a stranger by all of them, without any of
- * them having to know that `pending` is a state that exists.
+ * The signed-in, approved member — or null. Every Server Action derives its
+ * caller from this, so a `pending` visitor is refused by all of them without any
+ * of them knowing that state exists.
  */
 export const getCurrentMember = cache(async (): Promise<Member | null> => {
   const access = await getAccess();
@@ -223,11 +209,9 @@ export const getCurrentMember = cache(async (): Promise<Member | null> => {
 });
 
 /**
- * Read one member's wish list, shaped for whoever is looking at it.
- *
- * The owner branch selects only the non-claim columns, so claim data never
- * leaves the database on that path — the filtering is in the query as well as
- * in the mapper.
+ * One member's wish list, shaped for whoever is looking. The owner branch
+ * selects only the non-claim columns, so claim data never leaves the database on
+ * that path. docs/content/privacy-rule.md#reading-a-list
  */
 export async function getWishListFor(
   ownerId: string,
@@ -270,8 +254,7 @@ export async function getClaimedBy(memberId: string): Promise<ClaimedWish[]> {
     .from("wishes")
     .select(`${OWNER_WISH_COLUMNS}, owner:member_id (id, name)`)
     .eq("claimed_by", memberId)
-    // Newest reservation first. Ordering does not need the column selected,
-    // and nothing on the page shows a date, so it stays out of the projection.
+    // Newest first. Ordering needs no projection, and no date is displayed.
     .order("claimed_at", { ascending: false });
 
   if (error) throw error;
