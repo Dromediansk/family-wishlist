@@ -6,7 +6,6 @@ import {
   CheckIcon,
   ChevronDownIcon,
   PlusIcon,
-  UserPlusIcon,
   UsersRoundIcon,
 } from "lucide-react";
 
@@ -26,8 +25,10 @@ import type { GroupRef } from "@/lib/types";
 /**
  * Moves between the viewer's groups, and out to `/start` for a new one.
  *
- * Both bottom entries lead to `/start`, which is what keeps group creation
- * reachable at all: `/` only sends a *groupless* account there.
+ * The bottom entry is what keeps `/start` reachable at all: `/` only sends a
+ * *groupless* account there. One entry, not one per card, because `/start`
+ * cannot land you on half of itself, and its other half — opening an invite —
+ * is not something a menu item can start: the link does that on its own.
  *
  * Which group is current comes from the path, because the header is rendered by
  * `(app)/layout.tsx`, above the segment that names one.
@@ -85,13 +86,6 @@ export function GroupSwitcher({
           <Link href="/start">
             <PlusIcon />
             Vytvoriť skupinu
-          </Link>
-        </DropdownMenuItem>
-
-        <DropdownMenuItem asChild>
-          <Link href="/start">
-            <UserPlusIcon />
-            Pridať sa do skupiny
           </Link>
         </DropdownMenuItem>
       </DropdownMenuContent>
