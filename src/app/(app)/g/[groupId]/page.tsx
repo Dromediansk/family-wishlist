@@ -30,18 +30,20 @@ export default async function GroupPage({
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-wrap items-start justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-semibold text-balance">
+      <div>
+        <div className="flex items-center justify-between gap-4">
+          <h1 className="min-w-0 text-2xl font-semibold text-balance break-words">
             {ctx.groupName}
           </h1>
-          <p className="text-muted-foreground mt-1 max-w-[62ch]">
-            Pridaj si niečo do vlastného zoznamu alebo si vyber, čo kúpiš
-            niekomu inému.
-          </p>
+          {/* The button keeps its width; a long group name wraps instead. */}
+          <div className="shrink-0">
+            <InviteDialog groupId={ctx.groupId} invites={myInvites} />
+          </div>
         </div>
-
-        <InviteDialog groupId={ctx.groupId} invites={myInvites} />
+        <p className="text-muted-foreground mt-1 max-w-[62ch]">
+          Pridaj si niečo do vlastného zoznamu alebo si vyber, čo kúpiš niekomu
+          inému.
+        </p>
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
