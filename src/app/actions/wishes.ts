@@ -4,7 +4,6 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 
 import { getViewer } from "@/lib/data/access";
-import { groupIdsOf } from "@/lib/data/members";
 import { getWishOwner } from "@/lib/data/wishes";
 import type { UserId } from "@/lib/ids";
 import { MAX_PHOTO_BYTES, sniffImageType } from "@/lib/images";
@@ -13,7 +12,7 @@ import {
   removeWishPhoto,
   uploadWishPhoto,
 } from "@/lib/photos";
-import { notifyChanged } from "@/lib/realtime";
+import { notifyOwnerChanged } from "@/lib/realtime";
 import { getSupabase } from "@/lib/supabase";
 import type { ActionResult } from "@/lib/types";
 import { refusalFor } from "@/lib/wishes";
@@ -186,7 +185,7 @@ export async function addWish(input: WishInput): Promise<ActionResult> {
   const photo = await attachPhoto(wishId, viewer.userId, parsed.data.photo);
 
   revalidatePath("/", "layout");
-  await notifyChanged(await groupIdsOf(viewer.userId));
+  await notifyOwnerChanged(viewer.userId);
 
   if (!photo.ok) {
     // The wish is already saved — pressing the button again would add a second
@@ -242,7 +241,7 @@ export async function updateWish(
   const photo = await attachPhoto(id.data, viewer.userId, parsed.data.photo);
 
   revalidatePath("/", "layout");
-  await notifyChanged(await groupIdsOf(viewer.userId));
+  await notifyOwnerChanged(viewer.userId);
 
   // Not final: the text is saved, and picking a different picture can still
   // work. Pressing save again is harmless — an edit is idempotent.
@@ -277,7 +276,7 @@ export async function deleteWish(wishId: string): Promise<ActionResult> {
   await pruneWishPhotos(id.data, null);
 
   revalidatePath("/", "layout");
-  await notifyChanged(await groupIdsOf(viewer.userId));
+  await notifyOwnerChanged(viewer.userId);
   return { ok: true };
 }
 
@@ -329,7 +328,7 @@ export async function claimWish(wishId: string): Promise<ActionResult> {
   // The owner is the one person every interested viewer has in common — a
   // peer in a different group than the claimer still needs to see this wish
   // go unavailable. docs/content/live-updates.md
-  await notifyChanged(await groupIdsOf(ownerId));
+  await notifyOwnerChanged(ownerId);
   return { ok: true };
 }
 
@@ -364,7 +363,7 @@ export async function unclaimWish(wishId: string): Promise<ActionResult> {
   }
 
   revalidatePath("/", "layout");
-  if (ownerId) await notifyChanged(await groupIdsOf(ownerId));
+  if (ownerId) await notifyOwnerChanged(ownerId);
   return { ok: true };
 }
 
@@ -406,6 +405,6 @@ export async function fulfilWish(wishId: string): Promise<ActionResult> {
   await pruneWishPhotos(id.data, null);
 
   revalidatePath("/", "layout");
-  if (ownerId) await notifyChanged(await groupIdsOf(ownerId));
+  if (ownerId) await notifyOwnerChanged(ownerId);
   return { ok: true };
 }

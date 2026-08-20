@@ -170,14 +170,19 @@ export const getPeerNames = cache(
 
 /**
  * Every group a user belongs to. A wish or a claim is visible throughout the
- * owner's groups, not just the one the write happened in, so this is what a
- * write pings after — `notifyChanged(await groupIdsOf(ownerId))`.
+ * owner's groups, not just the one the write happened in, so this is what
+ * `notifyOwnerChanged` pings after.
+ *
+ * Ordered like every other membership read in this file — `live-refresh.tsx`
+ * derives a stable subscription key from this array, and an unordered result
+ * would make that key change on every call for no reason.
  */
 export const groupIdsOf = cache(async (userId: UserId): Promise<GroupId[]> => {
   const { data, error } = await getSupabase()
     .from("memberships")
     .select("group_id")
-    .eq("user_id", userId);
+    .eq("user_id", userId)
+    .order("created_at", { ascending: true });
 
   if (error) throw error;
 

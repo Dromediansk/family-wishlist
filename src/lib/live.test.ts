@@ -36,8 +36,12 @@ describe("channelFor", () => {
     );
   });
 
-  it("still carries nothing in the payload", () => {
-    expect(LIVE_PAYLOAD).toEqual({});
-    expect(Object.keys(LIVE_PAYLOAD)).toHaveLength(0);
+  it("gives two different groups two different channels", () => {
+    const a = channelFor(asGroupId("aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa"));
+    const b = channelFor(asGroupId("bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb"));
+
+    expect(a).not.toBe(b);
+    expect(a).toContain("aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa");
+    expect(b).toContain("bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb");
   });
 });
