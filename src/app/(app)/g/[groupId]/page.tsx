@@ -35,7 +35,6 @@ export default async function GroupPage({
           <h1 className="min-w-0 text-2xl font-semibold text-balance break-words">
             {ctx.groupName}
           </h1>
-          {/* The button keeps its width; a long group name wraps instead. */}
           <div className="shrink-0">
             <InviteDialog groupId={ctx.groupId} invites={myInvites} />
           </div>

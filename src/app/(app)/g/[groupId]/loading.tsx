@@ -11,7 +11,6 @@ export default function GroupLoading() {
   return (
     <div className="space-y-6">
       <div className="space-y-2">
-        {/* The heading row: name on the left, Pozvať held to the right. */}
         <div className="flex items-center justify-between gap-4">
           <Skeleton className="h-9 w-40" />
           <Skeleton className="h-11 w-28 shrink-0" />
