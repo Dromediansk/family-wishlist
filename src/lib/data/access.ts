@@ -1,6 +1,7 @@
 import "server-only";
 
 import { cache } from "react";
+import { z } from "zod";
 
 import { resolveAccess, seedPeers, type Access } from "@/lib/access";
 import { asGroupId, asMembershipId, asUserId, type UserId } from "@/lib/ids";
@@ -95,6 +96,11 @@ export const enterGroup = cache(
     const viewer = await getViewer();
     if (!viewer) return null;
 
+    // Arbitrary text arrives here from a URL, and Postgres answers a malformed
+    // uuid with an error rather than an empty result. Typed nonsense deserves
+    // the same "not your group" as a real id belonging to somebody else.
+    if (!z.uuid().safeParse(groupId).success) return null;
+
     const { data, error } = await getSupabase()
       .from("memberships")
       .select("id, group_id, role")
@@ -114,6 +120,23 @@ export const enterGroup = cache(
     };
   },
 );
+
+/**
+ * The account's seed name — the one Google supplied, not a per-group label.
+ *
+ * Read only when a membership is being created, which is where a per-group name
+ * has to start from something. Every screen shows `preferredName` instead.
+ */
+export async function getAccountName(viewer: Viewer): Promise<string> {
+  const { data, error } = await getSupabase()
+    .from("app_users")
+    .select("name")
+    .eq("id", viewer.userId)
+    .maybeSingle();
+
+  if (error) throw error;
+  return (data as { name: string } | null)?.name ?? "Bez mena";
+}
 
 /**
  * Make sure a signed-in Google account has a row in the app's identity table,

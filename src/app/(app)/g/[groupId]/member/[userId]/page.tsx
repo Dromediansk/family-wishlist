@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { notFound, redirect } from "next/navigation";
+import { notFound } from "next/navigation";
 import { ArrowLeftIcon, PackageCheckIcon } from "lucide-react";
 
 import { AddWishDialog } from "@/components/add-wish-dialog";
@@ -12,7 +12,7 @@ import { SetupRequired } from "@/components/setup-required";
 import { WishRow } from "@/components/wish-row";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { enterGroup, getAccess } from "@/lib/data/access";
+import { enterGroup } from "@/lib/data/access";
 import { getPeerUser } from "@/lib/data/members";
 import { getWishListFor } from "@/lib/data/wishes";
 import { isConfigured } from "@/lib/supabase";
@@ -20,32 +20,28 @@ import { isConfigured } from "@/lib/supabase";
 export default async function MemberPage({
   params,
 }: {
-  params: Promise<{ id: string }>;
+  params: Promise<{ groupId: string; userId: string }>;
 }) {
   if (!isConfigured()) return <SetupRequired />;
 
-  const [{ id }, access] = await Promise.all([params, getAccess()]);
+  const { groupId, userId } = await params;
 
-  // Nobody reads a list without a session, and the URL is guessable.
-  if (access.kind === "anonymous") redirect("/login");
-  if (access.kind === "groupless") redirect("/start");
-
-  const viewer = access.viewer;
-  const ctx = await enterGroup(viewer.groups[0].id);
+  // Nobody reads a list without a membership in the group the URL names.
+  const ctx = await enterGroup(groupId);
   if (!ctx) notFound();
 
   // The id in the URL is a claim, not proof: this is what turns it into a
   // person the viewer is allowed to see, or a 404.
-  const owner = await getPeerUser(viewer, id);
+  const owner = await getPeerUser(ctx, userId);
   if (!owner) notFound();
 
-  const list = await getWishListFor(viewer, owner.id, ctx.groupId);
+  const list = await getWishListFor(ctx, owner.id, ctx.groupId);
 
   return (
     <div className="space-y-6">
       <div>
         <Button variant="ghost" size="sm" asChild className="-ml-4">
-          <Link href="/">
+          <Link href={`/g/${ctx.groupId}`}>
             <ArrowLeftIcon />
             Všetci
           </Link>
@@ -110,13 +106,13 @@ export default async function MemberPage({
                     dimmed={
                       wish.claim.kind === "taken" ||
                       (wish.claim.kind === "taken-by" &&
-                        wish.claim.by.id !== viewer.userId)
+                        wish.claim.by.id !== ctx.userId)
                     }
                     action={
                       <ClaimButton
                         wishId={wish.id}
                         claim={wish.claim}
-                        viewerId={viewer.userId}
+                        viewerId={ctx.userId}
                       />
                     }
                   />

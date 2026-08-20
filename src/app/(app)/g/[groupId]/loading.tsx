@@ -3,11 +3,11 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 /**
  * Also the shell Next prefetches, so it is what renders when someone taps
- * through with no signal. It lives under `(home)` rather than beside the root
- * layout so it is the fallback for `/` alone.
+ * through with no signal. The member and family pages under here bring their
+ * own, so this one is the grid's alone.
  * docs/content/ui-patterns.md#the-app-route-group
  */
-export default function HomeLoading() {
+export default function GroupLoading() {
   return (
     <div className="space-y-6">
       <div className="space-y-2">

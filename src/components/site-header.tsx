@@ -3,10 +3,12 @@ import Link from "next/link";
 import { GiftIcon, ShoppingBagIcon } from "lucide-react";
 
 import { AccountMenu } from "@/components/account-menu";
+import { GroupSwitcher } from "@/components/group-switcher";
 import { Button } from "@/components/ui/button";
-import { isGroupAdmin } from "@/lib/access";
-import { enterGroup, getAccess } from "@/lib/data/access";
+import { getAccess } from "@/lib/data/access";
+import { countGroupsCreatedBy } from "@/lib/data/groups";
 import { getPeerNames } from "@/lib/data/members";
+import { MAX_GROUPS_PER_ACCOUNT } from "@/lib/groups";
 import { isConfigured } from "@/lib/supabase";
 
 /**
@@ -47,12 +49,17 @@ async function HeaderAccount() {
   if (access.kind !== "member") return null;
 
   const viewer = access.viewer;
-  const ctx = await enterGroup(viewer.groups[0].id);
-  if (!ctx) return null;
 
-  // The name on the avatar is this group's label for the viewer, so the header
-  // and the grid agree on what to call them.
-  const names = await getPeerNames(viewer, ctx.groupId);
+  /*
+   * The header spans every group, so the avatar wears the account-level name —
+   * `preferredName`'s default, the label from whichever group the viewer joined
+   * first. The two controls beside it work out which group is current from the
+   * path, which this Server Component cannot see.
+   */
+  const [names, created] = await Promise.all([
+    getPeerNames(viewer),
+    countGroupsCreatedBy(viewer),
+  ]);
   const name = names.get(viewer.userId) ?? "?";
 
   return (
@@ -63,7 +70,11 @@ async function HeaderAccount() {
           <span className="hidden sm:inline">Čo kupujem</span>
         </Link>
       </Button>
-      <AccountMenu name={name} isAdmin={isGroupAdmin(ctx)} />
+      <GroupSwitcher
+        groups={viewer.groups}
+        canCreate={created < MAX_GROUPS_PER_ACCOUNT}
+      />
+      <AccountMenu name={name} groups={viewer.groups} />
     </div>
   );
 }

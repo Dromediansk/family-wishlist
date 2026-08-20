@@ -4,6 +4,7 @@ import { GiftIcon, ShieldIcon } from "lucide-react";
 import { AddWishDialog } from "@/components/add-wish-dialog";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
+import type { GroupId } from "@/lib/ids";
 import { cn, wishCount } from "@/lib/utils";
 import type { MemberSummary } from "@/lib/types";
 
@@ -14,8 +15,17 @@ import type { MemberSummary } from "@/lib/types";
  *
  * `viewerIsOwner` adds "Pridať želanie" and drops the count's second number —
  * docs/content/privacy-rule.md#counting-on-the-family-grid.
+ *
+ * The link addresses `member.userId` (the account) inside `groupId` (the grid it
+ * was tapped on). `member.id` is the membership and belongs to admin controls.
  */
-export function MemberCard({ member }: { member: MemberSummary }) {
+export function MemberCard({
+  groupId,
+  member,
+}: {
+  groupId: GroupId;
+  member: MemberSummary;
+}) {
   // An empty list reads better as a lone "0" than as "0 / 0".
   const available =
     member.viewerIsOwner || member.wishCount === 0
@@ -39,7 +49,7 @@ export function MemberCard({ member }: { member: MemberSummary }) {
       <div className="flex flex-1 flex-col items-center justify-center gap-2 px-4 text-center">
         <h2 className="text-3xl leading-tight font-semibold text-balance wrap-break-word">
           <Link
-            href={`/member/${member.userId}`}
+            href={`/g/${groupId}/member/${member.userId}`}
             className="rounded-sm after:absolute after:inset-0"
           >
             {member.name}

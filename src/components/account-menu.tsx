@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { LogOutIcon, SettingsIcon } from "lucide-react";
 
 import { signOut } from "@/app/actions/auth";
@@ -13,22 +14,29 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { groupInPath } from "@/lib/groups";
 import { cn, initial } from "@/lib/utils";
+import { isGroupAdmin } from "@/lib/visibility";
+import type { GroupRef } from "@/lib/types";
 
 /** Links the menu item to the form below it, which lives outside the menu. */
 const SIGN_OUT_FORM = "sign-out";
 
 /**
- * Takes a name and a role flag — never a member row and never anything
- * wish-shaped.
+ * Takes a name and the viewer's own groups — never a member row and never
+ * anything wish-shaped.
+ *
+ * Managing members is per group, so the entry appears only inside one, and only
+ * where this viewer is its admin: being an admin elsewhere is not cover.
  */
 export function AccountMenu({
   name,
-  isAdmin,
+  groups,
 }: {
   name: string;
-  isAdmin: boolean;
+  groups: readonly GroupRef[];
 }) {
+  const current = groupInPath(usePathname(), groups);
   return (
     <>
       {/*
@@ -52,9 +60,9 @@ export function AccountMenu({
           <DropdownMenuLabel className="truncate">{name}</DropdownMenuLabel>
           <DropdownMenuSeparator />
 
-          {isAdmin ? (
+          {current && isGroupAdmin(current) ? (
             <DropdownMenuItem asChild>
-              <Link href="/family">
+              <Link href={`/g/${current.id}/family`}>
                 <SettingsIcon />
                 Spravovať rodinu
               </Link>

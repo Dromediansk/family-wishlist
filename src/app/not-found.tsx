@@ -11,9 +11,9 @@ import {
 
 /**
  * The 404, and there is only one of it — it catches both `notFound()` from
- * /member/[id] and any unmatched URL, and both arrive without the header, hence
- * its own `<main>` and its own way back. Keeping one file is deliberate; see
- * docs/content/ui-patterns.md#the-404.
+ * anywhere under /g/[groupId] and any unmatched URL, and both arrive without the
+ * header, hence its own `<main>` and its own way back. Keeping one file is
+ * deliberate; see docs/content/ui-patterns.md#the-404.
  *
  * Nothing is fetched and nobody is redirected: bouncing a signed-out visitor
  * would hide the fact that the address is simply wrong.

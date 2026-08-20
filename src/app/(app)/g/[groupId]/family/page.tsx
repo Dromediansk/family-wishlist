@@ -6,25 +6,26 @@ import { ManageMembers } from "@/components/manage-members";
 import { SetupRequired } from "@/components/setup-required";
 import { Button } from "@/components/ui/button";
 import { isGroupAdmin } from "@/lib/access";
-import { enterGroup, getAccess } from "@/lib/data/access";
+import { enterGroup } from "@/lib/data/access";
 import { getGroupMembers } from "@/lib/data/members";
 import { isConfigured } from "@/lib/supabase";
 
-export default async function FamilyPage() {
+export default async function FamilyPage({
+  params,
+}: {
+  params: Promise<{ groupId: string }>;
+}) {
   if (!isConfigured()) return <SetupRequired />;
 
-  const access = await getAccess();
+  const { groupId } = await params;
 
-  if (access.kind === "anonymous") redirect("/login");
-  if (access.kind === "groupless") redirect("/start");
-
-  const viewer = access.viewer;
-  const ctx = await enterGroup(viewer.groups[0].id);
+  const ctx = await enterGroup(groupId);
   if (!ctx) notFound();
 
-  // The menu item is hidden from non-admins, but the URL is guessable. Every
-  // action on the page re-checks for itself as well.
-  if (!isGroupAdmin(ctx)) redirect("/");
+  // The menu item is hidden from non-admins, but the URL is guessable, and an
+  // admin of one group is nobody in another. Every action on the page re-checks
+  // for itself as well.
+  if (!isGroupAdmin(ctx)) redirect(`/g/${ctx.groupId}`);
 
   const members = await getGroupMembers(ctx);
 
@@ -32,7 +33,7 @@ export default async function FamilyPage() {
     <div className="space-y-6">
       <div>
         <Button variant="ghost" size="sm" asChild className="-ml-4">
-          <Link href="/">
+          <Link href={`/g/${ctx.groupId}`}>
             <ArrowLeftIcon />
             Všetci
           </Link>
