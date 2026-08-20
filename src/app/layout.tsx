@@ -4,6 +4,8 @@ import localFont from "next/font/local";
 import { InstallPrompt } from "@/components/install-prompt";
 import { LiveRefresh } from "@/components/live-refresh";
 import { OfflineBanner } from "@/components/offline-banner";
+import { getViewer } from "@/lib/data/access";
+import { isConfigured } from "@/lib/supabase";
 import { THEME_COLORS } from "@/lib/theme-colors";
 
 import "./globals.css";
@@ -76,14 +78,19 @@ export const dynamic = "force-dynamic";
  * `<main className="flex-1">`, and both the element and the class are
  * load-bearing. docs/content/ui-patterns.md#layout-contract
  */
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
+  // Unconfigured means no database to ask — getViewer() would throw. An
+  // anonymous or groupless visitor simply has nothing to subscribe to.
+  const viewer = isConfigured() ? await getViewer() : null;
+  const groupIds = viewer?.groups.map((group) => group.id) ?? [];
+
   return (
     <html lang="sk">
       <body className={`${atkinson.variable} font-sans`}>
         {/* Once, here, so it survives navigation between routes. */}
-        <LiveRefresh />
+        <LiveRefresh groupIds={groupIds} />
         <div className="mx-auto flex min-h-dvh w-full max-w-5xl flex-col px-4 pt-[max(1.5rem,env(safe-area-inset-top))] pb-[max(1.5rem,env(safe-area-inset-bottom))] sm:px-6 sm:pt-10 sm:pb-10">
           <OfflineBanner />
           {children}

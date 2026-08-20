@@ -169,6 +169,24 @@ export const getPeerNames = cache(
 );
 
 /**
+ * Every group a user belongs to. A wish or a claim is visible throughout the
+ * owner's groups, not just the one the write happened in, so this is what a
+ * write pings after — `notifyChanged(await groupIdsOf(ownerId))`.
+ */
+export const groupIdsOf = cache(async (userId: UserId): Promise<GroupId[]> => {
+  const { data, error } = await getSupabase()
+    .from("memberships")
+    .select("group_id")
+    .eq("user_id", userId);
+
+  if (error) throw error;
+
+  return ((data ?? []) as { group_id: string }[]).map((row) =>
+    asGroupId(row.group_id),
+  );
+});
+
+/**
  * The person behind an id off a group's URL, or null unless a membership row
  * places them in that group. This is the check that stands between a guessed id
  * and somebody else's list; the page turns the null into a 404.

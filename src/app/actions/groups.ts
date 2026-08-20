@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 
-import { getAccountName, getViewer } from "@/lib/data/access";
+import { enterGroup, getAccountName, getViewer } from "@/lib/data/access";
 import { countGroupsCreatedBy } from "@/lib/data/groups";
 import { MAX_GROUPS_PER_ACCOUNT } from "@/lib/groups";
 import { notifyChanged } from "@/lib/realtime";
@@ -84,6 +84,10 @@ export async function createGroup(
   }
 
   revalidatePath("/", "layout");
-  await notifyChanged();
+  // Reads the fresh membership back rather than branding `groupId` here —
+  // that stays a job for src/lib/data/, where a value read from the database
+  // is known to be what it claims. docs/content/live-updates.md
+  const ctx = await enterGroup(groupId);
+  if (ctx) await notifyChanged([ctx.groupId]);
   return { ok: true, groupId };
 }

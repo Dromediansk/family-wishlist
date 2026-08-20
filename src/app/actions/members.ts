@@ -67,7 +67,7 @@ export async function renameMember(
   }
 
   revalidatePath("/", "layout");
-  await notifyChanged();
+  await notifyChanged([permitted.ctx.groupId]);
   return { ok: true };
 }
 
@@ -115,7 +115,7 @@ export async function setMemberRole(
   }
 
   revalidatePath("/", "layout");
-  await notifyChanged();
+  await notifyChanged([permitted.ctx.groupId]);
   return { ok: true };
 }
 
@@ -176,6 +176,6 @@ export async function removeMember(
   }
 
   revalidatePath("/", "layout");
-  await notifyChanged();
+  await notifyChanged([permitted.ctx.groupId]);
   return { ok: true };
 }

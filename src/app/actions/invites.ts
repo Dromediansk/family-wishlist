@@ -39,7 +39,7 @@ export async function createInvite(
   const invite = await insertInvite(ctx);
 
   revalidatePath("/", "layout");
-  await notifyChanged();
+  await notifyChanged([ctx.groupId]);
   return { ok: true, token: invite.token };
 }
 
@@ -88,7 +88,7 @@ export async function revokeInvite(
   if (!revoked) return { ok: false, error: "Táto pozvánka už neexistuje." };
 
   revalidatePath("/", "layout");
-  await notifyChanged();
+  await notifyChanged([ctx.groupId]);
   return { ok: true };
 }
 
@@ -141,6 +141,6 @@ export async function joinWithInvite(token: string): Promise<ActionResult> {
   }
 
   revalidatePath("/", "layout");
-  await notifyChanged();
+  await notifyChanged([invite.groupId]);
   return { ok: true };
 }
