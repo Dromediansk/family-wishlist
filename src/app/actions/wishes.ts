@@ -15,7 +15,6 @@ import {
 import { notifyChanged } from "@/lib/realtime";
 import { getSupabase } from "@/lib/supabase";
 import type { ActionResult } from "@/lib/types";
-import { canReadList } from "@/lib/visibility";
 import { refusalFor } from "@/lib/wishes";
 
 const idSchema = z.uuid("Neplatné želanie.");
@@ -299,7 +298,7 @@ export async function claimWish(wishId: string): Promise<ActionResult> {
    * strangers whatever happens here — but a refusal is better than an exception.
    */
   const ownerId = await getWishOwner(viewer, id.data);
-  if (!ownerId || !canReadList(viewer.peers, ownerId)) {
+  if (!ownerId) {
     return { ok: false, error: "Toto želanie neexistuje.", final: true };
   }
 

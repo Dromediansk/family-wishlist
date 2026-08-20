@@ -97,12 +97,10 @@ export async function getClaimedBy(viewer: Viewer): Promise<ClaimedWish[]> {
 }
 
 /**
- * Whose list a wish is on, or null if there is no such wish. The one thing a
- * claim needs to know before it may touch a stranger's row.
- *
- * Takes `viewer` for signature consistency with the rest of this file, even
- * though it does not filter on it — whether that owner is a peer is for the
- * caller to decide, which is also where the refusal message belongs.
+ * Whose list a wish is on, or null when there is no such wish or its owner
+ * shares no group with the viewer. Both answers are the same refusal to the
+ * caller, which is what keeps a stranger's wish id from being distinguishable
+ * from a nonexistent one.
  */
 export async function getWishOwner(
   viewer: Viewer,
@@ -117,7 +115,10 @@ export async function getWishOwner(
   if (error) throw error;
 
   const row = data as { owner_user_id: string } | null;
-  return row ? asUserId(row.owner_user_id) : null;
+  if (!row) return null;
+
+  const ownerId = asUserId(row.owner_user_id);
+  return canReadList(viewer.peers, ownerId) ? ownerId : null;
 }
 
 /**
