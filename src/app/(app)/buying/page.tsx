@@ -65,7 +65,7 @@ export default async function BuyingPage() {
                 action={
                   <div className="flex flex-col gap-2 sm:items-end">
                     <span className="text-muted-foreground text-sm">
-                      pre: {wish.owner.name}
+                      praje si: {wish.owner.name}
                     </span>
                     <div className="flex flex-wrap items-start gap-2 sm:justify-end">
                       <ClaimButton
