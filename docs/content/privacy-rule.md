@@ -45,12 +45,33 @@ the same shape: `service_role` bypasses RLS, and the rule forbids policies, so
 simply answer.
 
 What stands there instead is a chokepoint. Every table read lives in
-`src/lib/data/`, and every function in there takes a `Viewer` or a
-`GroupContext` as its first argument — the scope arrives before the query can be
-written. Branded `UserId`, `GroupId` and `MembershipId`
+`src/lib/data/`, and the convention is that a function there takes a `Viewer`
+or a `GroupContext` as its first argument — the scope arrives before the query
+can be written. Branded `UserId`, `GroupId` and `MembershipId`
 ([`src/lib/ids.ts`](../../src/lib/ids.ts)) are minted only in that directory,
 where a value has just been read from the column that defines it, so nothing
 downstream can pass a string off a URL where an id belongs.
+
+Five functions do not take one, and each is legitimate for a different reason:
+
+- `ensureAppUser` ([`src/lib/data/access.ts`](../../src/lib/data/access.ts))
+  runs before a `Viewer` can exist, because the row it writes is what a
+  `Viewer` is built from. It scopes itself instead on `authUserId`, which comes
+  from the verified session and never from a caller.
+- `findInviteByToken` ([`src/lib/data/invites.ts`](../../src/lib/data/invites.ts))
+  is looked up by a bare token from a join link, before its caller has any
+  membership in that invite's group — there is no `GroupContext` to take yet.
+  `joinWithInvite` treats what it returns as an unverified claim, not a scope.
+- `findInviteById` (same file) exists only to tell `revokeInvite` who created an
+  invite and which group it belongs to, so it can choose the right refusal.
+  The actual guard is the `GroupContext`-scoped update in `revokeInviteRow`
+  that runs after it.
+- `markInviteUsed` (same file) is a compare-and-swap on one invite id that its
+  caller has already resolved and checked; it decides nothing about who may
+  read or write, only whether this call wins the race to increment `uses`.
+- `groupIdsOf` ([`src/lib/data/members.ts`](../../src/lib/data/members.ts))
+  takes a branded `UserId` rather than a `Viewer` — the id was already minted by
+  `getViewer`, so the type is still the guard, just spelled one layer down.
 
 Two rules in [`eslint.config.mjs`](../../eslint.config.mjs) keep it true:
 `.from()` and the `getSupabase` import are errors outside `src/lib/data/` — bar
@@ -86,10 +107,11 @@ Each card shows how many wishes are still free next to the total — "2 / 5".
 already taken. So your own card shows the bare total.
 
 5. `getMemberSummaries` ([`src/lib/data/members.ts`](../../src/lib/data/members.ts))
-   counts free wishes with `.is("claimed_by_user_id", null)` **and**
-   `.neq("owner_user_id", ctx.userId)`, so no claim column is selected and the
-   viewer's own rows never reach the count. It takes a `GroupContext`, so the
-   cards it counts for are the members of the group being read.
+   counts free wishes scoped to this group's own members with
+   `.in("owner_user_id", …)`, and within that with `.is("claimed_by_user_id",
+   null)` **and** `.neq("owner_user_id", ctx.userId)`, so no claim column is
+   selected, no other group's wishes are read, and the viewer's own rows never
+   reach the count.
 6. `MemberSummary` ([`src/lib/types.ts`](../../src/lib/types.ts)) is
    discriminated on `viewerIsOwner`; the owner half of the union has no
    `availableCount` field to render.

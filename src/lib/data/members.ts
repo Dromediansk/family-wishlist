@@ -93,8 +93,9 @@ export const getGroupMembers = cache(
  * The family grid: `getGroupMembers` plus, for everyone but the viewer, how
  * many of their wishes are still free.
  *
- * The availability query selects no claim column and drops the viewer's own rows
- * in the `WHERE` clause, so their number is never computed.
+ * The availability query is scoped to this group's own members with
+ * `.in("owner_user_id", …)`, selects no claim column, and drops the viewer's own
+ * rows in the `WHERE` clause, so their number is never computed.
  * docs/content/privacy-rule.md#counting-on-the-family-grid
  *
  * Separate from `getGroupMembers` because the admin screen wants the plain total
@@ -102,18 +103,22 @@ export const getGroupMembers = cache(
  */
 export const getMemberSummaries = cache(
   async (ctx: GroupContext): Promise<MemberSummary[]> => {
-    const [members, freeResult] = await Promise.all([
-      getGroupMembers(ctx),
-      getSupabase()
-        .from("wishes")
-        .select("owner_user_id")
-        .is("claimed_by_user_id", null)
-        .neq("owner_user_id", ctx.userId),
-    ]);
+    const members = await getGroupMembers(ctx);
+    if (members.length === 0) return [];
 
-    if (freeResult.error) throw freeResult.error;
+    const { data, error } = await getSupabase()
+      .from("wishes")
+      .select("owner_user_id")
+      .in(
+        "owner_user_id",
+        members.map((member) => member.userId),
+      )
+      .is("claimed_by_user_id", null)
+      .neq("owner_user_id", ctx.userId);
 
-    const free = tally(freeResult.data);
+    if (error) throw error;
+
+    const free = tally(data);
 
     return sortMemberSummaries(
       members.map((member) => toMemberSummary(member, free, ctx.userId)),

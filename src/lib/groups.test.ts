@@ -66,7 +66,7 @@ describe("groupInPath", () => {
 });
 
 describe("MAX_GROUPS_PER_ACCOUNT", () => {
-  it("is the number the refusal quotes", () => {
+  it("pins the advertised cap, so raising it is a decision and not an accident", () => {
     expect(MAX_GROUPS_PER_ACCOUNT).toBe(5);
   });
 });

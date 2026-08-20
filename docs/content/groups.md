@@ -188,3 +188,35 @@ leaves — see [History](history.md).
 The plumbing for self-leave is already there — `memberships_release_claims`
 fires on any membership delete, whoever caused it — so it is a small later change
 rather than a design problem.
+
+### A known gap where the two combine
+
+Each of the following is intentional and documented on its own, but nothing
+records what they add up to together:
+
+- **Opening a valid invite link joins you on a GET, with no confirmation
+  screen.** That is deliberate — see [Invites](#invites) above: the person
+  sending the link wants the door to open on the first click, not after an
+  admin wakes up or a second screen is dismissed.
+- **Nobody can leave a group themselves**, just above: only an admin can
+  remove a member.
+
+Put together: one click on a link a stranger sent — in a chat message, an
+email, anywhere — puts you in their group, where they can read your entire
+wish list, and the only way out is asking *their* admin, who may be the
+stranger themselves. Sending yourself the same link back does not undo it;
+`joinWithInvite` has no opposite.
+
+An `<img>` tag pointing at the join URL does **not** pull this off silently —
+joining writes a session-backed membership row, which needs the visitor's own
+`sameSite: "lax"` auth cookie, and a browser withholds a `Lax` cookie from a
+subresource request. It takes an actual top-level navigation: a real link
+click, a redirect, or the address bar.
+
+Two changes would close it, and neither belongs to a fix wave — each is a
+product call for the repository's owner:
+
+1. A confirmation step before the join is committed, so opening the link shows
+   who is asking before it acts.
+2. Letting a member leave a group themselves, so admission without asking
+   is not also a life sentence.

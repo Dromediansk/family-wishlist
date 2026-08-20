@@ -72,13 +72,14 @@ export async function revokeInvite(
   // member's "only mine" while still telling the two refusals apart.
   const invite = await findInviteById(parsedInvite.data);
   if (!invite || invite.groupId !== ctx.groupId) {
-    return { ok: false, error: "Táto pozvánka už neexistuje." };
+    return { ok: false, error: "Táto pozvánka už neexistuje.", final: true };
   }
 
   if (!canRevokeInvite(ctx, invite)) {
     return {
       ok: false,
       error: "Túto pozvánku môže zrušiť len jej autor alebo správca.",
+      final: true,
     };
   }
 

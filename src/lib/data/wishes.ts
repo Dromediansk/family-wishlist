@@ -76,8 +76,10 @@ export async function getWishListFor(
 
 /**
  * Everything the viewer has claimed, across every list in every group they are
- * in. A claim cannot exist between people who share no group, so this needs no
- * peer filter of its own.
+ * in. A claim cannot exist between people who share no group:
+ * `memberships_release_claims` fires on membership deletion, and clears one out
+ * the moment the shared group behind it is gone — so this needs no peer filter
+ * of its own.
  */
 export async function getClaimedBy(viewer: Viewer): Promise<ClaimedWish[]> {
   const [result, names] = await Promise.all([
