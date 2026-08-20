@@ -92,11 +92,14 @@ export async function findInviteById(inviteId: string): Promise<Invite | null> {
 }
 
 /**
- * One more use. Not atomic — two joins landing in the same instant could both
- * read the same count — which is an acceptable risk for a handful of
- * relatives, not a queue worth defending with a database function.
+ * One more use, as a compare-and-swap: the write only lands if `uses` is
+ * still what this call just read. Two joins landing in the same instant will
+ * not both write the same stale count — one wins, and this returns `false`
+ * to the other rather than silently letting the counter drift under the cap.
+ * The read is not a pre-check standing in for the guard; `.eq("uses", current)`
+ * in the update's own `WHERE` is the guard.
  */
-export async function markInviteUsed(inviteId: string): Promise<void> {
+export async function markInviteUsed(inviteId: string): Promise<boolean> {
   const supabase = getSupabase();
 
   const { data, error } = await supabase
@@ -106,14 +109,19 @@ export async function markInviteUsed(inviteId: string): Promise<void> {
     .maybeSingle();
 
   if (error) throw error;
-  if (!data) return;
+  if (!data) return false;
 
-  const { error: updateError } = await supabase
+  const current = (data as { uses: number }).uses;
+
+  const { data: updated, error: updateError } = await supabase
     .from("invites")
-    .update({ uses: (data as { uses: number }).uses + 1 })
-    .eq("id", inviteId);
+    .update({ uses: current + 1 })
+    .eq("id", inviteId)
+    .eq("uses", current)
+    .select("id");
 
   if (updateError) throw updateError;
+  return (updated?.length ?? 0) > 0;
 }
 
 /**

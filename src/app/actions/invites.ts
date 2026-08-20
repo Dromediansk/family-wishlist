@@ -129,7 +129,16 @@ export async function joinWithInvite(token: string): Promise<ActionResult> {
     return { ok: false, error: "Nepodarilo sa pridať do skupiny." };
   }
 
-  await markInviteUsed(invite.id);
+  // The membership row above is what actually admitted this caller — a
+  // link valid the moment they opened it — so nothing past this point can
+  // undo that. `markInviteUsed` is a compare-and-swap; a `false` means
+  // somebody else's join incremented `uses` in between the read above and
+  // this write. One retry (a fresh read, a fresh swap) closes the ordinary
+  // two-way race; if it still loses, the count stays one short of exact
+  // rather than the join being refused for a caller already in the group.
+  if (!(await markInviteUsed(invite.id))) {
+    await markInviteUsed(invite.id);
+  }
 
   revalidatePath("/", "layout");
   await notifyChanged();
