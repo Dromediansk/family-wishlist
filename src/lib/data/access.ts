@@ -16,6 +16,17 @@ import {
 import { isGroupAdmin } from "@/lib/visibility";
 
 /**
+ * A to-one embed, which comes back as the row from some PostgREST versions and
+ * as a one-element array from others. Never null on either: both joins here
+ * follow a `not null` foreign key, so there is nothing to fall back to.
+ */
+type Embedded<Row> = Row | [Row];
+
+function embedded<Row>(value: Embedded<Row>): Row {
+  return Array.isArray(value) ? value[0] : value;
+}
+
+/**
  * The only place a `Viewer` is built.
  *
  * Two clients on purpose: the session comes from Supabase Auth, the rows from
@@ -56,16 +67,13 @@ export const getViewer = cache(async (): Promise<Viewer | null> => {
     (membershipsResult.data ?? []) as {
       group_id: string;
       role: string;
-      groups: { name: string } | { name: string }[] | null;
+      groups: Embedded<{ name: string }>;
     }[]
-  ).map((row) => {
-    const group = Array.isArray(row.groups) ? row.groups[0] : row.groups;
-    return {
-      id: asGroupId(row.group_id),
-      name: group?.name ?? "?",
-      role: toRole(row.role),
-    };
-  });
+  ).map((row) => ({
+    id: asGroupId(row.group_id),
+    name: embedded(row.groups).name,
+    role: toRole(row.role),
+  }));
 
   /*
    * A `returns setof uuid` function comes back as bare strings from some
@@ -109,7 +117,7 @@ export const enterGroup = cache(
 
     const { data, error } = await getSupabase()
       .from("memberships")
-      .select("id, group_id, role")
+      .select("id, group_id, role, groups (name)")
       .eq("user_id", viewer.userId)
       .eq("group_id", groupId)
       .maybeSingle();
@@ -117,10 +125,16 @@ export const enterGroup = cache(
     if (error) throw error;
     if (!data) return null;
 
-    const row = data as { id: string; group_id: string; role: string };
+    const row = data as {
+      id: string;
+      group_id: string;
+      role: string;
+      groups: Embedded<{ name: string }>;
+    };
     return {
       ...viewer,
       groupId: asGroupId(row.group_id),
+      groupName: embedded(row.groups).name,
       membershipId: asMembershipId(row.id),
       role: toRole(row.role),
     };

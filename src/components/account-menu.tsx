@@ -64,7 +64,7 @@ export function AccountMenu({
             <DropdownMenuItem asChild>
               <Link href={`/g/${current.id}/family`}>
                 <SettingsIcon />
-                Spravovať rodinu
+                Spravovať skupinu
               </Link>
             </DropdownMenuItem>
           ) : null}

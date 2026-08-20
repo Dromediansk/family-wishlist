@@ -139,9 +139,17 @@ export type Viewer = {
   groups: readonly GroupRef[];
 };
 
-/** A viewer inside one group. Required by everything group-scoped. */
+/**
+ * A viewer inside one group. Required by everything group-scoped.
+ *
+ * `groupName` rides along because the membership row that proves the context
+ * comes from a `group_id not null references groups (id)`, whose own `name` is
+ * `not null` too: a proven membership always has a named group, so a screen that
+ * wants the name never has to look it up or cope with its absence.
+ */
 export type GroupContext = Viewer & {
   groupId: GroupId;
+  groupName: string;
   membershipId: MembershipId;
   role: Role;
 };

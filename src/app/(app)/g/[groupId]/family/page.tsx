@@ -47,7 +47,7 @@ export default async function FamilyPage({
 
       <div>
         <h1 className="text-2xl font-semibold text-balance">
-          Správa členov rodiny
+          Správa skupiny {ctx.groupName}
         </h1>
         <p className="text-muted-foreground mt-1 max-w-[62ch]">
           Premenúvaj ľudí alebo meň, kto môže spravovať tento zoznam.

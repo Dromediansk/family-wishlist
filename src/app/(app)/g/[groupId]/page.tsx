@@ -32,7 +32,9 @@ export default async function GroupPage({
     <div className="space-y-6">
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-semibold text-balance">Rodina</h1>
+          <h1 className="text-2xl font-semibold text-balance">
+            {ctx.groupName}
+          </h1>
           <p className="text-muted-foreground mt-1 max-w-[62ch]">
             Pridaj si niečo do vlastného zoznamu alebo si vyber, čo kúpiš
             niekomu inému.

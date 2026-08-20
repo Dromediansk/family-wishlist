@@ -38,7 +38,7 @@ export function MemberCard({
       {member.role === "admin" ? (
         <Badge
           variant="secondary"
-          title="Môže spravovať členov rodiny"
+          title="Môže spravovať členov skupiny"
           className="pointer-events-none absolute top-3 right-3"
         >
           <ShieldIcon />
