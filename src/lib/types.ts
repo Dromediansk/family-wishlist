@@ -1,3 +1,5 @@
+import type { GroupId, MembershipId, UserId } from "@/lib/ids";
+
 export type Role = "admin" | "member";
 
 /** docs/content/membership.md — everyone lands `pending` except the first. */
@@ -11,6 +13,7 @@ export type Member = {
 };
 
 export type MemberWithCount = Member & {
+  userId: UserId;
   wishCount: number;
 };
 
@@ -96,3 +99,34 @@ export type ActionResult =
 
 /** The failed half, for components that hold on to one to render it. */
 export type ActionFailure = Extract<ActionResult, { ok: false }>;
+
+/** One of the viewer's groups, as the switcher and `preferredName` see it. */
+export type GroupRef = {
+  id: GroupId;
+  name: string;
+  role: Role;
+};
+
+/**
+ * Who is looking, and everyone they are allowed to see.
+ *
+ * `peers` always contains the viewer's own id, even when they belong to no
+ * group at all — `peer_user_ids` derives self-membership from a join and
+ * returns nothing for a groupless user, and a `peers` set missing its own
+ * owner would lock them out of their own list.
+ *
+ * `groups` is ordered by the viewer's own `memberships.created_at`, ascending.
+ * `preferredName` and the switcher both depend on that order.
+ */
+export type Viewer = {
+  userId: UserId;
+  peers: ReadonlySet<UserId>;
+  groups: readonly GroupRef[];
+};
+
+/** A viewer inside one group. Required by everything group-scoped. */
+export type GroupContext = Viewer & {
+  groupId: GroupId;
+  membershipId: MembershipId;
+  role: Role;
+};

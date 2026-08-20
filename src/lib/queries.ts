@@ -2,6 +2,7 @@ import "server-only";
 
 import { cache } from "react";
 
+import { asUserId } from "@/lib/ids";
 import { resolveAccess, type Access } from "@/lib/access";
 import {
   FULFILLED_WISH_COLUMNS,
@@ -88,6 +89,7 @@ export const getMembers = cache(async (): Promise<MemberWithCount[]> => {
 
   return ((membersResult.data ?? []) as MemberRow[]).map((row) => ({
     ...toMember(row),
+    userId: asUserId(row.id),
     wishCount: counts.get(row.id) ?? 0,
   }));
 });

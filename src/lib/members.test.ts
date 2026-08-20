@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 
+import { asUserId } from "@/lib/ids";
 import { sortMemberSummaries, toMemberSummary } from "@/lib/members";
 import type { MemberSummary, MemberWithCount } from "@/lib/types";
 
@@ -16,6 +17,7 @@ const otherId = "22222222-2222-4222-8222-222222222222";
 function member(id: string, name: string, wishCount: number): MemberWithCount {
   return {
     id,
+    userId: asUserId(id),
     name,
     role: "member",
     createdAt: "2026-01-01T00:00:00.000Z",
@@ -33,6 +35,7 @@ describe("toMemberSummary", () => {
 
     expect(summary).toEqual({
       id: otherId,
+      userId: asUserId(otherId),
       name: "Anna",
       role: "member",
       createdAt: "2026-01-01T00:00:00.000Z",
