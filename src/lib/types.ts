@@ -140,3 +140,24 @@ export type GroupContext = Viewer & {
   membershipId: MembershipId;
   role: Role;
 };
+
+/**
+ * One invite link into a group. `createdBy` is a `MembershipId`, never a
+ * `UserId` — the composite foreign key `invites_creator_in_group` enforces the
+ * same thing in the database. docs/content/groups.md#invites
+ */
+export type Invite = {
+  id: string;
+  groupId: GroupId;
+  createdBy: MembershipId;
+  token: string;
+  expiresAt: string | null;
+  /** Null means unlimited. */
+  maxUses: number | null;
+  uses: number;
+  revokedAt: string | null;
+  createdAt: string;
+};
+
+/** An invite as the admin's full list on `/family` shows it — whoever made it. */
+export type InviteWithCreator = Invite & { createdByName: string };

@@ -1,8 +1,10 @@
 import { notFound } from "next/navigation";
 
+import { InviteDialog } from "@/components/invite-dialog";
 import { MemberCard } from "@/components/member-card";
 import { SetupRequired } from "@/components/setup-required";
 import { enterGroup } from "@/lib/data/access";
+import { listInvitesFor } from "@/lib/data/invites";
 import { getMemberSummaries } from "@/lib/data/members";
 import { isConfigured } from "@/lib/supabase";
 
@@ -21,16 +23,23 @@ export default async function GroupPage({
   const ctx = await enterGroup(groupId);
   if (!ctx) notFound();
 
-  const members = await getMemberSummaries(ctx);
+  const [members, myInvites] = await Promise.all([
+    getMemberSummaries(ctx),
+    listInvitesFor(ctx, true),
+  ]);
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-semibold text-balance">Rodina</h1>
-        <p className="text-muted-foreground mt-1 max-w-[62ch]">
-          Pridaj si niečo do vlastného zoznamu alebo si vyber, čo kúpiš niekomu
-          inému.
-        </p>
+      <div className="flex flex-wrap items-start justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-semibold text-balance">Rodina</h1>
+          <p className="text-muted-foreground mt-1 max-w-[62ch]">
+            Pridaj si niečo do vlastného zoznamu alebo si vyber, čo kúpiš
+            niekomu inému.
+          </p>
+        </div>
+
+        <InviteDialog groupId={ctx.groupId} invites={myInvites} />
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">

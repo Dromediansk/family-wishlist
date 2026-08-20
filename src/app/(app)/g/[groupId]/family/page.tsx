@@ -2,11 +2,13 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { ArrowLeftIcon } from "lucide-react";
 
+import { InviteList } from "@/components/invite-dialog";
 import { ManageMembers } from "@/components/manage-members";
 import { SetupRequired } from "@/components/setup-required";
 import { Button } from "@/components/ui/button";
 import { isGroupAdmin } from "@/lib/access";
 import { enterGroup } from "@/lib/data/access";
+import { listInvitesFor } from "@/lib/data/invites";
 import { getGroupMembers } from "@/lib/data/members";
 import { isConfigured } from "@/lib/supabase";
 
@@ -27,7 +29,10 @@ export default async function FamilyPage({
   // for itself as well.
   if (!isGroupAdmin(ctx)) redirect(`/g/${ctx.groupId}`);
 
-  const members = await getGroupMembers(ctx);
+  const [members, invites] = await Promise.all([
+    getGroupMembers(ctx),
+    listInvitesFor(ctx, false),
+  ]);
 
   return (
     <div className="space-y-6">
@@ -50,6 +55,14 @@ export default async function FamilyPage({
       </div>
 
       <ManageMembers groupId={ctx.groupId} members={members} />
+
+      <div className="space-y-2">
+        <h2 className="text-xl font-semibold text-balance">Pozvánky</h2>
+        <p className="text-muted-foreground max-w-[62ch]">
+          Od ktoréhokoľvek člena — nielen od teba.
+        </p>
+        <InviteList groupId={ctx.groupId} invites={invites} showCreator />
+      </div>
     </div>
   );
 }

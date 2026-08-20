@@ -13,9 +13,19 @@ import { NextResponse, type NextRequest } from "next/server";
  * cost speed, not safety. docs/content/membership.md#sessions
  */
 
-/** Reachable without a session. /auth/* is excluded by the matcher instead. */
+/**
+ * Reachable without a session. /auth/* is excluded by the matcher instead.
+ *
+ * /join/* has to be here too: the route handler behind it is what sends a
+ * signed-out visitor on to /login?returnTo=..., and it never gets the chance
+ * if this redirect fires first.
+ */
 function isPublic(pathname: string): boolean {
-  return pathname === "/login" || pathname.startsWith("/login/");
+  return (
+    pathname === "/login" ||
+    pathname.startsWith("/login/") ||
+    pathname.startsWith("/join/")
+  );
 }
 
 export async function proxy(request: NextRequest) {

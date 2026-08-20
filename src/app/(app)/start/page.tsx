@@ -21,11 +21,20 @@ import { isConfigured } from "@/lib/supabase";
  * member away — reaching it deliberately is the whole point.
  * docs/content/groups.md
  */
-export default async function StartPage() {
+export default async function StartPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ error?: string }>;
+}) {
   if (!isConfigured()) return <SetupRequired />;
 
-  const access = await getAccess();
-  if (access.kind === "anonymous") redirect("/login");
+  const [{ error }, access] = await Promise.all([searchParams, getAccess()]);
+  // A signed-out visitor lands here with a refusal already in hand — from a
+  // dead invite link, for instance — and /login shows the same "error" param,
+  // so it carries over rather than being dropped on the way to signing in.
+  if (access.kind === "anonymous") {
+    redirect(error ? `/login?error=${encodeURIComponent(error)}` : "/login");
+  }
 
   const hasGroup = access.kind === "member";
 
@@ -51,6 +60,12 @@ export default async function StartPage() {
           Založ si vlastnú alebo sa pridaj do cudzej.
         </p>
       </div>
+
+      {error ? (
+        <p className="text-destructive" role="alert">
+          {error}
+        </p>
+      ) : null}
 
       <div className="grid gap-4 sm:grid-cols-2">
         <Card>
