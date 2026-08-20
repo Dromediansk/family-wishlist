@@ -6,8 +6,7 @@ import { LoaderCircleIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const buttonVariants = cva(
-  // `relative` anchors the busy spinner, and the corner CountBadge that
-  // `account-menu` hangs off these same classes.
+  // `relative` anchors the busy spinner.
   "relative inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md font-medium transition-colors disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-5 [&_svg]:shrink-0 cursor-pointer",
   {
     variants: {

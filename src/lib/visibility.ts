@@ -1,5 +1,5 @@
 import type { GroupId, MembershipId, UserId } from "@/lib/ids";
-import type { GroupRef, Role } from "@/lib/types";
+import type { ClaimView, GroupRef, Role } from "@/lib/types";
 
 /**
  * The tenancy rules, as pure functions. No Supabase and no Next.js imports, so
@@ -32,6 +32,19 @@ export function revealClaimer(
   claimerId: UserId,
 ): boolean {
   return peers.has(claimerId);
+}
+
+/**
+ * Is this wish held by somebody who is not the viewer? True whether or not the
+ * viewer is told *who* holds it — a claim from a group they are not in still
+ * counts, which is what stops a taken wish looking free.
+ *
+ * One spelling for both the row that dims and the button that stands down; two
+ * would let a row dim with "Toto nekupujem" still on it.
+ */
+export function claimedByOther(claim: ClaimView, viewerId: UserId): boolean {
+  if (claim.kind === "free") return false;
+  return claim.kind === "taken" || claim.by.id !== viewerId;
 }
 
 /**

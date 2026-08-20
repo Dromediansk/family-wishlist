@@ -4,10 +4,11 @@ import { asGroupId, asMembershipId, asUserId } from "@/lib/ids";
 import {
   canReadList,
   canRevokeInvite,
+  claimedByOther,
   preferredName,
   revealClaimer,
 } from "@/lib/visibility";
-import type { GroupRef } from "@/lib/types";
+import type { ClaimView, GroupRef } from "@/lib/types";
 
 const ME = asUserId("11111111-1111-4111-8111-111111111111");
 const PEER = asUserId("22222222-2222-4222-8222-222222222222");
@@ -33,6 +34,32 @@ describe("canReadList", () => {
 
   it("refuses everything when the peer set is empty", () => {
     expect(canReadList(new Set(), PEER)).toBe(false);
+  });
+});
+
+describe("claimedByOther", () => {
+  const AT = "2026-02-01T00:00:00.000Z";
+
+  it("says a free wish is held by nobody", () => {
+    expect(claimedByOther({ kind: "free" }, ME)).toBe(false);
+  });
+
+  it("says the viewer's own claim is not somebody else's", () => {
+    const mine: ClaimView = { kind: "taken-by", at: AT, by: { id: ME, name: "Ja" } };
+    expect(claimedByOther(mine, ME)).toBe(false);
+  });
+
+  it("says a named peer's claim is somebody else's", () => {
+    const theirs: ClaimView = {
+      kind: "taken-by",
+      at: AT,
+      by: { id: PEER, name: "Peer" },
+    };
+    expect(claimedByOther(theirs, ME)).toBe(true);
+  });
+
+  it("says an unnamed claim is somebody else's — a claim from a group the viewer is not in still counts", () => {
+    expect(claimedByOther({ kind: "taken", at: AT }, ME)).toBe(true);
   });
 });
 

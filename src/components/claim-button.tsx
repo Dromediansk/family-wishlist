@@ -1,40 +1,19 @@
 "use client";
 
-import { useState, useTransition } from "react";
 import { GiftIcon, UndoIcon } from "lucide-react";
 
 import { claimWish, unclaimWish } from "@/app/actions/wishes";
 import { Button } from "@/components/ui/button";
+import { useAction } from "@/components/use-action";
 import type { UserId } from "@/lib/ids";
 import type { ClaimView } from "@/lib/types";
+import { claimedByOther } from "@/lib/visibility";
 
 type Props = {
   wishId: string;
   claim: ClaimView;
   viewerId: UserId;
 };
-
-/** One transition, one message, for either of the two buttons below. */
-function useAction(): {
-  pending: boolean;
-  error: string | null;
-  run: (action: () => Promise<{ ok: boolean; error?: string }>) => void;
-} {
-  const [error, setError] = useState<string | null>(null);
-  const [pending, startTransition] = useTransition();
-
-  return {
-    pending,
-    error,
-    run: (action) => {
-      setError(null);
-      startTransition(async () => {
-        const result = await action();
-        if (!result.ok) setError(result.error ?? "Niečo sa pokazilo.");
-      });
-    },
-  };
-}
 
 /**
  * Give back a reservation you hold. Takes the wish and nothing else: the caller
@@ -67,28 +46,23 @@ export function ReleaseClaimButton({ wishId }: { wishId: string }) {
 export function ClaimButton({ wishId, claim, viewerId }: Props) {
   const { pending, error, run } = useAction();
 
-  if (claim.kind === "taken-by" && claim.by.id === viewerId) {
-    return <ReleaseClaimButton wishId={wishId} />;
+  // Held by somebody else — the same predicate the row dims on, so the two can
+  // never disagree. There is nothing to click either way; the only difference is
+  // whether this viewer is told who. A claim from a group they are not in must
+  // still show as taken, so nobody buys it twice, and must not name its holder.
+  if (claimedByOther(claim, viewerId)) {
+    return (
+      <span className="text-muted-foreground shrink-0">
+        {claim.kind === "taken-by"
+          ? `Toto kupuje ${claim.by.name}`
+          : "Toto už niekto kupuje"}
+      </span>
+    );
   }
 
-  // Taken by someone else in a group this viewer shares — show who, and offer
-  // nothing to click.
+  // Whatever is left and not free is the viewer's own.
   if (claim.kind === "taken-by") {
-    return (
-      <span className="text-muted-foreground shrink-0">
-        Toto kupuje {claim.by.name}
-      </span>
-    );
-  }
-
-  // Reserved by somebody in a group this viewer is not in. They must know it is
-  // taken, so nobody buys it twice — and must not learn by whom.
-  if (claim.kind === "taken") {
-    return (
-      <span className="text-muted-foreground shrink-0">
-        Toto už niekto kupuje
-      </span>
-    );
+    return <ReleaseClaimButton wishId={wishId} />;
   }
 
   return (

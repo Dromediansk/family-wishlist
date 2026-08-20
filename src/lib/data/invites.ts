@@ -76,15 +76,23 @@ export async function findInviteByToken(token: string): Promise<Invite | null> {
 }
 
 /**
- * The invite an id names, or null. Used only to learn who created it and in
- * which group, before `canRevokeInvite` decides whether a revoke may proceed —
+ * The invite an id names *inside `ctx`'s group*, or null. Used only to learn who
+ * created it, before `canRevokeInvite` decides whether a revoke may proceed —
  * the scoped update that follows is the actual guard.
+ *
+ * The group is in the query rather than left to the caller to compare, because
+ * an invite row carries its token, and a token is permission to join that
+ * group. Another group's invite must not come back here at all.
  */
-export async function findInviteById(inviteId: string): Promise<Invite | null> {
+export async function findInviteInGroup(
+  ctx: GroupContext,
+  inviteId: string,
+): Promise<Invite | null> {
   const { data, error } = await getSupabase()
     .from("invites")
     .select(INVITE_COLUMNS)
     .eq("id", inviteId)
+    .eq("group_id", ctx.groupId)
     .maybeSingle();
 
   if (error) throw error;
@@ -144,35 +152,48 @@ export async function revokeInviteRow(
   return (data?.length ?? 0) > 0;
 }
 
+/** Newest first, so a just-created link is the one on top. */
+async function readInvites(
+  ctx: GroupContext,
+  createdBy?: string,
+): Promise<InviteRow[]> {
+  const base = getSupabase()
+    .from("invites")
+    .select(INVITE_COLUMNS)
+    .eq("group_id", ctx.groupId);
+
+  const scoped = createdBy ? base.eq("created_by", createdBy) : base;
+
+  const { data, error } = await scoped.order("created_at", {
+    ascending: false,
+  });
+
+  if (error) throw error;
+  return (data ?? []) as InviteRow[];
+}
+
 /**
- * A group's invites — every member's when `mine` is false (the admin's view on
- * `/family`), or just `ctx.membershipId`'s own (the grid's **Pozvať** dialog).
- * Newest first, so a just-created link is the one on top.
+ * The caller's own invites into this group — the grid's **Pozvať** dialog. No
+ * creator to look up: every one of them is theirs.
  */
-export const listInvitesFor = cache(
-  async (ctx: GroupContext, mine: boolean): Promise<InviteWithCreator[]> => {
-    const supabase = getSupabase();
+export const listMyInvites = cache(
+  async (ctx: GroupContext): Promise<Invite[]> =>
+    (await readInvites(ctx, ctx.membershipId)).map(toInvite),
+);
 
-    const base = supabase
-      .from("invites")
-      .select(INVITE_COLUMNS)
-      .eq("group_id", ctx.groupId);
-
-    const scoped = mine ? base.eq("created_by", ctx.membershipId) : base;
-
-    const { data, error } = await scoped.order("created_at", {
-      ascending: false,
-    });
-
-    if (error) throw error;
-
-    const rows = (data ?? []) as InviteRow[];
+/**
+ * Every member's invites into this group, named by whoever made them — the
+ * admin's view on `/family`, and the only screen that renders a creator.
+ */
+export const listGroupInvites = cache(
+  async (ctx: GroupContext): Promise<InviteWithCreator[]> => {
+    const rows = await readInvites(ctx);
     if (rows.length === 0) return [];
 
     // Every invite in this group was created by a membership in this group —
     // `invites_creator_in_group` guarantees it — so this second query never
     // misses a name.
-    const { data: memberRows, error: memberError } = await supabase
+    const { data: memberRows, error: memberError } = await getSupabase()
       .from("memberships")
       .select("id, name")
       .in(

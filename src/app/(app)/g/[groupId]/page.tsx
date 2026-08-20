@@ -4,7 +4,7 @@ import { InviteDialog } from "@/components/invite-dialog";
 import { MemberCard } from "@/components/member-card";
 import { SetupRequired } from "@/components/setup-required";
 import { enterGroup } from "@/lib/data/access";
-import { listInvitesFor } from "@/lib/data/invites";
+import { listMyInvites } from "@/lib/data/invites";
 import { getMemberSummaries } from "@/lib/data/members";
 import { isConfigured } from "@/lib/supabase";
 
@@ -25,7 +25,7 @@ export default async function GroupPage({
 
   const [members, myInvites] = await Promise.all([
     getMemberSummaries(ctx),
-    listInvitesFor(ctx, true),
+    listMyInvites(ctx),
   ]);
 
   return (

@@ -49,17 +49,12 @@ async function HeaderAccount() {
    * No group means no per-group label to wear, nothing to switch between and no
    * group-scoped entry to offer — but the menu itself has to be here. It is the
    * only way off `/start`, and an account that cannot sign out is stuck.
+   *
+   * Two name sources because a groupless account has no per-group label at all:
+   * `getPeerNames` reads memberships and hands back nothing for them, so the
+   * seed name is the only one there is.
    */
-  if (access.kind === "groupless") {
-    return (
-      <div className="flex shrink-0 items-center gap-1 sm:gap-2">
-        <AccountMenu
-          name={await getAccountName(viewer)}
-          groups={viewer.groups}
-        />
-      </div>
-    );
-  }
+  const groupless = access.kind === "groupless";
 
   /*
    * The header spans every group, so the avatar wears the account-level name —
@@ -67,24 +62,29 @@ async function HeaderAccount() {
    * first. The two controls beside it work out which group is current from the
    * path, which this Server Component cannot see.
    */
-  const [names, created] = await Promise.all([
-    getPeerNames(viewer),
-    countGroupsCreatedBy(viewer),
+  const [name, created] = await Promise.all([
+    groupless
+      ? getAccountName(viewer)
+      : getPeerNames(viewer).then((names) => names.get(viewer.userId) ?? "?"),
+    groupless ? 0 : countGroupsCreatedBy(viewer),
   ]);
-  const name = names.get(viewer.userId) ?? "?";
 
   return (
     <div className="flex shrink-0 items-center gap-1 sm:gap-2">
-      <Button variant="ghost" size="sm" asChild>
-        <Link href="/buying" aria-label="Čo kupujem">
-          <ShoppingBagIcon />
-          <span className="hidden sm:inline">Čo kupujem</span>
-        </Link>
-      </Button>
-      <GroupSwitcher
-        groups={viewer.groups}
-        canCreate={created < MAX_GROUPS_PER_ACCOUNT}
-      />
+      {groupless ? null : (
+        <>
+          <Button variant="ghost" size="sm" asChild>
+            <Link href="/buying" aria-label="Čo kupujem">
+              <ShoppingBagIcon />
+              <span className="hidden sm:inline">Čo kupujem</span>
+            </Link>
+          </Button>
+          <GroupSwitcher
+            groups={viewer.groups}
+            canCreate={created < MAX_GROUPS_PER_ACCOUNT}
+          />
+        </>
+      )}
       <AccountMenu name={name} groups={viewer.groups} />
     </div>
   );

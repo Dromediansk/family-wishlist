@@ -53,12 +53,9 @@ export function LiveRefresh({ groupIds }: { groupIds: readonly GroupId[] }) {
     if (!supabase || groupIds.length === 0) return;
 
     let timer: ReturnType<typeof setTimeout> | undefined;
-    // Whether every one of the viewer's group channels is currently
-    // subscribed — a partial drop still counts as deaf.
-    const liveByChannel = new Map<number, boolean>();
-    const allLive = () =>
-      liveByChannel.size === groupIds.length &&
-      [...liveByChannel.values()].every(Boolean);
+    // Which of the viewer's group channels are currently subscribed — a partial
+    // drop still counts as deaf.
+    const subscribed = new Set<number>();
     let live = false;
     let everLive = false;
     // At most one syncFromLive outstanding. Without it the 30s deaf-poll would
@@ -91,8 +88,9 @@ export function LiveRefresh({ groupIds }: { groupIds: readonly GroupId[] }) {
         .channel(channelFor(groupId))
         .on("broadcast", { event: LIVE_EVENT }, refresh)
         .subscribe((status) => {
-          liveByChannel.set(index, status === "SUBSCRIBED");
-          live = allLive();
+          if (status === "SUBSCRIBED") subscribed.add(index);
+          else subscribed.delete(index);
+          live = subscribed.size === groupIds.length;
           // Re-joining after a drop means we were deaf; the first join does
           // not, since the page was just server-rendered.
           if (live && everLive) refresh();

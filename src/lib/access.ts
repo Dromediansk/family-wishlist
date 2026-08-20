@@ -1,8 +1,6 @@
 import type { UserId } from "@/lib/ids";
 import type { Viewer } from "@/lib/types";
 
-export { isGroupAdmin } from "@/lib/visibility";
-
 /**
  * Who is looking. Every page routes off this and nothing else. Pure, with no
  * Supabase import, so it is tested for real rather than through mocks.

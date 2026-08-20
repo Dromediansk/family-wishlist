@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogBody,
+  DialogClose,
   DialogContent,
   DialogDescription,
   DialogFooter,
@@ -105,15 +106,16 @@ export function CreateGroupDialog() {
             {refused ? (
               // The way out replaces the way forward, rather than sitting next
               // to it disabled.
-              <Button
-                type="button"
-                size="lg"
-                variant="outline"
-                className="w-full sm:w-auto"
-                onClick={() => setOpen(false)}
-              >
-                Zavrieť
-              </Button>
+              <DialogClose asChild>
+                <Button
+                  type="button"
+                  size="lg"
+                  variant="outline"
+                  className="w-full sm:w-auto"
+                >
+                  Zavrieť
+                </Button>
+              </DialogClose>
             ) : (
               <SubmitButton size="lg" className="w-full sm:w-auto">
                 Vytvoriť skupinu

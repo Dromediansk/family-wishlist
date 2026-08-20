@@ -6,9 +6,9 @@ import { InviteList } from "@/components/invite-dialog";
 import { ManageMembers } from "@/components/manage-members";
 import { SetupRequired } from "@/components/setup-required";
 import { Button } from "@/components/ui/button";
-import { isGroupAdmin } from "@/lib/access";
+import { isGroupAdmin } from "@/lib/visibility";
 import { enterGroup } from "@/lib/data/access";
-import { listInvitesFor } from "@/lib/data/invites";
+import { listGroupInvites } from "@/lib/data/invites";
 import { getGroupMembers } from "@/lib/data/members";
 import { isConfigured } from "@/lib/supabase";
 
@@ -31,7 +31,7 @@ export default async function FamilyPage({
 
   const [members, invites] = await Promise.all([
     getGroupMembers(ctx),
-    listInvitesFor(ctx, false),
+    listGroupInvites(ctx),
   ]);
 
   return (

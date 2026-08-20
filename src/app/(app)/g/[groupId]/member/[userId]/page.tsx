@@ -16,6 +16,7 @@ import { enterGroup } from "@/lib/data/access";
 import { getGroupPeerUser } from "@/lib/data/members";
 import { getWishListFor } from "@/lib/data/wishes";
 import { isConfigured } from "@/lib/supabase";
+import { claimedByOther } from "@/lib/visibility";
 
 export default async function MemberPage({
   params,
@@ -103,11 +104,7 @@ export default async function MemberPage({
                     wish={wish}
                     // Anything somebody else holds dims down, whether or not
                     // this viewer is told who that somebody is.
-                    dimmed={
-                      wish.claim.kind === "taken" ||
-                      (wish.claim.kind === "taken-by" &&
-                        wish.claim.by.id !== ctx.userId)
-                    }
+                    dimmed={claimedByOther(wish.claim, ctx.userId)}
                     action={
                       <ClaimButton
                         wishId={wish.id}

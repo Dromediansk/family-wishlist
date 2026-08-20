@@ -3,10 +3,15 @@
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 
-import { enterGroup, getAccountName, getViewer } from "@/lib/data/access";
 import {
-  findInviteById,
+  enterGroup,
+  getAccountName,
+  getViewer,
+  requireGroup,
+} from "@/lib/data/access";
+import {
   findInviteByToken,
+  findInviteInGroup,
   insertInvite,
   markInviteUsed,
   revokeInviteRow,
@@ -17,7 +22,6 @@ import { getSupabase } from "@/lib/supabase";
 import type { ActionResult } from "@/lib/types";
 import { canRevokeInvite } from "@/lib/visibility";
 
-const groupIdSchema = z.uuid("Neplatná skupina.");
 const inviteIdSchema = z.uuid("Neplatná pozvánka.");
 
 /**
@@ -28,14 +32,10 @@ const inviteIdSchema = z.uuid("Neplatná pozvánka.");
 export async function createInvite(
   groupId: string,
 ): Promise<ActionResult & { token?: string }> {
-  const parsedGroup = groupIdSchema.safeParse(groupId);
-  if (!parsedGroup.success) {
-    return { ok: false, error: parsedGroup.error.issues[0].message };
-  }
+  const permitted = await requireGroup(groupId);
+  if (!permitted.ok) return permitted;
 
-  const ctx = await enterGroup(parsedGroup.data);
-  if (!ctx) return { ok: false, error: "Najprv sa prihlás." };
-
+  const { ctx } = permitted;
   const invite = await insertInvite(ctx);
 
   revalidatePath("/", "layout");
@@ -53,13 +53,10 @@ export async function revokeInvite(
   groupId: string,
   inviteId: string,
 ): Promise<ActionResult> {
-  const parsedGroup = groupIdSchema.safeParse(groupId);
-  if (!parsedGroup.success) {
-    return { ok: false, error: parsedGroup.error.issues[0].message };
-  }
+  const permitted = await requireGroup(groupId);
+  if (!permitted.ok) return permitted;
 
-  const ctx = await enterGroup(parsedGroup.data);
-  if (!ctx) return { ok: false, error: "Najprv sa prihlás." };
+  const { ctx } = permitted;
 
   const parsedInvite = inviteIdSchema.safeParse(inviteId);
   if (!parsedInvite.success) {
@@ -70,8 +67,8 @@ export async function revokeInvite(
   // needs to know who created this invite before it can decide, and there is
   // no single `WHERE` that expresses both an admin's blanket "any" and a
   // member's "only mine" while still telling the two refusals apart.
-  const invite = await findInviteById(parsedInvite.data);
-  if (!invite || invite.groupId !== ctx.groupId) {
+  const invite = await findInviteInGroup(ctx, parsedInvite.data);
+  if (!invite) {
     return { ok: false, error: "Táto pozvánka už neexistuje.", final: true };
   }
 

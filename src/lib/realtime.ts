@@ -36,20 +36,19 @@ export async function notifyChanged(groupIds: readonly GroupId[]): Promise<void>
  * interested viewers have in common — a claim made in one group has to reach
  * the owner's other groups, whose members share nothing with the claimer.
  *
- * Cosmetic like the ping itself: the lookup lives inside the same catch, so a
- * failed read costs a refresh rather than the write that already succeeded.
+ * Cosmetic like the ping itself: the lookup is caught too, so a failed read
+ * costs a refresh rather than the write that already succeeded.
  */
 export async function notifyOwnerChanged(ownerId: UserId): Promise<void> {
+  let groupIds: readonly GroupId[];
   try {
-    const groupIds = await groupIdsOf(ownerId);
-    const supabase = getSupabase();
-
-    await Promise.all(
-      groupIds.map((groupId) =>
-        supabase.channel(channelFor(groupId)).httpSend(LIVE_EVENT, LIVE_PAYLOAD),
-      ),
-    );
+    groupIds = await groupIdsOf(ownerId);
   } catch (error) {
     console.warn("Live update ping failed:", error);
+    return;
   }
+
+  // One broadcast loop, in `notifyChanged`, which swallows its own failures for
+  // the same reason this lookup does.
+  await notifyChanged(groupIds);
 }

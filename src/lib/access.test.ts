@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
-import { isGroupAdmin, resolveAccess, seedPeers } from "@/lib/access";
+import { resolveAccess, seedPeers } from "@/lib/access";
+import { isGroupAdmin } from "@/lib/visibility";
 import { asGroupId, asUserId } from "@/lib/ids";
 import type { GroupRef, Viewer } from "@/lib/types";
 

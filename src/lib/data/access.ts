@@ -7,7 +7,13 @@ import { resolveAccess, seedPeers, type Access } from "@/lib/access";
 import { asGroupId, asMembershipId, asUserId, type UserId } from "@/lib/ids";
 import { getSupabase } from "@/lib/supabase";
 import { getAuthUser } from "@/lib/supabase-auth";
-import type { GroupContext, GroupRef, Role, Viewer } from "@/lib/types";
+import {
+  toRole,
+  type GroupContext,
+  type GroupRef,
+  type Viewer,
+} from "@/lib/types";
+import { isGroupAdmin } from "@/lib/visibility";
 
 /**
  * The only place a `Viewer` is built.
@@ -57,7 +63,7 @@ export const getViewer = cache(async (): Promise<Viewer | null> => {
     return {
       id: asGroupId(row.group_id),
       name: group?.name ?? "?",
-      role: row.role === "admin" ? "admin" : "member",
+      role: toRole(row.role),
     };
   });
 
@@ -116,10 +122,47 @@ export const enterGroup = cache(
       ...viewer,
       groupId: asGroupId(row.group_id),
       membershipId: asMembershipId(row.id),
-      role: (row.role === "admin" ? "admin" : "member") satisfies Role,
+      role: toRole(row.role),
     };
   },
 );
+
+/**
+ * `enterGroup` plus the refusal a Server Action returns, so the "validate the
+ * id, enter the group, pick a message" preamble is written once rather than per
+ * action. `enterGroup` already refuses a malformed id, and it is the same
+ * refusal as somebody else's group on purpose: neither answer says whether that
+ * group exists.
+ */
+export async function requireGroup(
+  groupId: string,
+): Promise<{ ok: true; ctx: GroupContext } | { ok: false; error: string }> {
+  // Both are memoised and `enterGroup` asks the same question anyway, so this
+  // costs nothing and keeps "you are not signed in" from being reported as
+  // "that group is not yours".
+  if (!(await getViewer())) return { ok: false, error: "Najprv sa prihlás." };
+
+  const ctx = await enterGroup(groupId);
+  if (!ctx) return { ok: false, error: "Táto skupina ti nepatrí." };
+  return { ok: true, ctx };
+}
+
+/**
+ * The same, for work only a group's admin may do. An admin is an admin *of one
+ * group* — being one elsewhere is not cover. An admin-only **page** re-checks
+ * with `isGroupAdmin(ctx)` in its own body; a hidden menu item is not a guard.
+ */
+export async function requireGroupAdmin(
+  groupId: string,
+): Promise<{ ok: true; ctx: GroupContext } | { ok: false; error: string }> {
+  const permitted = await requireGroup(groupId);
+  if (!permitted.ok) return permitted;
+
+  if (!isGroupAdmin(permitted.ctx)) {
+    return { ok: false, error: "Členov skupiny môže spravovať len správca." };
+  }
+  return permitted;
+}
 
 /**
  * The account's seed name — the one Google supplied, not a per-group label.

@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import type { Metadata, Viewport } from "next";
 import localFont from "next/font/local";
 
@@ -78,19 +79,21 @@ export const dynamic = "force-dynamic";
  * `<main className="flex-1">`, and both the element and the class are
  * load-bearing. docs/content/ui-patterns.md#layout-contract
  */
-export default async function RootLayout({
+export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
-  // Unconfigured means no database to ask — getViewer() would throw. An
-  // anonymous or groupless visitor simply has nothing to subscribe to.
-  const viewer = isConfigured() ? await getViewer() : null;
-  const groupIds = viewer?.groups.map((group) => group.id) ?? [];
-
   return (
     <html lang="sk">
       <body className={`${atkinson.variable} font-sans`}>
-        {/* Once, here, so it survives navigation between routes. */}
-        <LiveRefresh groupIds={groupIds} />
+        {/*
+         * Once, here, so it survives navigation between routes — and behind a
+         * boundary, or its round trip would sit in front of every document,
+         * including the ones with no session to look up. It renders nothing, so
+         * there is nothing to reserve space for.
+         */}
+        <Suspense fallback={null}>
+          <LiveChannels />
+        </Suspense>
         <div className="mx-auto flex min-h-dvh w-full max-w-5xl flex-col px-4 pt-[max(1.5rem,env(safe-area-inset-top))] pb-[max(1.5rem,env(safe-area-inset-bottom))] sm:px-6 sm:pt-10 sm:pb-10">
           <OfflineBanner />
           {children}
@@ -99,4 +102,11 @@ export default async function RootLayout({
       </body>
     </html>
   );
+}
+
+async function LiveChannels() {
+  // Unconfigured means no database to ask — getViewer() would throw. An
+  // anonymous or groupless visitor simply has nothing to subscribe to.
+  const viewer = isConfigured() ? await getViewer() : null;
+  return <LiveRefresh groupIds={viewer?.groups.map((group) => group.id) ?? []} />;
 }

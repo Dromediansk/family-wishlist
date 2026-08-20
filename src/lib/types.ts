@@ -2,6 +2,11 @@ import type { GroupId, MembershipId, UserId } from "@/lib/ids";
 
 export type Role = "admin" | "member";
 
+/** Narrow a `role` column into `Role`. Anything unrecognised is the lesser one. */
+export function toRole(value: string): Role {
+  return value === "admin" ? "admin" : "member";
+}
+
 /** One person in one group. `id` is the membership, never the account. */
 export type Member = {
   id: MembershipId;

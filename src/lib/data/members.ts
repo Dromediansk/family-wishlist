@@ -11,12 +11,14 @@ import {
 } from "@/lib/ids";
 import { sortMemberSummaries, toMemberSummary } from "@/lib/members";
 import { getSupabase } from "@/lib/supabase";
-import type {
-  GroupContext,
-  MemberSummary,
-  MemberWithCount,
-  PeerUser,
-  Viewer,
+import {
+  toRole,
+  type GroupContext,
+  type MemberSummary,
+  type MemberWithCount,
+  type PeerUser,
+  type Role,
+  type Viewer,
 } from "@/lib/types";
 import { canReadList, preferredName } from "@/lib/visibility";
 
@@ -41,6 +43,50 @@ function tally(rows: unknown): Map<UserId, number> {
 }
 
 /**
+ * The membership rows of one group, in join order. Split out from
+ * `getGroupMembers` so the two tallies below can be issued together rather than
+ * one behind the other; `cache` makes the two callers share one trip.
+ */
+const groupMemberships = cache(
+  async (ctx: GroupContext): Promise<MembershipRow[]> => {
+    const { data, error } = await getSupabase()
+      .from("memberships")
+      .select(MEMBERSHIP_COLUMNS)
+      .eq("group_id", ctx.groupId)
+      .order("created_at", { ascending: true });
+
+    if (error) throw error;
+    return (data ?? []) as MembershipRow[];
+  },
+);
+
+/** How many wishes each of these people has. No claim column is selected. */
+async function countWishes(userIds: string[]): Promise<Map<UserId, number>> {
+  const { data, error } = await getSupabase()
+    .from("wishes")
+    .select("owner_user_id")
+    .in("owner_user_id", userIds);
+
+  if (error) throw error;
+  return tally(data);
+}
+
+function toMemberWithCount(
+  row: MembershipRow,
+  counts: ReadonlyMap<UserId, number>,
+): MemberWithCount {
+  const userId = asUserId(row.user_id);
+  return {
+    id: asMembershipId(row.id),
+    userId,
+    name: row.name,
+    role: toRole(row.role),
+    createdAt: row.created_at,
+    wishCount: counts.get(userId) ?? 0,
+  };
+}
+
+/**
  * Everybody in one group, in join order, with how many wishes each of them has.
  *
  * Both ids come back: `id` is the membership an admin control addresses, and
@@ -50,81 +96,94 @@ function tally(rows: unknown): Map<UserId, number> {
  */
 export const getGroupMembers = cache(
   async (ctx: GroupContext): Promise<MemberWithCount[]> => {
-    const supabase = getSupabase();
-
-    const { data, error } = await supabase
-      .from("memberships")
-      .select(MEMBERSHIP_COLUMNS)
-      .eq("group_id", ctx.groupId)
-      .order("created_at", { ascending: true });
-
-    if (error) throw error;
-
-    const rows = (data ?? []) as MembershipRow[];
+    const rows = await groupMemberships(ctx);
     if (rows.length === 0) return [];
 
-    const { data: wishRows, error: wishError } = await supabase
-      .from("wishes")
-      .select("owner_user_id")
-      .in(
-        "owner_user_id",
-        rows.map((row) => row.user_id),
-      );
-
-    if (wishError) throw wishError;
-
-    const counts = tally(wishRows);
-
-    return rows.map((row) => {
-      const userId = asUserId(row.user_id);
-      return {
-        id: asMembershipId(row.id),
-        userId,
-        name: row.name,
-        role: row.role === "admin" ? "admin" : "member",
-        createdAt: row.created_at,
-        wishCount: counts.get(userId) ?? 0,
-      };
-    });
+    const counts = await countWishes(rows.map((row) => row.user_id));
+    return rows.map((row) => toMemberWithCount(row, counts));
   },
 );
 
 /**
- * The family grid: `getGroupMembers` plus, for everyone but the viewer, how
- * many of their wishes are still free.
+ * The family grid: every member's total, plus — for everyone but the viewer —
+ * how many of their wishes are still free.
  *
  * The availability query is scoped to this group's own members with
  * `.in("owner_user_id", …)`, selects no claim column, and drops the viewer's own
  * rows in the `WHERE` clause, so their number is never computed.
  * docs/content/privacy-rule.md#counting-on-the-family-grid
  *
+ * The two tallies share one `.in(…)` list and depend on nothing but the
+ * memberships, so they go out together.
+ *
  * Separate from `getGroupMembers` because the admin screen wants the plain total
  * in join order; `sortMemberSummaries` is the sole authority on the grid's own.
  */
 export const getMemberSummaries = cache(
   async (ctx: GroupContext): Promise<MemberSummary[]> => {
-    const members = await getGroupMembers(ctx);
-    if (members.length === 0) return [];
+    const rows = await groupMemberships(ctx);
+    if (rows.length === 0) return [];
 
-    const { data, error } = await getSupabase()
-      .from("wishes")
-      .select("owner_user_id")
-      .in(
-        "owner_user_id",
-        members.map((member) => member.userId),
-      )
-      .is("claimed_by_user_id", null)
-      .neq("owner_user_id", ctx.userId);
+    const userIds = rows.map((row) => row.user_id);
 
-    if (error) throw error;
+    const [counts, freeResult] = await Promise.all([
+      countWishes(userIds),
+      getSupabase()
+        .from("wishes")
+        .select("owner_user_id")
+        .in("owner_user_id", userIds)
+        .is("claimed_by_user_id", null)
+        .neq("owner_user_id", ctx.userId),
+    ]);
 
-    const free = tally(data);
+    if (freeResult.error) throw freeResult.error;
+
+    const free = tally(freeResult.data);
 
     return sortMemberSummaries(
-      members.map((member) => toMemberSummary(member, free, ctx.userId)),
+      rows.map((row) =>
+        toMemberSummary(toMemberWithCount(row, counts), free, ctx.userId),
+      ),
     );
   },
 );
+
+/**
+ * How many admins this group has. The last one cannot be demoted or removed, or
+ * nobody could ever manage the group again — and that count is a *read*, so it
+ * belongs here rather than inline in the action that needs it.
+ */
+export async function countGroupAdmins(ctx: GroupContext): Promise<number> {
+  const { count, error } = await getSupabase()
+    .from("memberships")
+    .select("id", { count: "exact", head: true })
+    .eq("group_id", ctx.groupId)
+    .eq("role", "admin");
+
+  if (error) throw error;
+  return count ?? 0;
+}
+
+/**
+ * The role one membership holds in `ctx`'s group, or null when no such row is
+ * in it. Scoped to the group in the query, so a membership id from another
+ * group reads as absent.
+ */
+export async function getMembershipRole(
+  ctx: GroupContext,
+  membershipId: string,
+): Promise<Role | null> {
+  const { data, error } = await getSupabase()
+    .from("memberships")
+    .select("role")
+    .eq("id", membershipId)
+    .eq("group_id", ctx.groupId)
+    .maybeSingle();
+
+  if (error) throw error;
+  const row = data as { role: string } | null;
+  return row ? toRole(row.role) : null;
+}
 
 /**
  * What to call each person the viewer can see, one name apiece.
@@ -203,6 +262,10 @@ export const groupIdsOf = cache(async (userId: UserId): Promise<GroupId[]> => {
  *
  * The peers check comes first, which is also what keeps a malformed id out of
  * the query: nothing but a real user id is ever in that set.
+ *
+ * The row that proves the membership carries the name to show, so this asks
+ * once: a `memberships` row scoped to this group *is* the name through this
+ * group, which is what makes the heading and the wishes below it agree.
  */
 export async function getGroupPeerUser(
   ctx: GroupContext,
@@ -213,7 +276,7 @@ export async function getGroupPeerUser(
 
   const { data, error } = await getSupabase()
     .from("memberships")
-    .select("user_id")
+    .select("user_id, name")
     .eq("group_id", ctx.groupId)
     .eq("user_id", id)
     .maybeSingle();
@@ -221,7 +284,5 @@ export async function getGroupPeerUser(
   if (error) throw error;
   if (!data) return null;
 
-  // Named through this group, so the heading and the wishes below it agree.
-  const name = (await getPeerNames(ctx, ctx.groupId)).get(id);
-  return name === undefined ? null : { id, name };
+  return { id, name: (data as { name: string }).name };
 }

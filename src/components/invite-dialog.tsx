@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState } from "react";
 import {
   CheckIcon,
   CopyIcon,
@@ -16,6 +16,7 @@ import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogBody,
+  DialogClose,
   DialogContent,
   DialogDescription,
   DialogFooter,
@@ -23,9 +24,10 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { useAction } from "@/components/use-action";
 import type { GroupId } from "@/lib/ids";
 import { inviteUsable } from "@/lib/invites";
-import type { InviteWithCreator } from "@/lib/types";
+import type { Invite } from "@/lib/types";
 
 /**
  * Every member's own **Pozvať** button on the group grid. Creating an invite
@@ -37,26 +39,18 @@ export function InviteDialog({
   invites,
 }: {
   groupId: GroupId;
-  invites: InviteWithCreator[];
+  invites: Invite[];
 }) {
   const [open, setOpen] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [pending, startTransition] = useTransition();
-
-  function create() {
-    setError(null);
-    startTransition(async () => {
-      const result = await createInvite(groupId);
-      if (!result.ok) setError(result.error);
-    });
-  }
+  const { pending, error, run, reset } = useAction();
 
   return (
     <Dialog
       open={open}
       onOpenChange={(next) => {
         setOpen(next);
-        if (!next) setError(null);
+        // A closed dialog keeps no refusal to greet the next attempt with.
+        if (!next) reset();
       }}
     >
       <DialogTrigger asChild>
@@ -77,7 +71,7 @@ export function InviteDialog({
 
         <DialogBody className="flex flex-col gap-4">
           <Button
-            onClick={create}
+            onClick={() => run(() => createInvite(groupId))}
             loading={pending}
             className="w-full sm:w-auto"
           >
@@ -95,14 +89,11 @@ export function InviteDialog({
         </DialogBody>
 
         <DialogFooter>
-          <Button
-            type="button"
-            variant="outline"
-            className="w-full sm:w-auto"
-            onClick={() => setOpen(false)}
-          >
-            Zavrieť
-          </Button>
+          <DialogClose asChild>
+            <Button type="button" variant="outline" className="w-full sm:w-auto">
+              Zavrieť
+            </Button>
+          </DialogClose>
         </DialogFooter>
       </DialogContent>
     </Dialog>
@@ -112,7 +103,8 @@ export function InviteDialog({
 /**
  * The invites themselves, without the dialog around them — reused as-is on
  * `/family`, where `showCreator` names whoever made each one, and an admin may
- * revoke any of them.
+ * revoke any of them. Only that caller pays for the names; the dialog's own
+ * list is all the viewer's, so there is nobody to name.
  *
  * Nothing here ever offers a revoke control for somebody else's invite unless
  * the viewer is that group's admin: `InviteDialog` only ever passes this its
@@ -126,7 +118,8 @@ export function InviteList({
   showCreator = false,
 }: {
   groupId: GroupId;
-  invites: InviteWithCreator[];
+  /** Carries `createdByName` whenever `showCreator` is set. */
+  invites: (Invite & { createdByName?: string })[];
   showCreator?: boolean;
 }) {
   if (invites.length === 0) {
@@ -159,7 +152,7 @@ function InviteRow({
   showCreator,
 }: {
   groupId: GroupId;
-  invite: InviteWithCreator;
+  invite: Invite & { createdByName?: string };
   usable: boolean;
   showCreator: boolean;
 }) {
@@ -178,7 +171,7 @@ function InviteRow({
 
       <div className="min-w-0 flex-1">
         <p className="truncate text-sm">
-          {showCreator ? `Od: ${invite.createdByName}` : "Pozvánka"}
+          {showCreator ? `Od: ${invite.createdByName ?? "?"}` : "Pozvánka"}
         </p>
         <p className="text-muted-foreground text-sm">
           {usable

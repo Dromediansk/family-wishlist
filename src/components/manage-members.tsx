@@ -10,6 +10,7 @@ import {
 } from "@/app/actions/members";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import type { GroupId } from "@/lib/ids";
 import { wishCount } from "@/lib/utils";
 import type { ActionResult, MemberWithCount } from "@/lib/types";
 
@@ -32,7 +33,7 @@ export function ManageMembers({
   groupId,
   members,
 }: {
-  groupId: string;
+  groupId: GroupId;
   members: MemberWithCount[];
 }) {
   const [error, setError] = useState<string | null>(null);
@@ -87,7 +88,7 @@ function MemberAdminRow({
   pending,
   busy,
 }: {
-  groupId: string;
+  groupId: GroupId;
   member: MemberWithCount;
   /** Held by somebody else's action — the trash toggle runs none of its own. */
   pending: boolean;
