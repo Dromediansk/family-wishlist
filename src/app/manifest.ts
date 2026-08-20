@@ -19,7 +19,7 @@ export default function manifest(): MetadataRoute.Manifest {
     scope: "/",
     display: "standalone",
     orientation: "portrait",
-    background_color: THEME_COLORS.backgroundLight,
+    background_color: THEME_COLORS.backgroundDark,
     theme_color: THEME_COLORS.primary,
     // Both entries are the same route — one drawing works masked and unmasked.
     // Next's Manifest type takes one purpose per entry, hence the pair.

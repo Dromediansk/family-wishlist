@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import manifest from "@/app/manifest";
+import { THEME_COLORS } from "@/lib/theme-colors";
 
 /**
  * Installability is easy to break silently — nothing fails to build, the app
@@ -45,5 +46,9 @@ describe("manifest", () => {
   it("uses plain sRGB colours, not the oklch() from globals.css", () => {
     expect(result.background_color).toMatch(/^#[0-9a-f]{6}$/i);
     expect(result.theme_color).toMatch(/^#[0-9a-f]{6}$/i);
+  });
+
+  it("splashes on the app's dark background, not the light one", () => {
+    expect(result.background_color).toBe(THEME_COLORS.backgroundDark);
   });
 });
