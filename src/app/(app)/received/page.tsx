@@ -2,7 +2,8 @@ import { redirect } from "next/navigation";
 
 import { HistoryPage } from "@/components/history-page";
 import { SetupRequired } from "@/components/setup-required";
-import { getAccess, getReceivedBy } from "@/lib/queries";
+import { getAccess } from "@/lib/data/access";
+import { getReceivedBy } from "@/lib/data/fulfilled";
 import { isConfigured } from "@/lib/supabase";
 
 /**
@@ -20,14 +21,17 @@ export default async function ReceivedPage() {
   const access = await getAccess();
 
   if (access.kind === "anonymous") redirect("/login");
-  if (access.kind === "pending") redirect("/pending");
+  if (access.kind === "groupless") redirect("/start");
 
-  const currentMember = access.member;
-  const received = await getReceivedBy(currentMember.id);
+  const viewer = access.viewer;
+  const received = await getReceivedBy(viewer);
 
   return (
     <HistoryPage
-      backHref={`/member/${currentMember.id}`}
+      // Own list, read through the first group by join date — the same order the
+      // switcher shows. This page spans every group, so no one of them is
+      // current here.
+      backHref={`/g/${viewer.groups[0].id}/member/${viewer.userId}`}
       backLabel="Môj zoznam"
       title="Čo som dostal"
       description="Splnené želania a kto ti ich daroval."

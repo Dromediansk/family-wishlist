@@ -3,8 +3,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 /**
  * Shared shell for every route that renders a list of wishes in a card —
- * `/buying`, `/member/[id]`, and the two history pages. All open with a back
- * link, a heading and a subtitle, then the list itself.
+ * `/buying`, `/g/[groupId]/member/[userId]`, and the two history pages. All
+ * open with a back link, a heading and a subtitle, then the list itself.
  */
 export function WishListSkeleton() {
   return (

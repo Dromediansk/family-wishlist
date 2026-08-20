@@ -1,8 +1,9 @@
 "use server";
 
-import { headers } from "next/headers";
+import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
 
+import { RETURN_TO_COOKIE, safeReturnTo } from "@/lib/invites";
 import { createAuthClient } from "@/lib/supabase-auth";
 
 /**
@@ -33,8 +34,33 @@ async function siteOrigin(): Promise<string> {
  * Start the Google sign-in flow. The whole exchange stays on the server, so no
  * session ever lands in localStorage.
  * docs/content/membership.md#where-the-oauth-exchange-happens
+ *
+ * Somebody who arrived on an invite link has a `returnTo` in the form. It is
+ * re-validated here — the page that rendered it is no proof, since a Server
+ * Action is reachable by direct POST — and stored in an httpOnly cookie for
+ * `/auth/callback` to read. A cookie rather than the OAuth `redirect_to`:
+ * the token in that path is permission to join a group, and Google has no
+ * business holding it. docs/content/groups.md#invites
  */
-export async function signInWithGoogle() {
+export async function signInWithGoogle(formData?: FormData) {
+  const returnTo = safeReturnTo(formData?.get("returnTo")?.toString());
+
+  const store = await cookies();
+  if (returnTo) {
+    store.set(RETURN_TO_COOKIE, returnTo, {
+      httpOnly: true,
+      sameSite: "lax",
+      secure: process.env.NODE_ENV === "production",
+      path: "/",
+      // Long enough for a consent screen, short enough that an abandoned
+      // sign-in does not redirect a later one somewhere it did not ask for.
+      maxAge: 600,
+    });
+  } else {
+    // A stale cookie from an abandoned invite must not hijack this sign-in.
+    store.delete(RETURN_TO_COOKIE);
+  }
+
   const supabase = await createAuthClient();
 
   const { data, error } = await supabase.auth.signInWithOAuth({
@@ -46,9 +72,15 @@ export async function signInWithGoogle() {
   });
 
   if (error || !data.url) {
-    redirect(
-      `/login?error=${encodeURIComponent(error?.message ?? "Prihlásenie sa nepodarilo spustiť.")}`,
+    const message = encodeURIComponent(
+      error?.message ?? "Prihlásenie sa nepodarilo spustiť.",
     );
+    // Carries the invite along, so pressing the button again still lands in the
+    // group rather than losing the link to a failed first attempt.
+    const again = returnTo
+      ? `&returnTo=${encodeURIComponent(returnTo)}`
+      : "";
+    redirect(`/login?error=${message}${again}`);
   }
 
   redirect(data.url);

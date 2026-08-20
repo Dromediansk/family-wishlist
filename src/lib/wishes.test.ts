@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 
+import { asUserId, type UserId } from "@/lib/ids";
 import {
   OWNER_WISH_COLUMNS,
   refusalFor,
@@ -24,7 +25,7 @@ const claimedRow: ViewerWishRow = {
   photo_path: "11111111-1111-4111-8111-111111111111/abc123.webp",
   created_at: "2026-01-01T00:00:00.000Z",
   claimed_at: "2026-01-02T00:00:00.000Z",
-  claimer: { id: "22222222-2222-4222-8222-222222222222", name: "Anna" },
+  claimed_by_user_id: asUserId("22222222-2222-4222-8222-222222222222"),
 };
 
 describe("toOwnerWish", () => {
@@ -43,14 +44,12 @@ describe("toOwnerWish", () => {
     const wish = toOwnerWish(claimedRow);
     const keys = Object.keys(wish);
 
-    expect(keys).not.toContain("claimedBy");
-    expect(keys).not.toContain("claimedAt");
-    expect(keys).not.toContain("claimer");
-    expect(keys).not.toContain("claimed_by");
+    expect(keys).not.toContain("claim");
+    expect(keys).not.toContain("claimed_by_user_id");
     expect(keys).not.toContain("claimed_at");
 
     // Nothing anywhere in the serialized payload should name the claimer.
-    expect(JSON.stringify(wish)).not.toContain("Anna");
+    expect(JSON.stringify(wish)).not.toContain(claimedRow.claimed_by_user_id);
   });
 
   it("selects no claim columns for the owner's query", () => {
@@ -59,54 +58,73 @@ describe("toOwnerWish", () => {
 });
 
 describe("toViewerWish", () => {
-  it("exposes who claimed the item to everyone who is not the owner", () => {
-    expect(toViewerWish(claimedRow)).toEqual({
-      id: claimedRow.id,
-      title: "Wool socks",
-      description: "Size 42",
-      url: "https://example.com/socks",
-      photo: claimedRow.photo_path,
-      createdAt: claimedRow.created_at,
-      claimedBy: {
-        id: "22222222-2222-4222-8222-222222222222",
-        name: "Anna",
-      },
-      claimedAt: claimedRow.claimed_at,
+  const ME = asUserId("11111111-1111-4111-8111-111111111111");
+  const PEER = asUserId("22222222-2222-4222-8222-222222222222");
+  const STRANGER = asUserId("33333333-3333-4333-8333-333333333333");
+  const peers = new Set([ME, PEER]);
+  // STRANGER has a name here on purpose: without one, a leak would render the
+  // "?" fallback and every assertion below would still pass.
+  const names = new Map([
+    [ME, "Miro"],
+    [PEER, "Zuzana"],
+    [STRANGER, "Peter"],
+  ]);
+
+  function row(claimedBy: UserId | null): ViewerWishRow {
+    return {
+      id: "44444444-4444-4444-8444-444444444444",
+      title: "Kniha",
+      description: null,
+      url: null,
+      photo_path: null,
+      created_at: "2026-01-01T00:00:00.000Z",
+      claimed_at: claimedBy ? "2026-02-01T00:00:00.000Z" : null,
+      claimed_by_user_id: claimedBy,
+    };
+  }
+
+  it("reports an unclaimed wish as free", () => {
+    expect(toViewerWish(row(null), peers, names).claim).toEqual({
+      kind: "free",
     });
   });
 
-  it("reports an unclaimed item as available", () => {
-    const wish = toViewerWish({
-      ...claimedRow,
-      claimed_at: null,
-      claimer: null,
+  it("names a claimer the viewer shares a group with", () => {
+    expect(toViewerWish(row(PEER), peers, names).claim).toEqual({
+      kind: "taken-by",
+      at: "2026-02-01T00:00:00.000Z",
+      by: { id: PEER, name: "Zuzana" },
     });
-
-    expect(wish.claimedBy).toBeNull();
-    expect(wish.claimedAt).toBeNull();
   });
 
-  it("normalizes an embedded relation returned as an array", () => {
-    const wish = toViewerWish({
-      ...claimedRow,
-      claimer: [{ id: "22222222-2222-4222-8222-222222222222", name: "Anna" }],
+  it("hides the name of a claimer from another group", () => {
+    expect(toViewerWish(row(STRANGER), peers, names).claim).toEqual({
+      kind: "taken",
+      at: "2026-02-01T00:00:00.000Z",
     });
-
-    expect(wish.claimedBy?.name).toBe("Anna");
   });
 
-  it("treats a missing claimer as unclaimed even if claimed_at lingers", () => {
-    const wish = toViewerWish({ ...claimedRow, claimer: [] });
+  it("carries no claimer name anywhere in the taken case", () => {
+    const view = toViewerWish(row(STRANGER), peers, names);
+    const serialized = JSON.stringify(view);
 
-    expect(wish.claimedBy).toBeNull();
-    expect(wish.claimedAt).toBeNull();
+    expect(serialized).not.toContain(STRANGER);
+    expect(serialized).not.toContain("Peter");
+    expect(view.claim.kind).toBe("taken");
+    // The union has no `by` outside `taken-by`; this is the runtime half of it.
+    expect("by" in view.claim).toBe(false);
+  });
+
+  it("treats a claim with no timestamp as free", () => {
+    const broken = { ...row(PEER), claimed_at: null };
+    expect(toViewerWish(broken, peers, names).claim).toEqual({ kind: "free" });
   });
 });
 
 describe("refusalFor", () => {
   const claimerId = "22222222-2222-4222-8222-222222222222";
-  const reserved = { claimed_by: claimerId };
-  const free = { claimed_by: null };
+  const reserved = { claimed_by_user_id: claimerId };
+  const free = { claimed_by_user_id: null };
 
   it("says the wish is reserved when deleting one somebody holds", () => {
     expect(refusalFor(reserved, "delete").error).toBe(

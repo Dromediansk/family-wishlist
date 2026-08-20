@@ -3,14 +3,16 @@
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 
+import { getViewer } from "@/lib/data/access";
+import { getWishOwner } from "@/lib/data/wishes";
+import type { UserId } from "@/lib/ids";
 import { MAX_PHOTO_BYTES, sniffImageType } from "@/lib/images";
 import {
   pruneWishPhotos,
   removeWishPhoto,
   uploadWishPhoto,
 } from "@/lib/photos";
-import { getCurrentMember } from "@/lib/queries";
-import { notifyChanged } from "@/lib/realtime";
+import { notifyOwnerChanged } from "@/lib/realtime";
 import { getSupabase } from "@/lib/supabase";
 import type { ActionResult } from "@/lib/types";
 import { refusalFor } from "@/lib/wishes";
@@ -79,20 +81,20 @@ function firstIssue(error: z.ZodError): string {
  * the write missed — the conditional WHERE clause is what enforces the refusal,
  * so a claim landing in between can at worst pick the wrong wording.
  *
- * The one owner-serving path allowed to select `claimed_by`. It stays in this
- * function and never migrates into OWNER_WISH_COLUMNS, getWishListFor or
- * OwnerWish. docs/content/privacy-rule.md#how-the-refusal-works
+ * The one owner-serving path allowed to select `claimed_by_user_id`. It stays
+ * in this function and never migrates into OWNER_WISH_COLUMNS, getWishListFor
+ * or OwnerWish. docs/content/privacy-rule.md#how-the-refusal-works
  */
 async function lookUpRefusal(
   wishId: string,
-  ownerId: string,
+  ownerId: UserId,
   operation: "delete" | "update",
 ): Promise<ActionResult> {
   const { data } = await getSupabase()
     .from("wishes")
-    .select("claimed_by")
+    .select("claimed_by_user_id")
     .eq("id", wishId)
-    .eq("member_id", ownerId)
+    .eq("owner_user_id", ownerId)
     .maybeSingle();
 
   return { ok: false, ...refusalFor(data, operation) };
@@ -108,7 +110,7 @@ async function lookUpRefusal(
  */
 async function attachPhoto(
   wishId: string,
-  ownerId: string,
+  ownerId: UserId,
   intent: z.output<typeof photoSchema>,
 ): Promise<ActionResult> {
   if (intent.kind === "unchanged") return { ok: true };
@@ -138,8 +140,8 @@ async function attachPhoto(
     // The same three guards as any other write. Ownership has already matched
     // once; the reservation has not, and a claim can land in between.
     .eq("id", wishId)
-    .eq("member_id", ownerId)
-    .is("claimed_by", null)
+    .eq("owner_user_id", ownerId)
+    .is("claimed_by_user_id", null)
     .select("id");
 
   if (error || !data || data.length === 0) {
@@ -156,8 +158,8 @@ async function attachPhoto(
 
 /** Add a wish to your OWN list. The owner is always the caller. */
 export async function addWish(input: WishInput): Promise<ActionResult> {
-  const current = await getCurrentMember();
-  if (!current) return { ok: false, error: "Najprv si vyber, kto si." };
+  const viewer = await getViewer();
+  if (!viewer) return { ok: false, error: "Najprv si vyber, kto si." };
 
   const parsed = wishInputSchema.safeParse(input);
   if (!parsed.success) return { ok: false, error: firstIssue(parsed.error) };
@@ -166,7 +168,7 @@ export async function addWish(input: WishInput): Promise<ActionResult> {
   const { data, error } = await supabase
     .from("wishes")
     .insert({
-      member_id: current.id,
+      owner_user_id: viewer.userId,
       title: parsed.data.title,
       description: parsed.data.description ?? null,
       url: parsed.data.url ?? null,
@@ -180,10 +182,10 @@ export async function addWish(input: WishInput): Promise<ActionResult> {
   if (error) return { ok: false, error: error.message };
 
   const { id: wishId } = data as { id: string };
-  const photo = await attachPhoto(wishId, current.id, parsed.data.photo);
+  const photo = await attachPhoto(wishId, viewer.userId, parsed.data.photo);
 
   revalidatePath("/", "layout");
-  await notifyChanged();
+  await notifyOwnerChanged(viewer.userId);
 
   if (!photo.ok) {
     // The wish is already saved — pressing the button again would add a second
@@ -207,8 +209,8 @@ export async function updateWish(
   wishId: string,
   input: WishInput,
 ): Promise<ActionResult> {
-  const current = await getCurrentMember();
-  if (!current) return { ok: false, error: "Najprv si vyber, kto si." };
+  const viewer = await getViewer();
+  if (!viewer) return { ok: false, error: "Najprv si vyber, kto si." };
 
   const id = idSchema.safeParse(wishId);
   if (!id.success) return { ok: false, error: "Neplatné želanie." };
@@ -227,19 +229,19 @@ export async function updateWish(
     // Both guards are in the predicate, never a read-then-write: someone else's
     // wish does not match, and neither does one a claim has just landed on.
     .eq("id", id.data)
-    .eq("member_id", current.id)
-    .is("claimed_by", null)
+    .eq("owner_user_id", viewer.userId)
+    .is("claimed_by_user_id", null)
     .select("id");
 
   if (error) return { ok: false, error: error.message };
   if (!data || data.length === 0) {
-    return lookUpRefusal(id.data, current.id, "update");
+    return lookUpRefusal(id.data, viewer.userId, "update");
   }
 
-  const photo = await attachPhoto(id.data, current.id, parsed.data.photo);
+  const photo = await attachPhoto(id.data, viewer.userId, parsed.data.photo);
 
   revalidatePath("/", "layout");
-  await notifyChanged();
+  await notifyOwnerChanged(viewer.userId);
 
   // Not final: the text is saved, and picking a different picture can still
   // work. Pressing save again is harmless — an edit is idempotent.
@@ -248,8 +250,8 @@ export async function updateWish(
 
 /** Remove a wish from your own list. Refused once it has been reserved. */
 export async function deleteWish(wishId: string): Promise<ActionResult> {
-  const current = await getCurrentMember();
-  if (!current) return { ok: false, error: "Najprv si vyber, kto si." };
+  const viewer = await getViewer();
+  if (!viewer) return { ok: false, error: "Najprv si vyber, kto si." };
 
   const id = idSchema.safeParse(wishId);
   if (!id.success) return { ok: false, error: "Neplatné želanie." };
@@ -261,41 +263,55 @@ export async function deleteWish(wishId: string): Promise<ActionResult> {
     // Same two guards as updateWish. The reserved one matters more here: a hard
     // delete would leave the buyer holding a wish that no longer exists.
     .eq("id", id.data)
-    .eq("member_id", current.id)
-    .is("claimed_by", null)
+    .eq("owner_user_id", viewer.userId)
+    .is("claimed_by_user_id", null)
     .select("id");
 
   if (error) return { ok: false, error: error.message };
   if (!data || data.length === 0) {
-    return lookUpRefusal(id.data, current.id, "delete");
+    return lookUpRefusal(id.data, viewer.userId, "delete");
   }
 
   // The row is gone, so nothing points at the picture any more.
   await pruneWishPhotos(id.data, null);
 
   revalidatePath("/", "layout");
-  await notifyChanged();
+  await notifyOwnerChanged(viewer.userId);
   return { ok: true };
 }
 
 /**
- * Claim someone else's wish. `claimed_by is null` is in the WHERE clause, so two
- * people clicking at once cannot both win. docs/content/claiming.md
+ * Claim someone else's wish. `claimed_by_user_id is null` sits in the WHERE
+ * clause, so two people clicking at once cannot both win.
+ * docs/content/claiming.md
  */
 export async function claimWish(wishId: string): Promise<ActionResult> {
-  const current = await getCurrentMember();
-  if (!current) return { ok: false, error: "Najprv si vyber, kto si." };
+  const viewer = await getViewer();
+  if (!viewer) return { ok: false, error: "Najprv si vyber, kto si." };
 
   const id = idSchema.safeParse(wishId);
   if (!id.success) return { ok: false, error: "Neplatné želanie." };
 
+  /*
+   * Which list this wish is on decides whether this viewer may touch it at all.
+   * The database backstops it — wishes_check_claim_peer rejects a claim between
+   * strangers whatever happens here — but a refusal is better than an exception.
+   */
+  const ownerId = await getWishOwner(viewer, id.data);
+  if (!ownerId) {
+    return { ok: false, error: "Toto želanie neexistuje.", final: true };
+  }
+
   const supabase = getSupabase();
   const { data, error } = await supabase
     .from("wishes")
-    .update({ claimed_by: current.id, claimed_at: new Date().toISOString() })
+    .update({
+      claimed_by_user_id: viewer.userId,
+      claimed_at: new Date().toISOString(),
+    })
     .eq("id", id.data)
-    .is("claimed_by", null)
-    .neq("member_id", current.id)
+    .is("claimed_by_user_id", null)
+    .neq("owner_user_id", viewer.userId)
     .select("id");
 
   if (error) return { ok: false, error: error.message };
@@ -309,24 +325,32 @@ export async function claimWish(wishId: string): Promise<ActionResult> {
   }
 
   revalidatePath("/", "layout");
-  await notifyChanged();
+  // The owner is the one person every interested viewer has in common — a
+  // peer in a different group than the claimer still needs to see this wish
+  // go unavailable. docs/content/live-updates.md
+  await notifyOwnerChanged(ownerId);
   return { ok: true };
 }
 
 /** Release a wish you claimed, so someone else can take it. */
 export async function unclaimWish(wishId: string): Promise<ActionResult> {
-  const current = await getCurrentMember();
-  if (!current) return { ok: false, error: "Najprv si vyber, kto si." };
+  const viewer = await getViewer();
+  if (!viewer) return { ok: false, error: "Najprv si vyber, kto si." };
 
   const id = idSchema.safeParse(wishId);
   if (!id.success) return { ok: false, error: "Neplatné želanie." };
 
+  // Informational, not a guard — `.eq("claimed_by_user_id", ...)` below is
+  // what the write actually checks. The owner, not the (un)claimer, is who
+  // every interested viewer has in common. docs/content/live-updates.md
+  const ownerId = await getWishOwner(viewer, id.data);
+
   const supabase = getSupabase();
   const { data, error } = await supabase
     .from("wishes")
-    .update({ claimed_by: null, claimed_at: null })
+    .update({ claimed_by_user_id: null, claimed_at: null })
     .eq("id", id.data)
-    .eq("claimed_by", current.id)
+    .eq("claimed_by_user_id", viewer.userId)
     .select("id");
 
   if (error) return { ok: false, error: error.message };
@@ -339,7 +363,7 @@ export async function unclaimWish(wishId: string): Promise<ActionResult> {
   }
 
   revalidatePath("/", "layout");
-  await notifyChanged();
+  if (ownerId) await notifyOwnerChanged(ownerId);
   return { ok: true };
 }
 
@@ -348,20 +372,25 @@ export async function unclaimWish(wishId: string): Promise<ActionResult> {
  * list for good, and the record — including your name — becomes visible to
  * them. docs/content/privacy-rule.md#when-the-secret-ends
  *
- * The whole guard is `claimed_by = p_giver_id` inside `fulfil_wish`, which
- * deletes the wish and writes the record in one statement. No pre-check read,
- * and no way for the pair to half-happen.
+ * The whole guard is `claimed_by_user_id = p_giver_id` inside `fulfil_wish`,
+ * which deletes the wish and writes the record in one statement. No pre-check
+ * read, and no way for the pair to half-happen.
  */
 export async function fulfilWish(wishId: string): Promise<ActionResult> {
-  const current = await getCurrentMember();
-  if (!current) return { ok: false, error: "Najprv si vyber, kto si." };
+  const viewer = await getViewer();
+  if (!viewer) return { ok: false, error: "Najprv si vyber, kto si." };
 
   const id = idSchema.safeParse(wishId);
   if (!id.success) return { ok: false, error: "Neplatné želanie." };
 
+  // Informational, not a guard — `fulfil_wish`'s own `claimed_by_user_id =
+  // p_giver_id` predicate is what actually runs. Read before the wish row is
+  // gone, since the owner is who every interested viewer has in common.
+  const ownerId = await getWishOwner(viewer, id.data);
+
   const { data, error } = await getSupabase().rpc("fulfil_wish", {
     p_wish_id: id.data,
-    p_giver_id: current.id,
+    p_giver_id: viewer.userId,
   });
 
   if (error) return { ok: false, error: error.message };
@@ -376,6 +405,6 @@ export async function fulfilWish(wishId: string): Promise<ActionResult> {
   await pruneWishPhotos(id.data, null);
 
   revalidatePath("/", "layout");
-  await notifyChanged();
+  if (ownerId) await notifyOwnerChanged(ownerId);
   return { ok: true };
 }

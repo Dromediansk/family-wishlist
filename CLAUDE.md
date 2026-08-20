@@ -1,7 +1,8 @@
 # Family Wish List
 
 Next.js 16 (App Router) · React 19 · TypeScript · Tailwind 4 · Radix · Supabase.
-UI language is **Slovak**.
+One account, many groups — a family, a team, a circle of friends — each with its
+own names and roles. UI language is **Slovak**.
 
 Documentation lives in [`docs/`](docs/README.md) — product behaviour under
 `docs/content/`, configuration under `docs/setup/`. **Do not restate it here or
@@ -31,7 +32,7 @@ Setup: [`docs/setup/local-development.md`](docs/setup/local-development.md).
 never be shown claims while reading their own list. The secret ends only when
 the giver ends it, by marking the gift handed over — and never any other way.**
 
-Enforced in nine places, listed in
+Enforced in eleven places, listed in
 [`docs/content/privacy-rule.md`](docs/content/privacy-rule.md#where-the-rule-is-enforced).
 Change one and check the rest.
 
@@ -50,10 +51,16 @@ Never:
 - Put anything in `LIVE_PAYLOAD` (`src/lib/live.ts`).
 - Skip the live ping for the owner's tab.
 - Answer the ping with `router.refresh()` — use `syncFromLive`.
-- Select `claimed_by` on any owner-serving path — including
+- Select `claimed_by_user_id` on any owner-serving path — including
   `src/app/wish-photo/[wishId]/route.ts`, which an owner hits for their own
   photos. `lookUpRefusal` (`src/app/actions/wishes.ts`) is the single exception
   and stays in that file.
+- Query a table outside `src/lib/data/`, where a `Viewer` or `GroupContext`
+  scopes it. Two lint rules enforce it; `src/app/actions/**` is exempt for
+  **writes** only, never for a read.
+- Build a `Viewer` anywhere but `src/lib/data/access.ts`.
+- Add a policy to `app_users`, `groups`, `memberships` or `invites` either. Same
+  rule, four more tables.
 - Add a Storage policy either. The `wish-photos` bucket is private and reached
   only through the `service_role` client.
 - Write `fulfilled_wishes` from anywhere but `fulfil_wish`, or call
@@ -72,16 +79,22 @@ Never:
 
 Reachable by direct POST, so each one must, in order:
 
-1. `const current = await getCurrentMember()` — re-derive the caller; never trust
-   a client-supplied id. Returns only **approved** members.
-2. Admin-only work: `await requireAdmin()`. An admin-only **page** re-checks with
-   `isAdmin()` in its own body and redirects. A hidden menu item is not a guard.
+1. Re-derive the caller; never trust a client-supplied id. `const viewer = await
+   getViewer()` for person-level work, `const ctx = await enterGroup(groupId)` for
+   anything group-scoped — a group id from the client is a claim, the membership
+   row it returns is the proof.
+2. Admin-only work: `await requireGroupAdmin(groupId)`. An admin is an admin *of
+   one group*. An admin-only **page** re-checks with `isGroupAdmin(ctx)` in its
+   own body and redirects. A hidden menu item is not a guard.
 3. Validate input with Zod. **Error messages are Slovak.**
-4. Put ownership in the `WHERE` clause (`.eq("member_id", current.id)`) and check
-   `data.length === 0`. Never pre-check with a separate read. Anything else that
-   must hold at write time goes in the same predicate — that is where
-   `.is("claimed_by", null)` lives.
-5. `revalidatePath("/", "layout")` then `await notifyChanged()`.
+4. Put ownership in the `WHERE` clause (`.eq("owner_user_id", viewer.userId)`) and
+   check `data.length === 0`. Never pre-check with a separate read. Anything else
+   that must hold at write time goes in the same predicate — group scope
+   (`.eq("group_id", ctx.groupId)`) and `.is("claimed_by_user_id", null)` both
+   live there.
+5. `revalidatePath("/", "layout")` then `await notifyChanged(groupIds)` — or
+   `await notifyOwnerChanged(ownerId)` when a wish or a claim changed, since the
+   owner is who every interested viewer has in common.
 
 Return `ActionResult`, never throw for expected failures. Set `final: true` only
 when repeating the call cannot change the outcome.
@@ -111,9 +124,9 @@ Details: [`docs/content/ui-patterns.md`](docs/content/ui-patterns.md#dialogs).
 - **All user-facing strings are Slovak**, including validation messages.
   `wishCount()` (`src/lib/utils.ts`) handles 1 / 2–4 / 5+ plural forms.
 - Path alias `@/*` → `./src/*`.
-- Tests cover **pure functions only** (`access`, `live`, `wishes`, `members`,
-  `manifest`, `utils`) — no mocks, no DB. Keep new logic pure enough to test that
-  way.
+- Tests cover **pure functions only** (`access`, `visibility`, `groups`,
+  `invites`, `wishes`, `members`, `fulfilled`, `images`, `live`, `manifest`,
+  `utils`) — no mocks, no DB. Keep new logic pure enough to test that way.
 - Comments explain what the code cannot say for itself, in a line or two. Longer
   reasoning belongs in `docs/`.
 - `src/proxy.ts`, not `middleware.ts` — Next 16 renamed the convention.
@@ -131,6 +144,8 @@ Details: [`docs/content/ui-patterns.md`](docs/content/ui-patterns.md#dialogs).
   CLI would replay `0003_auth.sql` and its `truncate`.
 - The Supabase CLI is **not** a dependency; `npm run supabase` is a pinned `npx`.
 - `0002_realtime.sql` is a comment file — do not run it in production.
+- Every table read goes through `src/lib/data/*`, which takes a `Viewer` or a
+  `GroupContext` first. Branded ids (`src/lib/ids.ts`) are minted only there.
 
 Full notes: [`docs/setup/database.md`](docs/setup/database.md).
 

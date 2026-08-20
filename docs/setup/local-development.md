@@ -6,8 +6,8 @@ npm run db:start     # first run: see One-time setup below
 npm run dev          # in another terminal
 ```
 
-Open [localhost:3000](http://localhost:3000) and sign in. The first person to
-sign in becomes the admin.
+Open [localhost:3000](http://localhost:3000) and sign in, then create a group —
+you are its admin, and everyone else arrives through a link you send them.
 
 `npm run dev` talks to a **local Supabase stack in Docker**, never to the hosted
 project. Everything it needs is committed — there is nothing to copy.
@@ -122,20 +122,24 @@ npm run db:seed      # fake family — after signing in
 `db:reset` wipes `auth.users` too, so the loop is:
 
 1. `npm run db:reset`
-2. sign in at [localhost:3000](http://localhost:3000) — you become the admin
+2. sign in at [localhost:3000](http://localhost:3000)
 3. `npm run db:seed`
 
-**The middle step cannot be skipped**, and that is deliberate.
-`handle_new_auth_user()` picks the admin with `not exists (select 1 from
-family_members)`, so any seeded member would make that false and leave your real
-sign-in stuck as `pending`, waiting on an admin who does not exist. Hence
-[`supabase/seed.sql`](../../supabase/seed.sql) is empty of members, and
-[`scripts/seed-dev.mjs`](../../scripts/seed-dev.mjs) builds the fake family
-around the row your sign-in created: three relatives, ten wishes, and claims
-running in both directions.
+**The middle step cannot be skipped.** The fake family has to hang off a real
+account: [`scripts/seed-dev.mjs`](../../scripts/seed-dev.mjs) anchors on the
+`app_users` row your sign-in created — and stops with an explanation if there is
+none — because inventing that row would be inventing the sign-in that
+`handle_new_auth_user()` performs. Around it the script builds a group of its
+own, *Vzorová rodina*, with you as its admin: three relatives, eleven wishes, and
+claims running in both directions.
 
-Re-running the seed is safe. Every seeded member carries an `@seed.local` email
-and is deleted first; their wishes go with them.
+Re-running the seed is safe, and each of its three parts cleans up after itself:
+the seed group goes by name and creator, the fake relatives by their
+`@seed.local` email — which takes their wishes and releases their claims — and
+your own fixture wishes by title, since nothing cascades to your account.
+
+Its relatives get an `app_users` row with **no** `auth_user_id`, so they can
+never sign in. That is the point: they exist to be read.
 
 Two of your own four wishes end up reserved — the one state the UI cannot put you
 in. Your list says nothing about either, and trying to delete or edit them is

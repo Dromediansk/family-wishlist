@@ -1,29 +1,18 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import {
-  CheckIcon,
-  ShieldIcon,
-  Trash2Icon,
-  UserRoundIcon,
-  XIcon,
-} from "lucide-react";
+import { ShieldIcon, Trash2Icon, UserRoundIcon } from "lucide-react";
 
 import {
-  approveMember,
-  rejectMember,
   removeMember,
   renameMember,
   setMemberRole,
 } from "@/app/actions/members";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import type { GroupId } from "@/lib/ids";
 import { wishCount } from "@/lib/utils";
-import type {
-  ActionResult,
-  MemberAccount,
-  MemberWithCount,
-} from "@/lib/types";
+import type { ActionResult, MemberWithCount } from "@/lib/types";
 
 /**
  * One transition drives every control in the list, so a `verb:id` key is what
@@ -41,11 +30,11 @@ type Busy = (
 
 /** Admin-only. The body of /family, which is what guards it. */
 export function ManageMembers({
+  groupId,
   members,
-  accounts,
 }: {
+  groupId: GroupId;
   members: MemberWithCount[];
-  accounts: MemberAccount[];
 }) {
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
@@ -55,8 +44,6 @@ export function ManageMembers({
    * button was still disabled.
    */
   const [running, setRunning] = useState<string | null>(null);
-
-  const waiting = accounts.filter((account) => account.status === "pending");
 
   const busy: Busy = (key, action, onSuccess) => ({
     disabled: pending,
@@ -74,58 +61,12 @@ export function ManageMembers({
 
   return (
     <div className="flex flex-col gap-4">
-      {waiting.length > 0 ? (
-        <section className="border-primary/40 bg-primary/5 flex flex-col gap-3 rounded-md border p-3">
-          <div>
-            <h3 className="text-lg font-semibold">Čakajú na schválenie</h3>
-            <p className="text-muted-foreground max-w-[62ch] text-sm">
-              Prihlásili sa cez Google, ale zatiaľ nič nevidia. Skontroluj
-              e-mail — prihlásiť sa môže ktokoľvek, kto pozná adresu tejto
-              stránky.
-            </p>
-          </div>
-          <ul className="flex flex-col gap-2">
-            {waiting.map((account) => (
-              <li key={account.id} className="flex items-center gap-2">
-                <div className="min-w-0 flex-1">
-                  <p className="truncate font-semibold">{account.name}</p>
-                  <p className="text-muted-foreground truncate text-sm">
-                    {account.email ?? "bez e-mailu"}
-                  </p>
-                </div>
-                <Button
-                  {...busy(`approve:${account.id}`, () =>
-                    approveMember(account.id),
-                  )}
-                >
-                  <CheckIcon />
-                  Pustiť dnu
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="text-muted-foreground hover:text-destructive"
-                  aria-label={`Zamietnuť ${account.name}`}
-                  {...busy(`reject:${account.id}`, () =>
-                    rejectMember(account.id),
-                  )}
-                >
-                  <XIcon />
-                </Button>
-              </li>
-            ))}
-          </ul>
-        </section>
-      ) : null}
-
       <ul className="divide-y border-t">
         {members.map((member) => (
           <MemberAdminRow
             key={member.id}
+            groupId={groupId}
             member={member}
-            email={
-              accounts.find((account) => account.id === member.id)?.email ?? null
-            }
             pending={pending}
             busy={busy}
           />
@@ -142,13 +83,13 @@ export function ManageMembers({
 }
 
 function MemberAdminRow({
+  groupId,
   member,
-  email,
   pending,
   busy,
 }: {
+  groupId: GroupId;
   member: MemberWithCount;
-  email: string | null;
   /** Held by somebody else's action — the trash toggle runs none of its own. */
   pending: boolean;
   busy: Busy;
@@ -184,7 +125,7 @@ function MemberAdminRow({
           {renamed ? (
             <Button
               {...busy(`rename:${member.id}`, () =>
-                renameMember(member.id, name),
+                renameMember(groupId, member.id, name),
               )}
             >
               Uložiť
@@ -197,6 +138,7 @@ function MemberAdminRow({
             aria-label={roleHint}
             {...busy(`role:${member.id}`, () =>
               setMemberRole(
+                groupId,
                 member.id,
                 member.role === "admin" ? "member" : "admin",
               ),
@@ -220,24 +162,20 @@ function MemberAdminRow({
         </div>
       </div>
 
-      {email ? (
-        <p className="text-muted-foreground truncate text-sm">{email}</p>
-      ) : null}
-
       {confirmingRemove ? (
         <div className="bg-muted flex flex-col gap-3 rounded-md p-4">
           <p>
-            Odstrániť <strong>{member.name}</strong>? Vymažú sa aj všetky
-            želania v tomto zozname ({wishCount(member.wishCount)}) a
-            rezervácie, ktoré boli urobené v cudzích zoznamoch, sa uvoľnia.
-            Prihlásiť sa môžu znova, ale budú čakať na schválenie.
+            Odstrániť <strong>{member.name}</strong> zo skupiny? Ich zoznam
+            ({wishCount(member.wishCount)}) im zostane — želania patria im,
+            nie tejto skupine. Rezervácie, ktoré existovali len vďaka
+            členstvu tu, sa uvoľnia. Vrátiť sa môžu len cez novú pozvánku.
           </p>
           <div className="flex gap-2">
             <Button
               variant="destructive"
               {...busy(
                 `remove:${member.id}`,
-                () => removeMember(member.id),
+                () => removeMember(groupId, member.id),
                 () => setConfirmingRemove(false),
               )}
             >

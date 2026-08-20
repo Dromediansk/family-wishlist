@@ -1,9 +1,12 @@
+import { Suspense } from "react";
 import type { Metadata, Viewport } from "next";
 import localFont from "next/font/local";
 
 import { InstallPrompt } from "@/components/install-prompt";
 import { LiveRefresh } from "@/components/live-refresh";
 import { OfflineBanner } from "@/components/offline-banner";
+import { getViewer } from "@/lib/data/access";
+import { isConfigured } from "@/lib/supabase";
 import { THEME_COLORS } from "@/lib/theme-colors";
 
 import "./globals.css";
@@ -82,8 +85,15 @@ export default function RootLayout({
   return (
     <html lang="sk">
       <body className={`${atkinson.variable} font-sans`}>
-        {/* Once, here, so it survives navigation between routes. */}
-        <LiveRefresh />
+        {/*
+         * Once, here, so it survives navigation between routes — and behind a
+         * boundary, or its round trip would sit in front of every document,
+         * including the ones with no session to look up. It renders nothing, so
+         * there is nothing to reserve space for.
+         */}
+        <Suspense fallback={null}>
+          <LiveChannels />
+        </Suspense>
         <div className="mx-auto flex min-h-dvh w-full max-w-5xl flex-col px-4 pt-[max(1.5rem,env(safe-area-inset-top))] pb-[max(1.5rem,env(safe-area-inset-bottom))] sm:px-6 sm:pt-10 sm:pb-10">
           <OfflineBanner />
           {children}
@@ -92,4 +102,11 @@ export default function RootLayout({
       </body>
     </html>
   );
+}
+
+async function LiveChannels() {
+  // Unconfigured means no database to ask — getViewer() would throw. An
+  // anonymous or groupless visitor simply has nothing to subscribe to.
+  const viewer = isConfigured() ? await getViewer() : null;
+  return <LiveRefresh groupIds={viewer?.groups.map((group) => group.id) ?? []} />;
 }

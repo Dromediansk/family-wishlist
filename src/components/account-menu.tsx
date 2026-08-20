@@ -1,10 +1,10 @@
 "use client";
 
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { LogOutIcon, SettingsIcon } from "lucide-react";
 
 import { signOut } from "@/app/actions/auth";
-import { Badge, CountBadge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -14,28 +14,29 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { groupInPath } from "@/lib/groups";
 import { cn, initial } from "@/lib/utils";
+import { isGroupAdmin } from "@/lib/visibility";
+import type { GroupRef } from "@/lib/types";
 
 /** Links the menu item to the form below it, which lives outside the menu. */
 const SIGN_OUT_FORM = "sign-out";
 
 /**
- * Takes a name, a role flag and a count — never a member row and never anything
- * wish-shaped. `isAdmin` is not derivable from `pendingCount`: an admin with an
- * empty queue still needs the link to /family.
+ * Takes a name and the viewer's own groups — never a member row and never
+ * anything wish-shaped.
+ *
+ * Managing members is per group, so the entry appears only inside one, and only
+ * where this viewer is its admin: being an admin elsewhere is not cover.
  */
 export function AccountMenu({
   name,
-  isAdmin,
-  pendingCount,
+  groups,
 }: {
   name: string;
-  isAdmin: boolean;
-  pendingCount: number;
+  groups: readonly GroupRef[];
 }) {
-  // The header only counts for admins, so a count above zero implies one.
-  const waiting = pendingCount > 0;
-
+  const current = groupInPath(usePathname(), groups);
   return (
     <>
       {/*
@@ -50,24 +51,20 @@ export function AccountMenu({
             buttonVariants({ variant: "secondary", size: "icon" }),
             "rounded-full border text-lg font-semibold",
           )}
-          aria-label={`Účet – ${name}${waiting ? `, ${pendingCount} čaká na schválenie` : ""}`}
+          aria-label={`Účet – ${name}`}
         >
           {initial(name)}
-          {waiting ? <CountBadge>{pendingCount}</CountBadge> : null}
         </DropdownMenuTrigger>
 
         <DropdownMenuContent align="end">
           <DropdownMenuLabel className="truncate">{name}</DropdownMenuLabel>
           <DropdownMenuSeparator />
 
-          {isAdmin ? (
+          {current && isGroupAdmin(current) ? (
             <DropdownMenuItem asChild>
-              <Link href="/family">
+              <Link href={`/g/${current.id}/family`}>
                 <SettingsIcon />
                 Spravovať rodinu
-                {waiting ? (
-                  <Badge className="ml-auto px-1.5 py-0">{pendingCount}</Badge>
-                ) : null}
               </Link>
             </DropdownMenuItem>
           ) : null}

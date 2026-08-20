@@ -129,7 +129,7 @@ Two places need more than the prop:
   `useFormStatus` call and nothing else. It is the only client component
   `/login` is allowed; the page around it stays a Server Component and the form
   still posts with JavaScript off.
-- **`ManageMembers`** drives every control on `/family` from a single
+- **`ManageMembers`** drives every control on `/g/[groupId]/family` from a single
   `useTransition`, which cannot say which button was pressed. `busy()` takes a
   `verb:id` key and hands back the button's `disabled`, `loading` and `onClick`
   together, so the key is written once — only the button whose key is running
@@ -227,24 +227,37 @@ Three files own one today: `(app)/layout.tsx`, `login/layout.tsx` and
 that have a session behind them and the two surfaces a stranger can reach —
 `/login` and the 404 — so the header is never chrome for a stranger.
 
-The line is "has a session", not "is approved": `/pending` sits inside the group
-and gets the header, with the account half empty, and carries its own sign-out
-button.
+The line is "has a session", not "belongs to a group": `/start` sits inside the
+group and wears the same chrome. The header's right-hand half thins out instead of
+disappearing — an account with no group keeps its menu, because that menu holds
+the only way to sign out, and loses the group switcher and everything else that
+needs a group to name.
 
 The group has no `loading.tsx` of its own — it would become the fallback for
-every route beneath it and flash in front of each route's own skeleton. For the
-same reason `(home)/loading.tsx` sits one directory down rather than beside the
-root layout.
+every route beneath it and flash in front of each route's own skeleton. Each
+route brings its own instead: `/g/[groupId]` and, one directory down, its member
+and family pages, plus `/buying`, `/buying/history` and `/received`. `(home)` has
+none because it renders nothing — it only works out which group to redirect to.
 
 Skeletons are not only loading states: Next prefetches them as each route's
 shell, so they are also what renders when someone taps through with no signal.
 
 ### The 404
 
-One `not-found.tsx`, at the root. It catches both the `notFound()` thrown by
-`/member/[id]` and any unmatched URL, and both land there *without* the header —
-the boundary sits inside the root layout but above `(app)/layout.tsx`. Hence the
-file bringing its own `<main>` and its own way back.
+One `not-found.tsx`, at the root. It catches both the `notFound()` thrown from
+anywhere under `/g/[groupId]` and any unmatched URL. The boundary sits inside the
+root layout but above `(app)/layout.tsx`, so a typed-in wrong address arrives with
+no header above it — hence the file bringing its own `<main>` and its own way
+back.
+
+**It does not follow that a 404 never has a header.** On a segment that owns a
+`loading.tsx`, the response has already begun: the root layout is
+`force-dynamic`, the shell — header included — flushes with the skeleton, and the
+`notFound()` or `redirect()` that follows is streamed into a response whose status
+is already `200`. Guessing a group id you are not in, or a member id in a group
+you are, lands there that way. That is why `HomeLink` reads the group from the
+path rather than from a server prop: the header it sits in may already be on
+screen above a page that turned out not to exist.
 
 Nothing is fetched and nobody is redirected: a signed-out visitor who guesses a
 URL sees the 404 rather than the login page, because bouncing them would hide the

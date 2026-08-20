@@ -5,20 +5,31 @@ import { signInWithGoogle } from "@/app/actions/auth";
 import { GoogleIcon } from "@/components/google-icon";
 import { SetupRequired } from "@/components/setup-required";
 import { SubmitButton } from "@/components/submit-button";
-import { getAccess } from "@/lib/queries";
+import { getAccess } from "@/lib/data/access";
+import { safeReturnTo } from "@/lib/invites";
 import { isConfigured } from "@/lib/supabase";
 
 export default async function LoginPage({
   searchParams,
 }: {
-  searchParams: Promise<{ error?: string }>;
+  searchParams: Promise<{ error?: string; returnTo?: string }>;
 }) {
   if (!isConfigured()) return <SetupRequired />;
 
-  const [{ error }, access] = await Promise.all([searchParams, getAccess()]);
+  const [params, access] = await Promise.all([searchParams, getAccess()]);
+  const { error } = params;
 
-  // Already signed in — the home page will sort out where they belong.
-  if (access.kind !== "anonymous") redirect("/");
+  /*
+   * `/join/{token}` sends a signed-out visitor here with the link it could not
+   * open yet. The value comes off a query string, so it is checked before it is
+   * rendered, let alone redirected to — anything else is dropped and this page
+   * behaves as if it never arrived. docs/content/groups.md#invites
+   */
+  const returnTo = safeReturnTo(params.returnTo);
+
+  // Already signed in — go straight to the invite, or let `/` work out where
+  // they belong.
+  if (access.kind !== "anonymous") redirect(returnTo ?? "/");
 
   return (
     /*
@@ -63,6 +74,10 @@ export default async function LoginPage({
        * --primary's fill, and their branding sanctions a neutral surface.
        */}
       <form action={signInWithGoogle} className="mt-8">
+        {/* Re-checked in the action: a form field is a claim, not proof. */}
+        {returnTo ? (
+          <input type="hidden" name="returnTo" value={returnTo} />
+        ) : null}
         <SubmitButton variant="outline" size="lg" className="w-full">
           <GoogleIcon />
           Prihlásiť sa
@@ -76,8 +91,9 @@ export default async function LoginPage({
       ) : null}
 
       <p className="text-muted-foreground mt-6 text-sm text-balance">
-        Zoznam je len pre rodinu — ak si tu prvýkrát, správca ťa najprv musí
-        pustiť dnu.
+        {returnTo
+          ? "Po prihlásení ťa pozvánka pridá do skupiny."
+          : "Prihlásením získaš vlastný účet. Potom si založ skupinu alebo otvor pozvánku, ktorú ti niekto poslal."}
       </p>
     </div>
   );

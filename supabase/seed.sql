@@ -1,12 +1,12 @@
 -- Runs automatically at the end of every `npm run db:reset`.
 --
--- Deliberately empty of family_members rows, and that is the whole point of the file
--- existing: handle_new_auth_user() picks the admin with
+-- Deliberately empty, and that is the whole point of the file existing. Identity comes
+-- from a Google account: `handle_new_auth_user()` writes the one `app_users` row when you
+-- first sign in, and there is no way to fabricate that row here without fabricating the
+-- sign-in it belongs to.
 --
---     not exists (select 1 from family_members)
---
--- so a seeded member would leave your real sign-in stranded as 'pending', waiting on an
--- admin who does not exist. The fake family is inserted afterwards by `npm run db:seed`
--- instead, anchored on the row your sign-in created.
+-- So the development fixture arrives afterwards, from `npm run db:seed`, which anchors on
+-- the account your sign-in created and builds a group, three relatives and their wishes
+-- around it.
 --
 -- docs/setup/local-development.md#resetting-and-seeding

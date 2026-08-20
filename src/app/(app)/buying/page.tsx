@@ -2,13 +2,14 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { ArrowLeftIcon, HistoryIcon } from "lucide-react";
 
-import { ClaimButton } from "@/components/claim-button";
+import { ReleaseClaimButton } from "@/components/claim-button";
 import { FulfilWishButton } from "@/components/fulfil-wish-button";
 import { SetupRequired } from "@/components/setup-required";
 import { WishRow } from "@/components/wish-row";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { getAccess, getClaimedBy } from "@/lib/queries";
+import { getAccess } from "@/lib/data/access";
+import { getClaimedBy } from "@/lib/data/wishes";
 import { isConfigured } from "@/lib/supabase";
 
 export default async function BuyingPage() {
@@ -17,13 +18,13 @@ export default async function BuyingPage() {
   const access = await getAccess();
 
   if (access.kind === "anonymous") redirect("/login");
-  if (access.kind === "pending") redirect("/pending");
+  if (access.kind === "groupless") redirect("/start");
 
-  const currentMember = access.member;
+  const viewer = access.viewer;
 
   // Nothing here can change or vanish underneath you — an owner cannot touch a
   // reserved wish. docs/content/claiming.md#what-im-buying
-  const claimed = await getClaimedBy(currentMember.id);
+  const claimed = await getClaimedBy(viewer);
 
   return (
     <div className="space-y-6">
@@ -68,11 +69,7 @@ export default async function BuyingPage() {
                       praje si: {wish.owner.name}
                     </span>
                     <div className="flex flex-wrap items-start gap-2 sm:justify-end">
-                      <ClaimButton
-                        wishId={wish.id}
-                        claimedByCurrentMember
-                        claimedByName={currentMember.name}
-                      />
+                      <ReleaseClaimButton wishId={wish.id} />
                       <FulfilWishButton
                         wishId={wish.id}
                         title={wish.title}

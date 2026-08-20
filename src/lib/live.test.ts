@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
-import { LIVE_EVENT, LIVE_PAYLOAD, LIVE_TOPIC } from "@/lib/live";
+import { asGroupId } from "@/lib/ids";
+import { channelFor, LIVE_EVENT, LIVE_PAYLOAD, LIVE_TOPIC } from "@/lib/live";
 
 /**
  * A broadcast goes to every open tab, including the tab of the person whose
@@ -25,5 +26,22 @@ describe("live update ping", () => {
     expect(wire).not.toMatch(/claim/i);
     expect(wire).not.toMatch(/member/i);
     expect(wire).not.toMatch(/wish(?!list)/i);
+  });
+});
+
+describe("channelFor", () => {
+  it("puts each group on its own topic", () => {
+    expect(channelFor(asGroupId("aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa"))).toBe(
+      "family-wishlist:aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+    );
+  });
+
+  it("gives two different groups two different channels", () => {
+    const a = channelFor(asGroupId("aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa"));
+    const b = channelFor(asGroupId("bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb"));
+
+    expect(a).not.toBe(b);
+    expect(a).toContain("aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa");
+    expect(b).toContain("bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb");
   });
 });

@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 
+import { asMembershipId, asUserId, type UserId } from "@/lib/ids";
 import { sortMemberSummaries, toMemberSummary } from "@/lib/members";
 import type { MemberSummary, MemberWithCount } from "@/lib/types";
 
@@ -10,12 +11,17 @@ import type { MemberSummary, MemberWithCount } from "@/lib/types";
  * cards are laid out in.
  */
 
-const viewerId = "11111111-1111-4111-8111-111111111111";
-const otherId = "22222222-2222-4222-8222-222222222222";
+const viewerId = asUserId("11111111-1111-4111-8111-111111111111");
+const otherId = asUserId("22222222-2222-4222-8222-222222222222");
 
-function member(id: string, name: string, wishCount: number): MemberWithCount {
+/**
+ * The two ids differ on purpose: the mapper must key off the account, and a
+ * membership id standing in for it would make every card the viewer's own.
+ */
+function member(id: UserId, name: string, wishCount: number): MemberWithCount {
   return {
-    id,
+    id: asMembershipId(`membership-of-${id}`),
+    userId: id,
     name,
     role: "member",
     createdAt: "2026-01-01T00:00:00.000Z",
@@ -32,7 +38,8 @@ describe("toMemberSummary", () => {
     );
 
     expect(summary).toEqual({
-      id: otherId,
+      id: asMembershipId(`membership-of-${otherId}`),
+      userId: otherId,
       name: "Anna",
       role: "member",
       createdAt: "2026-01-01T00:00:00.000Z",
@@ -83,7 +90,7 @@ describe("toMemberSummary", () => {
 /** Someone else's card, which is every card but one. */
 function other(name: string): MemberSummary {
   return {
-    ...member(`id-${name}`, name, 0),
+    ...member(asUserId(`id-${name}`), name, 0),
     viewerIsOwner: false,
     availableCount: 0,
   };
@@ -139,8 +146,8 @@ describe("sortMemberSummaries", () => {
   });
 
   it("keeps the incoming order for two people of the same name", () => {
-    const first = { ...other("Anna"), id: "first" };
-    const second = { ...other("Anna"), id: "second" };
+    const first = { ...other("Anna"), id: asMembershipId("first") };
+    const second = { ...other("Anna"), id: asMembershipId("second") };
 
     const sorted = sortMemberSummaries([first, second]);
 

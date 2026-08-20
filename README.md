@@ -1,8 +1,8 @@
 # Family Wish List
 
-A small web app for a family: everyone keeps a list of things they'd like, and
-everyone else can quietly claim an item to buy so two people don't turn up with
-the same gift.
+A small web app for a family — or a team, or any circle of people: everyone keeps
+a list of things they'd like, and everyone else can quietly claim an item to buy
+so two people don't turn up with the same gift.
 
 The rule the whole app is built around:
 
@@ -16,11 +16,15 @@ so. It never says who reserved it.
 ## How it works
 
 - **Sign in with Google.** No passwords to invent or forget.
-- **An admin lets you in.** Anyone with a Google account can *complete* the
-  sign-in flow, so a first-time arrival waits until an admin approves them. That
-  approval is the door. The first person ever to sign in becomes that admin.
-- **Roles.** Members add wishes and claim from other lists. Admins can also
-  approve arrivals, rename, promote and remove family members.
+- **Groups are the door.** You create one and become its admin, or you open an
+  invite link somebody sent you and you are in. There is nothing to approve and
+  no queue to wait in — the link *is* the permission.
+- **One account, several groups.** Your parents and your colleagues can be two
+  different circles, each with its own display name for you, and neither one sees
+  the other.
+- **Roles are per group.** Members add wishes and claim from other lists. An
+  admin of a group can also rename, promote, demote and remove its members — and
+  is nobody in particular in anybody else's group.
 - **Wishes** have a title, and optionally a description and a link.
 - **Claim quietly.** Reserve something on someone else's list; everyone except
   its owner can see that you did.
@@ -37,8 +41,8 @@ npm run db:start     # local Supabase stack in Docker
 npm run dev          # in another terminal
 ```
 
-Then open [localhost:3000](http://localhost:3000) and sign in — you become the
-admin. The first run needs a Google OAuth client;
+Then open [localhost:3000](http://localhost:3000), sign in, and create a group —
+you are its admin. The first run needs a Google OAuth client;
 [Local development](docs/setup/local-development.md) has the four-step version.
 
 ## Documentation
@@ -48,9 +52,9 @@ Everything lives in [`docs/`](docs/README.md).
 **How it behaves, and why**
 
 - [The privacy rule](docs/content/privacy-rule.md) — the rule, why it cannot be
-  a database policy, and the one accepted hole in it
+  a database policy, and the four accepted holes in it
 - [Wishes](docs/content/wishes.md) · [Claiming](docs/content/claiming.md) ·
-  [Membership and roles](docs/content/membership.md)
+  [Groups](docs/content/groups.md) · [Identity](docs/content/membership.md)
 - [Live updates](docs/content/live-updates.md) — how every tab stays current
   without being told what changed
 - [UI patterns](docs/content/ui-patterns.md) — dialogs, language, typography,

@@ -1,5 +1,6 @@
 import "server-only";
 
+import { cache } from "react";
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 
@@ -46,10 +47,13 @@ export async function createAuthClient() {
  * The signed-in Google account, or null. `getUser` revalidates the token with
  * Supabase rather than trusting what the cookie decoded to — the cookie is
  * something the visitor controls.
+ *
+ * Memoised per render: that revalidation is an HTTP round trip to the auth
+ * server, and `getAccess` asks on its own behalf and again through `getViewer`.
  */
-export async function getAuthUser() {
+export const getAuthUser = cache(async () => {
   const supabase = await createAuthClient();
   const { data, error } = await supabase.auth.getUser();
   if (error) return null;
   return data.user ?? null;
-}
+});

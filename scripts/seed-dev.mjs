@@ -1,11 +1,11 @@
 /**
- * Fills the LOCAL database with a fake family.
+ * Fills the LOCAL database with a fake family, inside its own group.
  *
  *   npm run db:seed
  *
  * Run it after signing in; the loop is db:reset → sign in → db:seed, and the middle step
- * cannot be skipped. Re-running is safe — every seeded member carries an @seed.local
- * email and is deleted first.
+ * cannot be skipped. Re-running is safe — the seed group and every fake member carry an
+ * @seed.local email and are deleted first.
  *
  * docs/setup/local-development.md#resetting-and-seeding
  */
@@ -49,6 +49,13 @@ const db = createClient(url, serviceKey, {
 
 const SEED_DOMAIN = "@seed.local";
 
+/**
+ * Distinct from every group a person might make by hand ("Naša rodina", "Testovacia
+ * rodina", …). Looked up scoped to `created_by`, so the name alone need not be globally
+ * unique — but picking one that is not already in use keeps it recognisable at a glance.
+ */
+const GROUP_NAME = "Vzorová rodina";
+
 /** Slovak, like the rest of the UI. */
 const RELATIVES = ["Zuzana", "Marek", "Elena"];
 
@@ -56,7 +63,7 @@ const RELATIVES = ["Zuzana", "Marek", "Elena"];
  * Your own list. Two of these get claimed below, and you must not be able to tell which.
  *
  * Declared up here because these are the one set of rows the cleanup cannot get for free:
- * they hang off your account, so no cascade reaches them and they go by title.
+ * they hang off your own account, so no cascade reaches them and they go by title.
  */
 const MY_WISHES = [
   { title: "Bezdrôtové slúchadlá", url: "https://example.com/sluchadla" },
@@ -67,11 +74,12 @@ const MY_WISHES = [
 
 const main = async () => {
   const me = await findAnchor();
-  console.log(`Anchoring on ${me.name} <${me.email ?? "no email"}> (${me.role}).`);
+  console.log(`Anchoring on ${me.name} <${me.email ?? "no email"}>.`);
 
   await clearPreviousSeed(me);
 
-  const [zuzana, marek, elena] = await insertRelatives();
+  const groupId = await insertGroup(me);
+  const [zuzana, marek, elena] = await insertRelatives(groupId);
 
   const mine = await insertWishes(me.id, MY_WISHES);
 
@@ -103,64 +111,70 @@ const main = async () => {
   await claim(mine[0].id, zuzana.id);
   await claim(mine[2].id, marek.id);
 
-  await report(me);
+  await report(me, groupId);
 };
 
 /**
- * The one member with a real account: you. Everything else hangs off this row, and there
- * is no sensible fallback if it is missing — a seed that invented it would be inventing
- * the admin bootstrap that 0003_auth.sql is supposed to perform.
+ * The one account with a real sign-in: you. Everything else — the group, its
+ * memberships, its wishes — hangs off this row, and there is no sensible fallback if it
+ * is missing: a seed that invented it would be inventing the sign-in that
+ * handle_new_auth_user() is supposed to perform.
+ *
+ * Several people may have signed in on this stack by now (earlier fixtures leave their
+ * own accounts behind); the earliest by created_at is the deterministic pick.
  */
 const findAnchor = async () => {
   const { data, error } = await db
-    .from("family_members")
-    .select("id, name, email, role, status")
+    .from("app_users")
+    .select("id, name, email")
     .not("auth_user_id", "is", null)
-    .order("created_at", { ascending: true });
+    .order("created_at", { ascending: true })
+    .limit(1);
 
   if (error) throw error;
 
   if (!data.length) {
     fail(
-      "No signed-in member found.\n\n" +
+      "No signed-in account found.\n\n" +
         "Sign in with Google at http://localhost:3000 first — that is what creates your\n" +
-        "member row, and the first one ever created becomes the admin. Then run this again.\n" +
-        "See supabase/seed.sql for the long version.",
+        "app_users row. Then run this again.",
     );
   }
 
-  const active = data.find((m) => m.status === "active") ?? data[0];
-  if (active.status !== "active") {
-    fail(
-      `${active.name} is still '${active.status}'. That means a family_members row already\n` +
-        "existed when you signed in, so the is_first bootstrap did not fire. Run\n" +
-        "`npm run db:reset` and sign in again before seeding.",
-    );
-  }
-  return active;
+  return data[0];
 };
 
 /**
- * Back to a known state, in two parts — because only the first of them is free.
+ * Back to a known state, in three parts — because only the first two are free.
  *
- * Deleting the seeded members takes their wishes with them (ON DELETE CASCADE) and
- * releases anything they had claimed (ON DELETE SET NULL, with clear_claim_timestamp
- * keeping claim_consistent true). Your own rows are untouched by that, so the wishes this
- * script put on *your* list have to go by title.
+ * Deleting the seed group takes its memberships with it (ON DELETE CASCADE), including
+ * yours in that group. Deleting the fake app_users rows takes their wishes with them
+ * (ON DELETE CASCADE) and releases anything they had claimed elsewhere (ON DELETE SET
+ * NULL, with clear_claim_timestamp keeping claim_consistent true). Your own account is
+ * untouched by either, so the wishes this script put on *your* list have to go by title.
  */
 const clearPreviousSeed = async (me) => {
-  const { data: members, error } = await db
-    .from("family_members")
+  const { data: groups, error: groupError } = await db
+    .from("groups")
+    .delete()
+    .eq("created_by", me.id)
+    .eq("name", GROUP_NAME)
+    .select("id");
+
+  if (groupError) throw groupError;
+
+  const { data: relatives, error: relativesError } = await db
+    .from("app_users")
     .delete()
     .like("email", `%${SEED_DOMAIN}`)
     .select("id");
 
-  if (error) throw error;
+  if (relativesError) throw relativesError;
 
   const { data: wishes, error: wishError } = await db
     .from("wishes")
     .delete()
-    .eq("member_id", me.id)
+    .eq("owner_user_id", me.id)
     .in(
       "title",
       MY_WISHES.map((w) => w.title),
@@ -170,11 +184,40 @@ const clearPreviousSeed = async (me) => {
   if (wishError) throw wishError;
 
   const removed = [
-    members.length && `${members.length} member(s)`,
+    groups.length && "the seed group",
+    relatives.length && `${relatives.length} fake member(s)`,
     wishes.length && `${wishes.length} of your wishes`,
   ].filter(Boolean);
 
   if (removed.length) console.log(`Cleared from a previous seed: ${removed.join(", ")}.`);
+};
+
+/**
+ * The group everything else lives in, with you as its admin. `created_by` is an
+ * app_users id — never a membership id, the other column with this name.
+ * docs/content/groups.md#the-creation-cap
+ */
+const insertGroup = async (me) => {
+  const { data, error } = await db
+    .from("groups")
+    .insert({ name: GROUP_NAME, created_by: me.id })
+    .select("id");
+
+  if (error) throw error;
+  if (!data.length) fail("Inserted group did not come back from the database.");
+
+  const groupId = data[0].id;
+
+  const { error: membershipError } = await db.from("memberships").insert({
+    group_id: groupId,
+    user_id: me.id,
+    name: me.name,
+    role: "admin",
+  });
+
+  if (membershipError) throw membershipError;
+
+  return groupId;
 };
 
 /**
@@ -191,28 +234,42 @@ const inAskedOrder = (rows, keys, column) =>
     return row;
   });
 
-const insertRelatives = async () => {
+/**
+ * The fake people. They get an app_users row with no auth_user_id — they can never sign
+ * in, which is the point — and a member membership in the seed group.
+ */
+const insertRelatives = async (groupId) => {
   const { data, error } = await db
-    .from("family_members")
+    .from("app_users")
     .insert(
       RELATIVES.map((name) => ({
         name,
         email: `${name.toLowerCase()}${SEED_DOMAIN}`,
-        role: "member",
-        status: "active",
-        auth_user_id: null,
       })),
     )
     .select("id, name");
 
   if (error) throw error;
-  return inAskedOrder(data, RELATIVES, "name");
+  const relatives = inAskedOrder(data, RELATIVES, "name");
+
+  const { error: membershipError } = await db.from("memberships").insert(
+    relatives.map((r) => ({
+      group_id: groupId,
+      user_id: r.id,
+      name: r.name,
+      role: "member",
+    })),
+  );
+
+  if (membershipError) throw membershipError;
+
+  return relatives;
 };
 
-const insertWishes = async (memberId, wishes) => {
+const insertWishes = async (ownerId, wishes) => {
   const { data, error } = await db
     .from("wishes")
-    .insert(wishes.map((w) => ({ member_id: memberId, ...w })))
+    .insert(wishes.map((w) => ({ owner_user_id: ownerId, ...w })))
     .select("id, title");
 
   if (error) throw error;
@@ -223,19 +280,19 @@ const insertWishes = async (memberId, wishes) => {
   );
 };
 
-/** claimed_by and claimed_at are set together — claim_consistent in 0001_init.sql. */
+/** claimed_by_user_id and claimed_at are set together — claim_consistent in 0001_init.sql. */
 const claim = async (wishId, claimerId) => {
   const { error } = await db
     .from("wishes")
-    .update({ claimed_by: claimerId, claimed_at: new Date().toISOString() })
+    .update({ claimed_by_user_id: claimerId, claimed_at: new Date().toISOString() })
     .eq("id", wishId);
 
   if (error) throw error;
 };
 
-const report = async (me) => {
+const report = async (me, groupId) => {
   const counts = await Promise.all(
-    ["family_members", "wishes"].map(async (table) => {
+    ["app_users", "groups", "memberships", "wishes"].map(async (table) => {
       const { count, error } = await db.from(table).select("*", { count: "exact", head: true });
       if (error) throw error;
       return `${count} ${table}`;
@@ -249,12 +306,12 @@ const report = async (me) => {
     [
       "",
       "Worth looking at, signed in as " + me.name + ":",
-      "  /                 — your own card shows a bare total, not free / total.",
-      "                      Two of your four wishes are claimed and none of them says so.",
-      "  /member/<you>     — try the bin on each of your four. Two are refused with",
-      "                      'už má niekto rezervované'; the same goes for editing them.",
-      "  /member/<Zuzana>  — one of hers is claimed by you, and it says so.",
-      "  /buying           — three claims, across two lists.",
+      `  /g/${groupId} — your own card shows a bare total, not free / total.`,
+      "                 Two of your four wishes are claimed and none of them says so.",
+      "                 Open Zuzana's, Marek's or Elena's list from there: the bin refuses two",
+      "                 of your own four with 'už má niekto rezervované', and one of Zuzana's",
+      "                 wishes is claimed by you and says so.",
+      "  /buying      — three claims, across two lists.",
     ].join("\n"),
   );
 };
