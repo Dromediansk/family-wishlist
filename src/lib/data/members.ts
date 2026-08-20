@@ -183,3 +183,33 @@ export async function getPeerUser(
   const name = (await getPeerNames(viewer)).get(id);
   return name === undefined ? null : { id, name };
 }
+
+/**
+ * One member of this group, or null if that person is not in it. Distinct from
+ * `getPeerUser`, which answers the account-wide question "may this viewer see
+ * this person at all" — a group path answers the narrower one.
+ *
+ * The peers check comes first, which is also what keeps a malformed id out of
+ * the query: nothing but a real user id is ever in that set.
+ */
+export async function getGroupPeerUser(
+  ctx: GroupContext,
+  userId: string,
+): Promise<PeerUser | null> {
+  const id = asUserId(userId);
+  if (!canReadList(ctx.peers, id)) return null;
+
+  const { data, error } = await getSupabase()
+    .from("memberships")
+    .select("user_id")
+    .eq("group_id", ctx.groupId)
+    .eq("user_id", id)
+    .maybeSingle();
+
+  if (error) throw error;
+  if (!data) return null;
+
+  // Named through this group, so the heading and the wishes below it agree.
+  const name = (await getPeerNames(ctx, ctx.groupId)).get(id);
+  return name === undefined ? null : { id, name };
+}

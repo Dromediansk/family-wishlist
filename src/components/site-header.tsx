@@ -1,9 +1,10 @@
 import { Suspense } from "react";
 import Link from "next/link";
-import { GiftIcon, ShoppingBagIcon } from "lucide-react";
+import { ShoppingBagIcon } from "lucide-react";
 
 import { AccountMenu } from "@/components/account-menu";
 import { GroupSwitcher } from "@/components/group-switcher";
+import { HomeLink } from "@/components/home-link";
 import { Button } from "@/components/ui/button";
 import { getAccess } from "@/lib/data/access";
 import { countGroupsCreatedBy } from "@/lib/data/groups";
@@ -22,14 +23,7 @@ import { isConfigured } from "@/lib/supabase";
 export async function SiteHeader() {
   return (
     <header className="mb-8 flex items-center justify-between gap-4">
-      <Link
-        href="/"
-        // A step smaller on phones, or the full Slovak name truncates.
-        className="flex min-w-0 items-center gap-2 text-lg font-semibold sm:text-xl"
-      >
-        <GiftIcon className="text-primary size-6 shrink-0" />
-        <span className="truncate">Prajem si..</span>
-      </Link>
+      <HomeLink />
       {/*
        * Without this boundary the account half's round trip sits in front of the
        * whole document. The fallback reserves the avatar's box.

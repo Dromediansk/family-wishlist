@@ -1,6 +1,10 @@
 import { describe, expect, it } from "vitest";
 
-import { groupInPath, MAX_GROUPS_PER_ACCOUNT } from "@/lib/groups";
+import {
+  groupIdFromPath,
+  groupInPath,
+  MAX_GROUPS_PER_ACCOUNT,
+} from "@/lib/groups";
 import { asGroupId } from "@/lib/ids";
 
 const FAMILY = asGroupId("aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa");
@@ -8,6 +12,31 @@ const WORK = asGroupId("bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb");
 const STRANGERS = asGroupId("cccccccc-cccc-4ccc-8ccc-cccccccccccc");
 
 const groups = [{ id: FAMILY }, { id: WORK }];
+
+describe("groupIdFromPath", () => {
+  it("reads the id off a group grid", () => {
+    expect(groupIdFromPath(`/g/${WORK}`)).toBe(WORK);
+  });
+
+  it("reads it off a nested page", () => {
+    expect(groupIdFromPath(`/g/${WORK}/member/somebody`)).toBe(WORK);
+  });
+
+  it("returns null outside /g/", () => {
+    expect(groupIdFromPath("/buying")).toBeNull();
+    expect(groupIdFromPath("/")).toBeNull();
+    expect(groupIdFromPath("/groups/x")).toBeNull();
+  });
+
+  it("returns null when /g/ names nothing", () => {
+    expect(groupIdFromPath("/g")).toBeNull();
+    expect(groupIdFromPath("/g/")).toBeNull();
+  });
+
+  it("hands back whatever was typed, having proved nothing", () => {
+    expect(groupIdFromPath("/g/not-a-uuid")).toBe("not-a-uuid");
+  });
+});
 
 describe("groupInPath", () => {
   it("finds the group whose grid the path is", () => {

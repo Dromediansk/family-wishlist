@@ -13,7 +13,7 @@ import { WishRow } from "@/components/wish-row";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { enterGroup } from "@/lib/data/access";
-import { getPeerUser } from "@/lib/data/members";
+import { getGroupPeerUser } from "@/lib/data/members";
 import { getWishListFor } from "@/lib/data/wishes";
 import { isConfigured } from "@/lib/supabase";
 
@@ -31,8 +31,8 @@ export default async function MemberPage({
   if (!ctx) notFound();
 
   // The id in the URL is a claim, not proof: this is what turns it into a
-  // person the viewer is allowed to see, or a 404.
-  const owner = await getPeerUser(ctx, userId);
+  // member of this group the viewer is allowed to see, or a 404.
+  const owner = await getGroupPeerUser(ctx, userId);
   if (!owner) notFound();
 
   const list = await getWishListFor(ctx, owner.id, ctx.groupId);

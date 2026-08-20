@@ -47,11 +47,9 @@ export function CreateGroupDialog() {
     }
     setOpen(false);
     setFailure(null);
-    /*
-     * `/` picks the first group by join date, which for an account that had none
-     * is the one just created. A second group is reachable from the switcher.
-     */
-    router.push("/");
+    // Straight into the group just made. `/` is the fallback, and it picks the
+    // first group by join date.
+    router.push(result.groupId ? `/g/${result.groupId}` : "/");
   }
 
   return (

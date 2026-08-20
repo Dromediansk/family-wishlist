@@ -19,8 +19,13 @@ const nameSchema = z
 /**
  * Start a group. Whoever creates it is its admin — the only way to become one
  * without being promoted. docs/content/groups.md
+ *
+ * `groupId` comes back on success so the caller can land in the group it just
+ * made rather than in whichever one it joined first.
  */
-export async function createGroup(rawName: string): Promise<ActionResult> {
+export async function createGroup(
+  rawName: string,
+): Promise<ActionResult & { groupId?: string }> {
   const viewer = await getViewer();
   if (!viewer) return { ok: false, error: "Najprv sa prihlás." };
 
@@ -80,5 +85,5 @@ export async function createGroup(rawName: string): Promise<ActionResult> {
 
   revalidatePath("/", "layout");
   await notifyChanged();
-  return { ok: true };
+  return { ok: true, groupId };
 }
