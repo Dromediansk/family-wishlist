@@ -27,8 +27,8 @@ export async function getWishListFor(
   currentGroupId?: GroupId,
 ): Promise<WishListView> {
   /*
-   * The page asks `getPeerUser` first and 404s on null, so reaching this line
-   * is a bug in the caller rather than anything a visitor can do.
+   * The page asks `getGroupPeerUser` first and 404s on null, so reaching this
+   * line is a bug in the caller rather than anything a visitor can do.
    */
   if (!canReadList(viewer.peers, ownerId)) {
     throw new Error("getWishListFor called for a non-peer");

@@ -169,25 +169,9 @@ export const getPeerNames = cache(
 );
 
 /**
- * The person behind an id off a URL, or null if the viewer shares no group with
- * them. This is the check that stands between a guessed id and somebody else's
- * list; the page turns the null into a 404.
- */
-export async function getPeerUser(
-  viewer: Viewer,
-  userId: string,
-): Promise<PeerUser | null> {
-  const id = asUserId(userId);
-  if (!canReadList(viewer.peers, id)) return null;
-
-  const name = (await getPeerNames(viewer)).get(id);
-  return name === undefined ? null : { id, name };
-}
-
-/**
- * One member of this group, or null if that person is not in it. Distinct from
- * `getPeerUser`, which answers the account-wide question "may this viewer see
- * this person at all" — a group path answers the narrower one.
+ * The person behind an id off a group's URL, or null unless a membership row
+ * places them in that group. This is the check that stands between a guessed id
+ * and somebody else's list; the page turns the null into a 404.
  *
  * The peers check comes first, which is also what keeps a malformed id out of
  * the query: nothing but a real user id is ever in that set.
