@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 
-import { getSupabase } from "@/lib/supabase";
+import { ensureAppUser } from "@/lib/data/access";
 import { createAuthClient } from "@/lib/supabase-auth";
 
 /**
@@ -38,45 +38,6 @@ export async function GET(request: Request) {
   // decided by resolveAccess on the way in; the callback deliberately does not
   // know.
   return NextResponse.redirect(`${redirectBase(request, origin)}/`);
-}
-
-/**
- * Ensure an app_users row exists when a Google account here has no row in the
- * app's identity table. Without this they loop between /login and / forever.
- *
- * See docs/content/groups.md for how the app models membership and access.
- */
-async function ensureAppUser(
-  authUserId: string,
-  email: string | null,
-): Promise<void> {
-  const supabase = getSupabase();
-
-  const { data: existing, error: lookupError } = await supabase
-    .from("app_users")
-    .select("id")
-    .eq("auth_user_id", authUserId)
-    .maybeSingle();
-
-  // Don't strand a sign-in that otherwise worked — a missing app_users row reads
-  // as signed out, which is the safe direction.
-  if (lookupError) {
-    console.warn("Could not check for an existing app_users row:", lookupError);
-    return;
-  }
-  if (existing) return;
-
-  const { error: insertError } = await supabase.from("app_users").insert({
-    auth_user_id: authUserId,
-    email,
-    name: email?.split("@")[0]?.slice(0, 50) || "Bez mena",
-  });
-
-  // 23505 means the trigger got there first — the normal path, not a problem.
-  if (insertError && insertError.code !== "23505") {
-    console.warn("Could not create the app_users row:", insertError);
-    return;
-  }
 }
 
 /**

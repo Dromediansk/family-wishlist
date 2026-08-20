@@ -114,3 +114,45 @@ export const enterGroup = cache(
     };
   },
 );
+
+/**
+ * Make sure a signed-in Google account has a row in the app's identity table,
+ * and do nothing when it already does.
+ *
+ * The one function here that takes no `Viewer`: it runs before one can exist,
+ * because the row it writes is what a `Viewer` is built from. It is scoped all
+ * the same — `authUserId` comes from the verified session, never from anything
+ * a caller supplies.
+ */
+export async function ensureAppUser(
+  authUserId: string,
+  email: string | null,
+): Promise<void> {
+  const supabase = getSupabase();
+
+  const { data: existing, error: lookupError } = await supabase
+    .from("app_users")
+    .select("id")
+    .eq("auth_user_id", authUserId)
+    .maybeSingle();
+
+  // Don't strand a sign-in that otherwise worked — a missing app_users row reads
+  // as signed out, which is the safe direction.
+  if (lookupError) {
+    console.warn("Could not check for an existing app_users row:", lookupError);
+    return;
+  }
+  if (existing) return;
+
+  const { error: insertError } = await supabase.from("app_users").insert({
+    auth_user_id: authUserId,
+    email,
+    name: email?.split("@")[0]?.slice(0, 50) || "Bez mena",
+  });
+
+  // 23505 means the trigger got there first — the normal path, not a problem.
+  if (insertError && insertError.code !== "23505") {
+    console.warn("Could not create the app_users row:", insertError);
+    return;
+  }
+}
