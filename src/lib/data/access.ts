@@ -165,15 +165,19 @@ export async function requireGroup(
  * The same, for work only a group's admin may do. An admin is an admin *of one
  * group* — being one elsewhere is not cover. An admin-only **page** re-checks
  * with `isGroupAdmin(ctx)` in its own body; a hidden menu item is not a guard.
+ *
+ * `refusal` says which admin-only work was asked for, because "len správca" on
+ * its own leaves the reader guessing what they were refused.
  */
 export async function requireGroupAdmin(
   groupId: string,
+  refusal = "Členov skupiny môže spravovať len správca.",
 ): Promise<{ ok: true; ctx: GroupContext } | { ok: false; error: string }> {
   const permitted = await requireGroup(groupId);
   if (!permitted.ok) return permitted;
 
   if (!isGroupAdmin(permitted.ctx)) {
-    return { ok: false, error: "Členov skupiny môže spravovať len správca." };
+    return { ok: false, error: refusal };
   }
   return permitted;
 }

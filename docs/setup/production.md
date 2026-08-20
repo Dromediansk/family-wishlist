@@ -73,11 +73,11 @@ start` and by your host; **development does not use them**. Why the name is
 Sign in, and the app asks you to create a group — a family, a team, whatever the
 circle is. You are its admin.
 
-Everyone else arrives through a link. **Pozvať** on the group's grid mints one,
-good for 30 days, and opening it while signed in joins them straight away: no
-queue, nothing to approve. Send it the way you would send anything private,
-because the link *is* the permission. Any member can mint one, and an admin can
-revoke any of them.
+Everyone else arrives through a link. **Vytvoriť pozvánku** on *Správa skupiny*
+mints one, good for 30 days, and opening it while signed in joins them straight
+away: no queue, nothing to approve. Send it the way you would send anything
+private, because the link *is* the permission. Only an admin can mint one, and an
+admin can revoke any of them.
 
 The whole model — per-group names and roles, the creation cap, what removing
 somebody does — is [Groups](../content/groups.md).
