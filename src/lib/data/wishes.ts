@@ -97,6 +97,30 @@ export async function getClaimedBy(viewer: Viewer): Promise<ClaimedWish[]> {
 }
 
 /**
+ * Whose list a wish is on, or null if there is no such wish. The one thing a
+ * claim needs to know before it may touch a stranger's row.
+ *
+ * Takes `viewer` for signature consistency with the rest of this file, even
+ * though it does not filter on it — whether that owner is a peer is for the
+ * caller to decide, which is also where the refusal message belongs.
+ */
+export async function getWishOwner(
+  viewer: Viewer,
+  wishId: string,
+): Promise<UserId | null> {
+  const { data, error } = await getSupabase()
+    .from("wishes")
+    .select("owner_user_id")
+    .eq("id", wishId)
+    .maybeSingle();
+
+  if (error) throw error;
+
+  const row = data as { owner_user_id: string } | null;
+  return row ? asUserId(row.owner_user_id) : null;
+}
+
+/**
  * The Storage key of one wish's photo, or null when the viewer may not have it.
  *
  * An owner reads their own list through the photo route too, so this is an

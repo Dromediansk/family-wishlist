@@ -4,7 +4,8 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 
 import { getViewer } from "@/lib/data/access";
-import { asUserId, type UserId } from "@/lib/ids";
+import { getWishOwner } from "@/lib/data/wishes";
+import type { UserId } from "@/lib/ids";
 import { MAX_PHOTO_BYTES, sniffImageType } from "@/lib/images";
 import {
   pruneWishPhotos,
@@ -297,14 +298,8 @@ export async function claimWish(wishId: string): Promise<ActionResult> {
    * The database backstops it — wishes_check_claim_peer rejects a claim between
    * strangers whatever happens here — but a refusal is better than an exception.
    */
-  const { data: owner } = await getSupabase()
-    .from("wishes")
-    .select("owner_user_id")
-    .eq("id", id.data)
-    .maybeSingle();
-
-  const ownerId = (owner as { owner_user_id: string } | null)?.owner_user_id;
-  if (!ownerId || !canReadList(viewer.peers, asUserId(ownerId))) {
+  const ownerId = await getWishOwner(viewer, id.data);
+  if (!ownerId || !canReadList(viewer.peers, ownerId)) {
     return { ok: false, error: "Toto želanie neexistuje.", final: true };
   }
 
