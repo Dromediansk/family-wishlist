@@ -2,7 +2,7 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { ArrowLeftIcon } from "lucide-react";
 
-import { InviteList } from "@/components/invite-dialog";
+import { CreateInviteButton, InviteList } from "@/components/invites";
 import { ManageMembers } from "@/components/manage-members";
 import { SetupRequired } from "@/components/setup-required";
 import { Button } from "@/components/ui/button";
@@ -50,18 +50,22 @@ export default async function FamilyPage({
           Správa skupiny {ctx.groupName}
         </h1>
         <p className="text-muted-foreground mt-1 max-w-[62ch]">
-          Premenúvaj ľudí alebo meň, kto môže spravovať tento zoznam.
+          Pozvi niekoho nového, premenúvaj ľudí alebo meň, kto môže spravovať
+          tento zoznam.
         </p>
       </div>
 
       <ManageMembers groupId={ctx.groupId} members={members} />
 
-      <div className="space-y-2">
-        <h2 className="text-xl font-semibold text-balance">Pozvánky</h2>
-        <p className="text-muted-foreground max-w-[62ch]">
-          Od ktoréhokoľvek člena — nielen od teba.
-        </p>
-        <InviteList groupId={ctx.groupId} invites={invites} showCreator />
+      <div className="space-y-4">
+        <div className="space-y-2">
+          <h2 className="text-xl font-semibold text-balance">Pozvánky</h2>
+          <p className="text-muted-foreground max-w-[62ch]">
+            Kto odkaz otvorí, sa hneď pridá do tejto skupiny. Odkaz platí 30 dní.
+          </p>
+        </div>
+        <CreateInviteButton groupId={ctx.groupId} />
+        <InviteList groupId={ctx.groupId} invites={invites} />
       </div>
     </div>
   );

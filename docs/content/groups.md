@@ -45,8 +45,8 @@ through the same group and cannot contradict itself.
 
 | Role | Can |
 |---|---|
-| member | add wishes to their own list, claim from others, create an invite |
-| admin | all of the above, plus rename, promote, demote and remove, and revoke anybody's invite |
+| member | add wishes to their own list, claim from others |
+| admin | all of the above, plus invite, rename, promote, demote and remove, and revoke anybody's invite |
 
 An admin of one group is an ordinary member of another. Every check takes the
 group it is deciding about — `isGroupAdmin` reads the role on the
@@ -84,9 +84,18 @@ invite-only design does not have yet.
 
 ### Invites
 
-**Any member may open the door**, not only an admin. The person who wants to add
-a cousin is usually not the admin, and needing one to be awake is a milder
-version of the queue this app deliberately has no room for.
+**Only an admin may open the door.** The link *is* the permission — an
+unlimited-use key to every wish in the group, good for 30 days — so minting one
+is group management, and group management is the admin's. A member who wants a
+cousin in asks the admin for the link.
+
+Only the cutting of a key is restricted, never the opening: whoever holds the
+link joins instantly, and there is nothing for an admin to approve afterwards.
+
+**Vytvoriť pozvánku** lives on `/g/{group id}/family` next to the list of every
+invite into the group — one admin surface, not two. The page's own `isGroupAdmin`
+redirect is what guards the button, and `createInvite` re-checks with
+`requireGroupAdmin` because a Server Action is reachable on its own.
 
 An invite is a link — `/join/{token}` — and it carries:
 
@@ -140,6 +149,13 @@ one sentence — *Táto pozvánka už neplatí.* — wherever it is refused.
 revoke one they created themselves, because nobody should be unable to undo
 their own action. `canRevokeInvite` is the one spelling of that rule, and the
 update that follows is scoped to the group in its own `WHERE` clause.
+
+An invite whose `created_by` is an ordinary member predates the admin-only rule.
+Those links were left alive rather than revoked wholesale, because one already
+sent is somebody's way in: it admits them until it expires or an admin revokes it
+from `/family`, where every invite is listed with its creator. Its creator may
+still revoke it — `canRevokeInvite` says so — but no screen offers a member that
+control any more.
 
 #### Before exposing a use limit
 

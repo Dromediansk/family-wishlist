@@ -152,42 +152,21 @@ export async function revokeInviteRow(
   return (data?.length ?? 0) > 0;
 }
 
-/** Newest first, so a just-created link is the one on top. */
-async function readInvites(
-  ctx: GroupContext,
-  createdBy?: string,
-): Promise<InviteRow[]> {
-  const base = getSupabase()
-    .from("invites")
-    .select(INVITE_COLUMNS)
-    .eq("group_id", ctx.groupId);
-
-  const scoped = createdBy ? base.eq("created_by", createdBy) : base;
-
-  const { data, error } = await scoped.order("created_at", {
-    ascending: false,
-  });
-
-  if (error) throw error;
-  return (data ?? []) as InviteRow[];
-}
-
 /**
- * The caller's own invites into this group — the grid's **Pozvať** dialog. No
- * creator to look up: every one of them is theirs.
- */
-export const listMyInvites = cache(
-  async (ctx: GroupContext): Promise<Invite[]> =>
-    (await readInvites(ctx, ctx.membershipId)).map(toInvite),
-);
-
-/**
- * Every member's invites into this group, named by whoever made them — the
- * admin's view on `/family`, and the only screen that renders a creator.
+ * Every invite into this group, each named by whoever made it — the admin's view
+ * on `/family`, which is the only screen that lists invites at all.
  */
 export const listGroupInvites = cache(
   async (ctx: GroupContext): Promise<InviteWithCreator[]> => {
-    const rows = await readInvites(ctx);
+    // Newest first, so a just-created link is the one on top.
+    const { data, error } = await getSupabase()
+      .from("invites")
+      .select(INVITE_COLUMNS)
+      .eq("group_id", ctx.groupId)
+      .order("created_at", { ascending: false });
+
+    if (error) throw error;
+    const rows = (data ?? []) as InviteRow[];
     if (rows.length === 0) return [];
 
     // Every invite in this group was created by a membership in this group —

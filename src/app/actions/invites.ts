@@ -8,6 +8,7 @@ import {
   getAccountName,
   getViewer,
   requireGroup,
+  requireGroupAdmin,
 } from "@/lib/data/access";
 import {
   findInviteByToken,
@@ -25,14 +26,18 @@ import { canRevokeInvite } from "@/lib/visibility";
 const inviteIdSchema = z.uuid("Neplatná pozvánka.");
 
 /**
- * Any member may open the door, not only an admin: the person who wants to add a
- * cousin is usually not the admin, and needing one to be awake would put a queue
- * in front of a link. docs/content/groups.md#invites
+ * Only an admin may open the door. The link *is* the permission — an
+ * unlimited-use key to every wish in the group, good for 30 days — so minting
+ * one is group management, and group management is the admin's.
+ * docs/content/groups.md#invites
  */
 export async function createInvite(
   groupId: string,
 ): Promise<ActionResult & { token?: string }> {
-  const permitted = await requireGroup(groupId);
+  const permitted = await requireGroupAdmin(
+    groupId,
+    "Pozvať do skupiny môže len jej správca.",
+  );
   if (!permitted.ok) return permitted;
 
   const { ctx } = permitted;

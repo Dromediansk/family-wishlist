@@ -52,7 +52,7 @@ can be written. Branded `UserId`, `GroupId` and `MembershipId`
 where a value has just been read from the column that defines it, so nothing
 downstream can pass a string off a URL where an id belongs.
 
-Five functions do not take one, and each is legitimate for a different reason:
+Four functions do not take one, and each is legitimate for a different reason:
 
 - `ensureAppUser` ([`src/lib/data/access.ts`](../../src/lib/data/access.ts))
   runs before a `Viewer` can exist, because the row it writes is what a
@@ -62,10 +62,6 @@ Five functions do not take one, and each is legitimate for a different reason:
   is looked up by a bare token from a join link, before its caller has any
   membership in that invite's group — there is no `GroupContext` to take yet.
   `joinWithInvite` treats what it returns as an unverified claim, not a scope.
-- `findInviteById` (same file) exists only to tell `revokeInvite` who created an
-  invite and which group it belongs to, so it can choose the right refusal.
-  The actual guard is the `GroupContext`-scoped update in `revokeInviteRow`
-  that runs after it.
 - `markInviteUsed` (same file) is a compare-and-swap on one invite id that its
   caller has already resolved and checked; it decides nothing about who may
   read or write, only whether this call wins the race to increment `uses`.
