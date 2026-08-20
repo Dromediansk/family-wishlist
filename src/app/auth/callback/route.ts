@@ -1,6 +1,8 @@
+import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 
 import { ensureAppUser } from "@/lib/data/access";
+import { RETURN_TO_COOKIE, safeReturnTo } from "@/lib/invites";
 import { createAuthClient } from "@/lib/supabase-auth";
 
 /**
@@ -10,6 +12,11 @@ import { createAuthClient } from "@/lib/supabase-auth";
  *
  * A trigger creates the app_users row on first sign-in; this handler only repairs
  * the one case the trigger cannot reach — see ensureAppUser.
+ *
+ * Somebody who came in on an invite link goes back to it: `signInWithGoogle`
+ * left the path in a cookie, `safeReturnTo` re-checks it here, and the cookie is
+ * spent either way. Everyone else lands on `/`.
+ * docs/content/groups.md#invites
  */
 export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url);
@@ -34,10 +41,20 @@ export async function GET(request: Request) {
 
   if (data.user) await ensureAppUser(data.user.id, data.user.email ?? null);
 
+  const store = await cookies();
+  const returnTo = safeReturnTo(store.get(RETURN_TO_COOKIE)?.value);
+
   // Whether this person belongs to any group — or none, or nothing at all — is
   // decided by resolveAccess on the way in; the callback deliberately does not
-  // know.
-  return NextResponse.redirect(`${redirectBase(request, origin)}/`);
+  // know. An invite path is the one thing it will act on, and `/join/{token}`
+  // re-derives every check for itself.
+  const response = NextResponse.redirect(
+    `${redirectBase(request, origin)}${returnTo ?? "/"}`,
+  );
+  // One trip only: a link that was already opened must not be reopened by the
+  // next sign-in from this browser.
+  response.cookies.delete(RETURN_TO_COOKIE);
+  return response;
 }
 
 /**

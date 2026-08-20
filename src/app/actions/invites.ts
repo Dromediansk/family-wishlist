@@ -21,9 +21,9 @@ const groupIdSchema = z.uuid("Neplatná skupina.");
 const inviteIdSchema = z.uuid("Neplatná pozvánka.");
 
 /**
- * Any member may open the door. The person who wants to add a cousin is
- * usually not the admin, and needing one to be awake is a milder version of
- * the approval queue this design deleted. docs/content/groups.md#invites
+ * Any member may open the door, not only an admin: the person who wants to add a
+ * cousin is usually not the admin, and needing one to be awake would put a queue
+ * in front of a link. docs/content/groups.md#invites
  */
 export async function createInvite(
   groupId: string,

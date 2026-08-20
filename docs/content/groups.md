@@ -117,6 +117,21 @@ you are already in is a no-op that does not spend a use. The route handler at
 decides *where* to send the browser; `joinWithInvite` re-derives all of it,
 because a Server Action is reachable on its own.
 
+Somebody who is not signed in yet — the normal case for a first invite — is sent
+to `/login` with the path they were trying to reach, and lands back on it once
+Google is done. Two things make that safe to carry:
+
+- `safeReturnTo` ([`src/lib/invites.ts`](../../src/lib/invites.ts)) accepts
+  `/join/{token}` and nothing else. The value comes off a query string, so
+  without an allow-list `/login` would be an open redirect; with one, an absolute
+  URL, a protocol-relative `//host` and any other path are all refused by simply
+  not matching. It is checked again inside the sign-in action, because a form
+  field is a claim and not proof.
+- The path rides in an httpOnly cookie, not in the OAuth `redirect_to`. The token
+  in it *is* permission to join this group, and it has no business in Google's
+  URL, logs or the browser's history. The cookie lasts ten minutes and is spent
+  on arrival.
+
 `inviteUsable` ([`src/lib/invites.ts`](../../src/lib/invites.ts)) is the single
 answer to "is this still a door", and a revoked, expired or exhausted link gets
 one sentence — *Táto pozvánka už neplatí.* — wherever it is refused.
@@ -168,9 +183,7 @@ leaves — see [History](history.md).
   `/join/{token}` sends them to `/start` with the refusal in the query string,
   but `src/proxy.ts` strips the query when it bounces a visitor with no session,
   so the sentence never reaches a screen. They see a login page and no
-  explanation.
-- **A valid link does not resume after sign-in either.** `/join/{token}` passes
-  `returnTo`, but signing in lands on `/`; the link has to be opened again.
+  explanation. A *valid* link does resume — only the refusal is lost.
 
 The plumbing for self-leave is already there — `memberships_release_claims`
 fires on any membership delete, whoever caused it — so it is a small later change

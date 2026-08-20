@@ -228,8 +228,10 @@ that have a session behind them and the two surfaces a stranger can reach —
 `/login` and the 404 — so the header is never chrome for a stranger.
 
 The line is "has a session", not "belongs to a group": `/start` sits inside the
-group and wears the same chrome, and the header's right-hand half simply renders
-nothing until there is a group to name.
+group and wears the same chrome. The header's right-hand half thins out instead of
+disappearing — an account with no group keeps its menu, because that menu holds
+the only way to sign out, and loses the group switcher and everything else that
+needs a group to name.
 
 The group has no `loading.tsx` of its own — it would become the fallback for
 every route beneath it and flash in front of each route's own skeleton. Each

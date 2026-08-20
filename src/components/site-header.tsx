@@ -6,7 +6,7 @@ import { AccountMenu } from "@/components/account-menu";
 import { GroupSwitcher } from "@/components/group-switcher";
 import { HomeLink } from "@/components/home-link";
 import { Button } from "@/components/ui/button";
-import { getAccess } from "@/lib/data/access";
+import { getAccess, getAccountName } from "@/lib/data/access";
 import { countGroupsCreatedBy } from "@/lib/data/groups";
 import { getPeerNames } from "@/lib/data/members";
 import { MAX_GROUPS_PER_ACCOUNT } from "@/lib/groups";
@@ -16,9 +16,10 @@ import { isConfigured } from "@/lib/supabase";
  * The bar at the top of every signed-in page. Mounted by `(app)/layout.tsx`, so
  * `/login` and the 404 never get it.
  *
- * The right-hand half renders nothing without a group: a page's `redirect()` for
- * an anonymous or groupless visitor races this layout. `getAccess` is memoised
- * per render, so asking here costs nothing.
+ * The right-hand half is empty for a stranger, and cut down to the account menu
+ * for somebody with no group yet: nothing to switch between, but still an account
+ * to sign out of. `getAccess` is memoised per render, so asking here costs
+ * nothing.
  */
 export async function SiteHeader() {
   return (
@@ -40,9 +41,25 @@ async function HeaderAccount() {
   if (!isConfigured()) return null;
 
   const access = await getAccess();
-  if (access.kind !== "member") return null;
+  if (access.kind === "anonymous") return null;
 
   const viewer = access.viewer;
+
+  /*
+   * No group means no per-group label to wear, nothing to switch between and no
+   * group-scoped entry to offer — but the menu itself has to be here. It is the
+   * only way off `/start`, and an account that cannot sign out is stuck.
+   */
+  if (access.kind === "groupless") {
+    return (
+      <div className="flex shrink-0 items-center gap-1 sm:gap-2">
+        <AccountMenu
+          name={await getAccountName(viewer)}
+          groups={viewer.groups}
+        />
+      </div>
+    );
+  }
 
   /*
    * The header spans every group, so the avatar wears the account-level name —
