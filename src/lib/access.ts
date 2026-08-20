@@ -1,3 +1,4 @@
+import type { UserId } from "@/lib/ids";
 import type { Viewer } from "@/lib/types";
 
 export { isGroupAdmin } from "@/lib/visibility";
@@ -28,4 +29,21 @@ export function resolveAccess(input: {
   return input.viewer.groups.length === 0
     ? { kind: "groupless", viewer: input.viewer }
     : { kind: "member", viewer: input.viewer };
+}
+
+/**
+ * Everyone a viewer may see, seeded with the viewer themselves.
+ *
+ * `peer_user_ids` derives self-membership from a join, so it hands back nothing
+ * at all for an account that belongs to no group. A peers set missing its own
+ * owner makes `canReadList` false for the one list the viewer certainly owns,
+ * which locks a groupless account out of its own wishes — hence the seed, which
+ * happens whatever the query returned.
+ * docs/content/privacy-rule.md#reading-a-list
+ */
+export function seedPeers(
+  ownerId: UserId,
+  peerIds: readonly UserId[],
+): ReadonlySet<UserId> {
+  return new Set<UserId>([ownerId, ...peerIds]);
 }

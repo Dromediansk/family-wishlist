@@ -2,7 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { ArrowLeftIcon, HistoryIcon } from "lucide-react";
 
-import { ClaimButton } from "@/components/claim-button";
+import { ReleaseClaimButton } from "@/components/claim-button";
 import { FulfilWishButton } from "@/components/fulfil-wish-button";
 import { SetupRequired } from "@/components/setup-required";
 import { WishRow } from "@/components/wish-row";
@@ -11,7 +11,6 @@ import { Card } from "@/components/ui/card";
 import { getAccess } from "@/lib/data/access";
 import { getClaimedBy } from "@/lib/data/wishes";
 import { isConfigured } from "@/lib/supabase";
-import type { ClaimView } from "@/lib/types";
 
 export default async function BuyingPage() {
   if (!isConfigured()) return <SetupRequired />;
@@ -26,18 +25,6 @@ export default async function BuyingPage() {
   // Nothing here can change or vanish underneath you — an owner cannot touch a
   // reserved wish. docs/content/claiming.md#what-im-buying
   const claimed = await getClaimedBy(viewer);
-
-  /*
-   * Every row on this page is one of the viewer's own reservations — that is
-   * the query's predicate, not something read off a row. `ClaimButton` matches
-   * on the id alone to reach the release control, and renders neither the date
-   * nor the name in that branch, so both are left empty rather than invented.
-   */
-  const ownClaim: ClaimView = {
-    kind: "taken-by",
-    at: "",
-    by: { id: viewer.userId, name: "" },
-  };
 
   return (
     <div className="space-y-6">
@@ -82,11 +69,7 @@ export default async function BuyingPage() {
                       praje si: {wish.owner.name}
                     </span>
                     <div className="flex flex-wrap items-start gap-2 sm:justify-end">
-                      <ClaimButton
-                        wishId={wish.id}
-                        claim={ownClaim}
-                        viewerId={viewer.userId}
-                      />
+                      <ReleaseClaimButton wishId={wish.id} />
                       <FulfilWishButton
                         wishId={wish.id}
                         title={wish.title}

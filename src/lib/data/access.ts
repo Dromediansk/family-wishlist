@@ -2,7 +2,7 @@ import "server-only";
 
 import { cache } from "react";
 
-import { resolveAccess, type Access } from "@/lib/access";
+import { resolveAccess, seedPeers, type Access } from "@/lib/access";
 import { asGroupId, asMembershipId, asUserId, type UserId } from "@/lib/ids";
 import { getSupabase } from "@/lib/supabase";
 import { getAuthUser } from "@/lib/supabase-auth";
@@ -61,19 +61,20 @@ export const getViewer = cache(async (): Promise<Viewer | null> => {
   });
 
   /*
-   * peer_user_ids derives self-membership from a join, so it returns nothing at
-   * all for a groupless account. A peers set missing its own owner would make
-   * canReadList false for the viewer's own list — hence the unconditional add.
+   * A `returns setof uuid` function comes back as bare strings from some
+   * PostgREST versions and as wrapped objects from others, so both are read
+   * rather than guessed at. `seedPeers` is what guarantees the viewer's own id
+   * is in the set even when this query found nothing.
    */
-  const peers = new Set<UserId>([userId]);
+  const peerIds: UserId[] = [];
   for (const row of (peersResult.data ?? []) as
     | { user_id?: string }[]
     | string[]) {
     const value = typeof row === "string" ? row : row.user_id;
-    if (value) peers.add(asUserId(value));
+    if (value) peerIds.push(asUserId(value));
   }
 
-  return { userId, peers, groups };
+  return { userId, peers: seedPeers(userId, peerIds), groups };
 });
 
 export const getAccess = cache(async (): Promise<Access> => {

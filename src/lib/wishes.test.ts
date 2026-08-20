@@ -62,9 +62,12 @@ describe("toViewerWish", () => {
   const PEER = asUserId("22222222-2222-4222-8222-222222222222");
   const STRANGER = asUserId("33333333-3333-4333-8333-333333333333");
   const peers = new Set([ME, PEER]);
+  // STRANGER has a name here on purpose: without one, a leak would render the
+  // "?" fallback and every assertion below would still pass.
   const names = new Map([
     [ME, "Miro"],
     [PEER, "Zuzana"],
+    [STRANGER, "Peter"],
   ]);
 
   function row(claimedBy: UserId | null): ViewerWishRow {
@@ -103,7 +106,13 @@ describe("toViewerWish", () => {
 
   it("carries no claimer name anywhere in the taken case", () => {
     const view = toViewerWish(row(STRANGER), peers, names);
-    expect(JSON.stringify(view)).not.toContain(STRANGER);
+    const serialized = JSON.stringify(view);
+
+    expect(serialized).not.toContain(STRANGER);
+    expect(serialized).not.toContain("Peter");
+    expect(view.claim.kind).toBe("taken");
+    // The union has no `by` outside `taken-by`; this is the runtime half of it.
+    expect("by" in view.claim).toBe(false);
   });
 
   it("treats a claim with no timestamp as free", () => {

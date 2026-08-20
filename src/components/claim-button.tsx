@@ -14,37 +14,61 @@ type Props = {
   viewerId: UserId;
 };
 
-/** Claim or release an item on someone else's list. Never rendered on your own. */
-export function ClaimButton({ wishId, claim, viewerId }: Props) {
+/** One transition, one message, for either of the two buttons below. */
+function useAction(): {
+  pending: boolean;
+  error: string | null;
+  run: (action: () => Promise<{ ok: boolean; error?: string }>) => void;
+} {
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
 
-  function run(action: () => Promise<{ ok: boolean; error?: string }>) {
-    setError(null);
-    startTransition(async () => {
-      const result = await action();
-      if (!result.ok) setError(result.error ?? "Niečo sa pokazilo.");
-    });
-  }
+  return {
+    pending,
+    error,
+    run: (action) => {
+      setError(null);
+      startTransition(async () => {
+        const result = await action();
+        if (!result.ok) setError(result.error ?? "Niečo sa pokazilo.");
+      });
+    },
+  };
+}
+
+/**
+ * Give back a reservation you hold. Takes the wish and nothing else: the caller
+ * has already established that this claim is the viewer's own, so there is no
+ * claim state here to render and no name to get wrong.
+ */
+export function ReleaseClaimButton({ wishId }: { wishId: string }) {
+  const { pending, error, run } = useAction();
+
+  return (
+    <div className="flex flex-col items-end gap-1">
+      <Button
+        variant="outline"
+        loading={pending}
+        onClick={() => run(() => unclaimWish(wishId))}
+      >
+        <UndoIcon />
+        Toto nekupujem
+      </Button>
+      {error ? (
+        <p className="text-destructive text-sm" role="alert">
+          {error}
+        </p>
+      ) : null}
+    </div>
+  );
+}
+
+/** Claim or release an item on someone else's list. Never rendered on your own. */
+export function ClaimButton({ wishId, claim, viewerId }: Props) {
+  const { pending, error, run } = useAction();
 
   if (claim.kind === "taken-by" && claim.by.id === viewerId) {
-    return (
-      <div className="flex flex-col items-end gap-1">
-        <Button
-          variant="outline"
-          loading={pending}
-          onClick={() => run(() => unclaimWish(wishId))}
-        >
-          <UndoIcon />
-          Toto nekupujem
-        </Button>
-        {error ? (
-          <p className="text-destructive text-sm" role="alert">
-            {error}
-          </p>
-        ) : null}
-      </div>
-    );
+    return <ReleaseClaimButton wishId={wishId} />;
   }
 
   // Taken by someone else in a group this viewer shares — show who, and offer

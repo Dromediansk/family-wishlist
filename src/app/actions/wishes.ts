@@ -280,9 +280,9 @@ export async function deleteWish(wishId: string): Promise<ActionResult> {
 }
 
 /**
- * Claim someone else's wish. `claimed_by_user_id is null` is in the WHERE
- * clause, so two
- * people clicking at once cannot both win. docs/content/claiming.md
+ * Claim someone else's wish. `claimed_by_user_id is null` sits in the WHERE
+ * clause, so two people clicking at once cannot both win.
+ * docs/content/claiming.md
  */
 export async function claimWish(wishId: string): Promise<ActionResult> {
   const viewer = await getViewer();
@@ -354,9 +354,8 @@ export async function unclaimWish(wishId: string): Promise<ActionResult> {
  * them. docs/content/privacy-rule.md#when-the-secret-ends
  *
  * The whole guard is `claimed_by_user_id = p_giver_id` inside `fulfil_wish`,
- * which
- * deletes the wish and writes the record in one statement. No pre-check read,
- * and no way for the pair to half-happen.
+ * which deletes the wish and writes the record in one statement. No pre-check
+ * read, and no way for the pair to half-happen.
  */
 export async function fulfilWish(wishId: string): Promise<ActionResult> {
   const viewer = await getViewer();
