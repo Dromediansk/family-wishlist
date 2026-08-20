@@ -34,8 +34,9 @@ export async function GET(request: Request) {
 
   if (data.user) await ensureAppUser(data.user.id, data.user.email ?? null);
 
-  // Whether this person is approved is decided by resolveAccess on the way in;
-  // the callback deliberately does not know.
+  // Whether this person belongs to any group — or none, or nothing at all — is
+  // decided by resolveAccess on the way in; the callback deliberately does not
+  // know.
   return NextResponse.redirect(`${redirectBase(request, origin)}/`);
 }
 
