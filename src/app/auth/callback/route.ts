@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
 
-import { notifyChanged } from "@/lib/realtime";
 import { getSupabase } from "@/lib/supabase";
 import { createAuthClient } from "@/lib/supabase-auth";
 
@@ -9,8 +8,8 @@ import { createAuthClient } from "@/lib/supabase-auth";
  * session. The app's only route handler, because Google navigates here directly
  * with a query string.
  *
- * A trigger creates the member row on first sign-in; this handler only repairs
- * the one case the trigger cannot reach — see rejoinTheQueue.
+ * A trigger creates the app_users row on first sign-in; this handler only repairs
+ * the one case the trigger cannot reach — see ensureAppUser.
  */
 export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url);
@@ -33,7 +32,7 @@ export async function GET(request: Request) {
 
   if (error) return failed(error.message);
 
-  if (data.user) await rejoinTheQueue(data.user.id, data.user.email ?? null);
+  if (data.user) await ensureAppUser(data.user.id, data.user.email ?? null);
 
   // Whether this person is approved is decided by resolveAccess on the way in;
   // the callback deliberately does not know.
@@ -41,52 +40,42 @@ export async function GET(request: Request) {
 }
 
 /**
- * Put someone back in the queue as `pending` when they have a Google account
- * here but no member row. Without this they loop between /login and / forever.
+ * Ensure an app_users row exists when a Google account here has no row in the
+ * app's identity table. Without this they loop between /login and / forever.
  *
- * Never bootstraps an admin — that is the trigger's job on a genuinely empty
- * table. docs/content/membership.md#rejoining-the-queue
+ * See docs/content/groups.md for how the app models membership and access.
  */
-async function rejoinTheQueue(
+async function ensureAppUser(
   authUserId: string,
   email: string | null,
 ): Promise<void> {
   const supabase = getSupabase();
 
   const { data: existing, error: lookupError } = await supabase
-    .from("family_members")
+    .from("app_users")
     .select("id")
     .eq("auth_user_id", authUserId)
     .maybeSingle();
 
-  // Don't strand a sign-in that otherwise worked — a missing member row reads
+  // Don't strand a sign-in that otherwise worked — a missing app_users row reads
   // as signed out, which is the safe direction.
   if (lookupError) {
-    console.warn("Could not check for an existing member row:", lookupError);
+    console.warn("Could not check for an existing app_users row:", lookupError);
     return;
   }
-  // Known gap: on a genuinely new sign-up the trigger wins this race, so no
-  // ping is sent and an admin's cached /family queue stays stale until they
-  // reload. Not worth distinguishing, for one admin-only page.
   if (existing) return;
 
-  const { error: insertError } = await supabase.from("family_members").insert({
+  const { error: insertError } = await supabase.from("app_users").insert({
     auth_user_id: authUserId,
     email,
     name: email?.split("@")[0]?.slice(0, 50) || "Bez mena",
-    role: "member",
-    status: "pending",
   });
 
   // 23505 means the trigger got there first — the normal path, not a problem.
   if (insertError && insertError.code !== "23505") {
-    console.warn("Could not re-create the member row:", insertError);
+    console.warn("Could not create the app_users row:", insertError);
     return;
   }
-
-  // For other tabs only; this one is doing a full document load. No
-  // revalidatePath — the handler answers with a redirect.
-  await notifyChanged();
 }
 
 /**
