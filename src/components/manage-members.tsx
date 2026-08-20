@@ -28,7 +28,13 @@ type Busy = (
 ) => { disabled: boolean; loading: boolean; onClick: () => void };
 
 /** Admin-only. The body of /family, which is what guards it. */
-export function ManageMembers({ members }: { members: MemberWithCount[] }) {
+export function ManageMembers({
+  groupId,
+  members,
+}: {
+  groupId: string;
+  members: MemberWithCount[];
+}) {
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
   /*
@@ -58,6 +64,7 @@ export function ManageMembers({ members }: { members: MemberWithCount[] }) {
         {members.map((member) => (
           <MemberAdminRow
             key={member.id}
+            groupId={groupId}
             member={member}
             pending={pending}
             busy={busy}
@@ -75,10 +82,12 @@ export function ManageMembers({ members }: { members: MemberWithCount[] }) {
 }
 
 function MemberAdminRow({
+  groupId,
   member,
   pending,
   busy,
 }: {
+  groupId: string;
   member: MemberWithCount;
   /** Held by somebody else's action — the trash toggle runs none of its own. */
   pending: boolean;
@@ -115,7 +124,7 @@ function MemberAdminRow({
           {renamed ? (
             <Button
               {...busy(`rename:${member.id}`, () =>
-                renameMember(member.id, name),
+                renameMember(groupId, member.id, name),
               )}
             >
               Uložiť
@@ -128,6 +137,7 @@ function MemberAdminRow({
             aria-label={roleHint}
             {...busy(`role:${member.id}`, () =>
               setMemberRole(
+                groupId,
                 member.id,
                 member.role === "admin" ? "member" : "admin",
               ),
@@ -154,17 +164,17 @@ function MemberAdminRow({
       {confirmingRemove ? (
         <div className="bg-muted flex flex-col gap-3 rounded-md p-4">
           <p>
-            Odstrániť <strong>{member.name}</strong>? Vymažú sa aj všetky
-            želania v tomto zozname ({wishCount(member.wishCount)}) a
-            rezervácie, ktoré boli urobené v cudzích zoznamoch, sa uvoľnia.
-            Prihlásiť sa môžu znova, ale budú čakať na schválenie.
+            Odstrániť <strong>{member.name}</strong> zo skupiny? Ich zoznam
+            ({wishCount(member.wishCount)}) im zostane — želania patria im,
+            nie tejto skupine. Rezervácie, ktoré existovali len vďaka
+            členstvu tu, sa uvoľnia. Vrátiť sa môžu len cez novú pozvánku.
           </p>
           <div className="flex gap-2">
             <Button
               variant="destructive"
               {...busy(
                 `remove:${member.id}`,
-                () => removeMember(member.id),
+                () => removeMember(groupId, member.id),
                 () => setConfirmingRemove(false),
               )}
             >

@@ -48,7 +48,7 @@ export default async function FamilyPage() {
         </p>
       </div>
 
-      <ManageMembers members={members} />
+      <ManageMembers groupId={ctx.groupId} members={members} />
     </div>
   );
 }

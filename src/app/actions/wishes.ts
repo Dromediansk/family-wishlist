@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 
 import { getViewer } from "@/lib/data/access";
-import type { UserId } from "@/lib/ids";
+import { asUserId, type UserId } from "@/lib/ids";
 import { MAX_PHOTO_BYTES, sniffImageType } from "@/lib/images";
 import {
   pruneWishPhotos,
@@ -14,6 +14,7 @@ import {
 import { notifyChanged } from "@/lib/realtime";
 import { getSupabase } from "@/lib/supabase";
 import type { ActionResult } from "@/lib/types";
+import { canReadList } from "@/lib/visibility";
 import { refusalFor } from "@/lib/wishes";
 
 const idSchema = z.uuid("Neplatné želanie.");
@@ -290,6 +291,22 @@ export async function claimWish(wishId: string): Promise<ActionResult> {
 
   const id = idSchema.safeParse(wishId);
   if (!id.success) return { ok: false, error: "Neplatné želanie." };
+
+  /*
+   * Which list this wish is on decides whether this viewer may touch it at all.
+   * The database backstops it — wishes_check_claim_peer rejects a claim between
+   * strangers whatever happens here — but a refusal is better than an exception.
+   */
+  const { data: owner } = await getSupabase()
+    .from("wishes")
+    .select("owner_user_id")
+    .eq("id", id.data)
+    .maybeSingle();
+
+  const ownerId = (owner as { owner_user_id: string } | null)?.owner_user_id;
+  if (!ownerId || !canReadList(viewer.peers, asUserId(ownerId))) {
+    return { ok: false, error: "Toto želanie neexistuje.", final: true };
+  }
 
   const supabase = getSupabase();
   const { data, error } = await supabase
