@@ -30,15 +30,17 @@ Empty optional fields arrive from a form as `""`; they are stored as `NULL`.
 | Claim / release | anyone **except** the owner | see [Claiming](claiming.md) |
 
 The owner is never taken from anything the browser sends. Every action
-re-derives the caller from their session and puts `member_id` in the `WHERE`
-clause, so someone else's wish simply does not match.
+re-derives the caller from their session and puts `owner_user_id` in the `WHERE`
+clause, so someone else's wish simply does not match. A wish hangs off an
+account, not a group, so nothing about ownership needs a group id at all —
+[Groups](groups.md).
 
 ## Editing and deleting
 
 Both actions carry two conditions in the same `WHERE` clause:
 
 ```
-.eq("id", …).eq("member_id", current.id).is("claimed_by", null)
+.eq("id", …).eq("owner_user_id", viewer.userId).is("claimed_by_user_id", null)
 ```
 
 Ownership and reservation are checked the same way — by not matching — rather
@@ -51,7 +53,8 @@ rule, and it is documented in full at
 
 Because a reserved wish can no longer change or vanish, nothing on
 [*Čo kupujem*](claiming.md#what-im-buying) can disappear from under its buyer —
-with one exception, [removing a member](membership.md#removing-someone).
+with one exception, [being removed from the group](groups.md#removing-somebody)
+the two of them share.
 
 ## How a wish ends
 
@@ -60,11 +63,14 @@ Three ways, and only three:
 | Ending | Who | What is left |
 |---|---|---|
 | Deleted | the owner, while it is unreserved | nothing |
-| Owner removed | an admin | nothing; the claim is released first |
 | **Darované** | the person holding the claim | a permanent record in [History](history.md) |
+| The account goes | whoever deletes it under **Authentication** in the Supabase dashboard | nothing, for every list at once |
 
-The third is the only one that outlives the wish, and the only one an owner
-cannot do.
+The second is the only one that outlives the wish, and the only one an owner
+cannot do. The third is not a feature: it cascades from `auth.users` through
+`app_users` and is the only way to bar somebody outright. Removing them from a
+group takes nothing but the membership —
+[Groups](groups.md#removing-somebody).
 
 ## Reading a list
 
@@ -138,9 +144,12 @@ already saved and pressing the button again would add a second one.
 
 `GET /wish-photo/{wish id}?v={token}`
 ([`src/app/wish-photo/[wishId]/route.ts`](../../src/app/wish-photo/%5BwishId%5D/route.ts)).
-It re-derives the caller exactly as a Server Action does, answers 404 to anyone
-it will not serve, and sets `Content-Type` from a whitelist rather than from
-anything stored. It is one of the places the privacy rule is enforced —
+It re-derives the caller exactly as a Server Action does, and `getWishPhotoPath`
+reads the photo's path together with its owner so that a wish whose owner shares
+no group with the caller is refused. Every refusal is the same 404 — a missing
+photo, a stranger's wish and a malformed id are indistinguishable — and
+`Content-Type` comes from a whitelist rather than from anything stored. It is one
+of the places the privacy rule is enforced —
 [Serving a photo](privacy-rule.md#serving-a-photo).
 
 Addressed by wish id, never by object key, so no key from a URL is ever trusted.

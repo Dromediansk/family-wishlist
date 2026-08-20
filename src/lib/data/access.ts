@@ -140,12 +140,16 @@ export async function getAccountName(viewer: Viewer): Promise<string> {
 
 /**
  * Make sure a signed-in Google account has a row in the app's identity table,
- * and do nothing when it already does.
+ * and do nothing when it already does. Without this, an account whose row is
+ * missing loops between /login and / forever.
  *
  * The one function here that takes no `Viewer`: it runs before one can exist,
  * because the row it writes is what a `Viewer` is built from. It is scoped all
  * the same — `authUserId` comes from the verified session, never from anything
  * a caller supplies.
+ *
+ * docs/content/membership.md#the-repair, and docs/content/groups.md for how the
+ * app models membership and access.
  */
 export async function ensureAppUser(
   authUserId: string,

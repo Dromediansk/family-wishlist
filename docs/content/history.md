@@ -13,9 +13,11 @@ wish and inserts the record together. Either both happen or neither does, so a
 gift can never be lost between the two.
 
 The record copies what it needs rather than joining to it: the title, the
-description, the link, and **both names**. Removing a member therefore takes
-neither their own history nor anybody else's with them — the ids null out, the
-names stay readable.
+description, the link, and **both names**. The names are read from `app_users` —
+the account's own name, never a per-group label — because a record of something
+that really happened must not depend on a group. Either party can leave the group
+they shared, or that group can cease to matter, and the record still reads. If an
+account is deleted the ids null out and the names stay.
 
 The [photo](wishes.md#photos) does not come along. It hung off the wish, which
 is now deleted, so `fulfilWish` sweeps the bucket exactly as a delete does — the
