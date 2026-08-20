@@ -1,3 +1,4 @@
+import type { UserId } from "@/lib/ids";
 import type { MemberSummary, MemberWithCount } from "@/lib/types";
 
 /**
@@ -8,20 +9,23 @@ import type { MemberSummary, MemberWithCount } from "@/lib/types";
 /**
  * One card on the family grid. The viewer's own row comes back with no
  * `availableCount` at all — the second lock on the same door as the query's
- * `.neq("member_id", viewerId)`.
+ * `.neq("owner_user_id", viewerId)`.
  * docs/content/privacy-rule.md#counting-on-the-family-grid
+ *
+ * Keyed off `userId`, never `id`: wishes hang off the account, while `id` is
+ * this person's membership in one group.
  */
 export function toMemberSummary(
   member: MemberWithCount,
-  free: ReadonlyMap<string, number>,
-  viewerId: string,
+  free: ReadonlyMap<UserId, number>,
+  viewerId: UserId,
 ): MemberSummary {
-  if (member.id === viewerId) return { ...member, viewerIsOwner: true };
+  if (member.userId === viewerId) return { ...member, viewerIsOwner: true };
 
   return {
     ...member,
     viewerIsOwner: false,
-    availableCount: free.get(member.id) ?? 0,
+    availableCount: free.get(member.userId) ?? 0,
   };
 }
 

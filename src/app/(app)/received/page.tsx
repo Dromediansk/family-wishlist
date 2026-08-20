@@ -2,7 +2,8 @@ import { redirect } from "next/navigation";
 
 import { HistoryPage } from "@/components/history-page";
 import { SetupRequired } from "@/components/setup-required";
-import { getAccess, getReceivedBy } from "@/lib/queries";
+import { getAccess } from "@/lib/data/access";
+import { getReceivedBy } from "@/lib/data/fulfilled";
 import { isConfigured } from "@/lib/supabase";
 
 /**
@@ -20,14 +21,14 @@ export default async function ReceivedPage() {
   const access = await getAccess();
 
   if (access.kind === "anonymous") redirect("/login");
-  if (access.kind === "pending") redirect("/pending");
+  if (access.kind === "groupless") redirect("/start");
 
-  const currentMember = access.member;
-  const received = await getReceivedBy(currentMember.id);
+  const viewer = access.viewer;
+  const received = await getReceivedBy(viewer);
 
   return (
     <HistoryPage
-      backHref={`/member/${currentMember.id}`}
+      backHref={`/member/${viewer.userId}`}
       backLabel="Môj zoznam"
       title="Čo som dostal"
       description="Splnené želania a kto ti ich daroval."

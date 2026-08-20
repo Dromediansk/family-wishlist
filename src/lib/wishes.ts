@@ -1,5 +1,7 @@
+import type { UserId } from "@/lib/ids";
 import { photoVersion } from "@/lib/images";
 import type { ClaimedWish, OwnerWish, ViewerWish } from "@/lib/types";
+import { revealClaimer } from "@/lib/visibility";
 
 /**
  * Pure row -> view mappers, free of Supabase and Next.js imports so the privacy
@@ -10,9 +12,6 @@ import type { ClaimedWish, OwnerWish, ViewerWish } from "@/lib/types";
 export const OWNER_WISH_COLUMNS =
   "id, title, description, url, photo_path, created_at";
 
-/** Columns selected when reading someone else's list. */
-export const VIEWER_WISH_COLUMNS = `${OWNER_WISH_COLUMNS}, claimed_at, claimer:claimed_by (id, name)`;
-
 export type OwnerWishRow = {
   id: string;
   title: string;
@@ -22,22 +21,22 @@ export type OwnerWishRow = {
   created_at: string;
 };
 
-type ClaimerRelation = { id: string; name: string } | null;
+/** Columns selected when reading someone else's list. */
+export const VIEWER_WISH_COLUMNS = `${OWNER_WISH_COLUMNS}, claimed_at, claimed_by_user_id`;
 
+/*
+ * The two id columns arrive branded: `src/lib/data/wishes.ts` reads them from
+ * columns that reference app_users, and vouches for them in the one cast at
+ * that boundary. Nothing downstream re-brands a raw string.
+ */
 export type ViewerWishRow = OwnerWishRow & {
   claimed_at: string | null;
-  /** PostgREST widens an embedded one-to-one relation to an array. Accept both. */
-  claimer: ClaimerRelation | ClaimerRelation[];
+  claimed_by_user_id: UserId | null;
 };
 
 export type ClaimedWishRow = OwnerWishRow & {
-  owner: { id: string; name: string } | { id: string; name: string }[];
+  owner_user_id: UserId;
 };
-
-function firstOrNull<T>(value: T | T[] | null): T | null {
-  if (Array.isArray(value)) return value[0] ?? null;
-  return value;
-}
 
 /**
  * The owner's view. Explicit field list rather than a spread, so a claim column
@@ -54,22 +53,50 @@ export function toOwnerWish(row: OwnerWishRow): OwnerWish {
   };
 }
 
-/** Everyone else's view: claim status included. */
-export function toViewerWish(row: ViewerWishRow): ViewerWish {
-  const claimer = firstOrNull(row.claimer);
+/**
+ * Everyone else's view.
+ *
+ * The claimer's name is resolved by the caller and handed in, rather than
+ * embedded in the query: a name is a per-group fact, so it cannot come from a
+ * PostgREST join on app_users. `names` is built by `getPeerNames`.
+ */
+export function toViewerWish(
+  row: ViewerWishRow,
+  peers: ReadonlySet<UserId>,
+  names: ReadonlyMap<UserId, string>,
+): ViewerWish {
+  const base = toOwnerWish(row);
+  const claimer = row.claimed_by_user_id;
+
+  // claim_consistent guarantees both or neither, so a half-claim is corrupt
+  // data rather than a state to render.
+  if (claimer === null || row.claimed_at === null) {
+    return { ...base, claim: { kind: "free" } };
+  }
+
+  if (!revealClaimer(peers, claimer)) {
+    return { ...base, claim: { kind: "taken", at: row.claimed_at } };
+  }
+
   return {
-    ...toOwnerWish(row),
-    claimedBy: claimer ? { id: claimer.id, name: claimer.name } : null,
-    claimedAt: claimer ? row.claimed_at : null,
+    ...base,
+    claim: {
+      kind: "taken-by",
+      at: row.claimed_at,
+      by: { id: claimer, name: names.get(claimer) ?? "?" },
+    },
   };
 }
 
 /** The "things I'm buying" view. */
-export function toClaimedWish(row: ClaimedWishRow): ClaimedWish {
-  const owner = firstOrNull(row.owner);
+export function toClaimedWish(
+  row: ClaimedWishRow,
+  names: ReadonlyMap<UserId, string>,
+): ClaimedWish {
+  const owner = row.owner_user_id;
   return {
     ...toOwnerWish(row),
-    owner: owner ? { id: owner.id, name: owner.name } : { id: "", name: "?" },
+    owner: { id: owner, name: names.get(owner) ?? "?" },
   };
 }
 
@@ -110,12 +137,13 @@ const REFUSALS = {
  * docs/content/privacy-rule.md#the-deliberate-exception-a-reserved-wish-is-frozen
  */
 export function refusalFor(
-  row: { claimed_by: string | null } | null,
+  row: { claimed_by_user_id: string | null } | null,
   operation: "delete" | "update",
 ): { error: string; final: true } {
   const messages = REFUSALS[operation];
   return {
-    error: row?.claimed_by != null ? messages.reserved : messages.notYours,
+    error:
+      row?.claimed_by_user_id != null ? messages.reserved : messages.notYours,
     final: true,
   };
 }

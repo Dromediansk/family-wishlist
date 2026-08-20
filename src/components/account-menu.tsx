@@ -4,7 +4,6 @@ import Link from "next/link";
 import { LogOutIcon, SettingsIcon } from "lucide-react";
 
 import { signOut } from "@/app/actions/auth";
-import { Badge, CountBadge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -20,22 +19,16 @@ import { cn, initial } from "@/lib/utils";
 const SIGN_OUT_FORM = "sign-out";
 
 /**
- * Takes a name, a role flag and a count — never a member row and never anything
- * wish-shaped. `isAdmin` is not derivable from `pendingCount`: an admin with an
- * empty queue still needs the link to /family.
+ * Takes a name and a role flag — never a member row and never anything
+ * wish-shaped.
  */
 export function AccountMenu({
   name,
   isAdmin,
-  pendingCount,
 }: {
   name: string;
   isAdmin: boolean;
-  pendingCount: number;
 }) {
-  // The header only counts for admins, so a count above zero implies one.
-  const waiting = pendingCount > 0;
-
   return (
     <>
       {/*
@@ -50,10 +43,9 @@ export function AccountMenu({
             buttonVariants({ variant: "secondary", size: "icon" }),
             "rounded-full border text-lg font-semibold",
           )}
-          aria-label={`Účet – ${name}${waiting ? `, ${pendingCount} čaká na schválenie` : ""}`}
+          aria-label={`Účet – ${name}`}
         >
           {initial(name)}
-          {waiting ? <CountBadge>{pendingCount}</CountBadge> : null}
         </DropdownMenuTrigger>
 
         <DropdownMenuContent align="end">
@@ -65,9 +57,6 @@ export function AccountMenu({
               <Link href="/family">
                 <SettingsIcon />
                 Spravovať rodinu
-                {waiting ? (
-                  <Badge className="ml-auto px-1.5 py-0">{pendingCount}</Badge>
-                ) : null}
               </Link>
             </DropdownMenuItem>
           ) : null}

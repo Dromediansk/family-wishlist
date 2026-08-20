@@ -8,8 +8,10 @@ import { SetupRequired } from "@/components/setup-required";
 import { WishRow } from "@/components/wish-row";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { getAccess, getClaimedBy } from "@/lib/queries";
+import { getAccess } from "@/lib/data/access";
+import { getClaimedBy } from "@/lib/data/wishes";
 import { isConfigured } from "@/lib/supabase";
+import type { ClaimView } from "@/lib/types";
 
 export default async function BuyingPage() {
   if (!isConfigured()) return <SetupRequired />;
@@ -17,13 +19,25 @@ export default async function BuyingPage() {
   const access = await getAccess();
 
   if (access.kind === "anonymous") redirect("/login");
-  if (access.kind === "pending") redirect("/pending");
+  if (access.kind === "groupless") redirect("/start");
 
-  const currentMember = access.member;
+  const viewer = access.viewer;
 
   // Nothing here can change or vanish underneath you — an owner cannot touch a
   // reserved wish. docs/content/claiming.md#what-im-buying
-  const claimed = await getClaimedBy(currentMember.id);
+  const claimed = await getClaimedBy(viewer);
+
+  /*
+   * Every row on this page is one of the viewer's own reservations — that is
+   * the query's predicate, not something read off a row. `ClaimButton` matches
+   * on the id alone to reach the release control, and renders neither the date
+   * nor the name in that branch, so both are left empty rather than invented.
+   */
+  const ownClaim: ClaimView = {
+    kind: "taken-by",
+    at: "",
+    by: { id: viewer.userId, name: "" },
+  };
 
   return (
     <div className="space-y-6">
@@ -70,8 +84,8 @@ export default async function BuyingPage() {
                     <div className="flex flex-wrap items-start gap-2 sm:justify-end">
                       <ClaimButton
                         wishId={wish.id}
-                        claimedByCurrentMember
-                        claimedByName={currentMember.name}
+                        claim={ownClaim}
+                        viewerId={viewer.userId}
                       />
                       <FulfilWishButton
                         wishId={wish.id}

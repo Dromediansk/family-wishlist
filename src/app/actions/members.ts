@@ -3,9 +3,9 @@
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 
-import { isAdmin } from "@/lib/access";
+import { isGroupAdmin } from "@/lib/access";
+import { getViewer } from "@/lib/data/access";
 import { pruneWishPhotos } from "@/lib/photos";
-import { getCurrentMember } from "@/lib/queries";
 import { notifyChanged } from "@/lib/realtime";
 import { getSupabase } from "@/lib/supabase";
 import type { ActionResult } from "@/lib/types";
@@ -21,15 +21,16 @@ const roleSchema = z.enum(["admin", "member"]);
 
 /**
  * Server Actions are reachable by direct POST, so every one re-derives its
- * caller from the session. Nothing trusts a client-supplied id, and
- * `getCurrentMember()` returns only approved members.
+ * caller from the session. Nothing trusts a client-supplied id.
  */
 async function requireAdmin(): Promise<
   { ok: true } | { ok: false; error: string }
 > {
-  const current = await getCurrentMember();
-  if (!current) return { ok: false, error: "Najprv sa prihlás." };
-  if (!isAdmin(current)) {
+  const viewer = await getViewer();
+  if (!viewer) return { ok: false, error: "Najprv sa prihlás." };
+
+  const group = viewer.groups[0];
+  if (!group || !isGroupAdmin(group)) {
     return { ok: false, error: "Členov rodiny môže spravovať len správca." };
   }
   return { ok: true };
@@ -210,7 +211,7 @@ export async function removeMember(memberId: string): Promise<ActionResult> {
   const { data: doomed } = await supabase
     .from("wishes")
     .select("id")
-    .eq("member_id", id.data);
+    .eq("owner_user_id", id.data);
 
   // Wishes cascade away; their claims on other lists are released by
   // ON DELETE SET NULL. docs/content/membership.md#removing-someone

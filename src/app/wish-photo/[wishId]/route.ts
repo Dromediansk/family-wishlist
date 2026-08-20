@@ -1,9 +1,9 @@
 import { z } from "zod";
 
+import { getViewer } from "@/lib/data/access";
+import { getWishPhotoPath } from "@/lib/data/wishes";
 import { contentTypeFor } from "@/lib/images";
 import { downloadWishPhoto } from "@/lib/photos";
-import { getCurrentMember } from "@/lib/queries";
-import { getSupabase } from "@/lib/supabase";
 
 /**
  * A wish's photo. The bucket is private, so this is the only way to see one.
@@ -21,28 +21,19 @@ export async function GET(
   _request: Request,
   { params }: { params: Promise<{ wishId: string }> },
 ) {
-  // The caller is re-derived here exactly as a Server Action does it, and only
-  // an approved member gets an answer.
-  const current = await getCurrentMember();
-  if (!current) return notFound();
+  // The caller is re-derived here exactly as a Server Action does it.
+  const viewer = await getViewer();
+  if (!viewer) return notFound();
 
   const id = idSchema.safeParse((await params).wishId);
   if (!id.success) return notFound();
 
   /*
-   * An owner reads their own list through this route too, so it is one of the
-   * owner-serving paths: it selects the photo path and nothing else, and never
-   * `claimed_by`. docs/content/privacy-rule.md#where-the-rule-is-enforced
+   * `getWishPhotoPath` refuses a wish whose owner shares no group with the
+   * caller, and every refusal here is the same 404 as a missing photo.
+   * docs/content/privacy-rule.md#serving-a-photo
    */
-  const { data, error } = await getSupabase()
-    .from("wishes")
-    .select("photo_path")
-    .eq("id", id.data)
-    .maybeSingle();
-
-  if (error) throw error;
-
-  const path = (data as { photo_path: string | null } | null)?.photo_path;
+  const path = await getWishPhotoPath(viewer, id.data);
   if (!path) return notFound();
 
   // From the whitelist, never echoed from the stored path — the header can only

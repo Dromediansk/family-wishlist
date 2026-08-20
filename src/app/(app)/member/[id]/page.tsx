@@ -12,7 +12,9 @@ import { SetupRequired } from "@/components/setup-required";
 import { WishRow } from "@/components/wish-row";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { getAccess, getMemberById, getWishListFor } from "@/lib/queries";
+import { enterGroup, getAccess } from "@/lib/data/access";
+import { getPeerUser } from "@/lib/data/members";
+import { getWishListFor } from "@/lib/data/wishes";
 import { isConfigured } from "@/lib/supabase";
 
 export default async function MemberPage({
@@ -24,16 +26,20 @@ export default async function MemberPage({
 
   const [{ id }, access] = await Promise.all([params, getAccess()]);
 
-  // Nobody reads a list without being in the family, and the URL is guessable.
+  // Nobody reads a list without a session, and the URL is guessable.
   if (access.kind === "anonymous") redirect("/login");
-  if (access.kind === "pending") redirect("/pending");
+  if (access.kind === "groupless") redirect("/start");
 
-  const currentMember = access.member;
-  const owner = await getMemberById(id);
+  const viewer = access.viewer;
+  const ctx = await enterGroup(viewer.groups[0].id);
+  if (!ctx) notFound();
 
+  // The id in the URL is a claim, not proof: this is what turns it into a
+  // person the viewer is allowed to see, or a 404.
+  const owner = await getPeerUser(viewer, id);
   if (!owner) notFound();
 
-  const list = await getWishListFor(owner.id, currentMember.id);
+  const list = await getWishListFor(viewer, owner.id, ctx.groupId);
 
   return (
     <div className="space-y-6">
@@ -99,17 +105,18 @@ export default async function MemberPage({
                   <WishRow
                     key={wish.id}
                     wish={wish}
+                    // Anything somebody else holds dims down, whether or not
+                    // this viewer is told who that somebody is.
                     dimmed={
-                      wish.claimedBy !== null &&
-                      wish.claimedBy.id !== currentMember.id
+                      wish.claim.kind === "taken" ||
+                      (wish.claim.kind === "taken-by" &&
+                        wish.claim.by.id !== viewer.userId)
                     }
                     action={
                       <ClaimButton
                         wishId={wish.id}
-                        claimedByCurrentMember={
-                          wish.claimedBy?.id === currentMember.id
-                        }
-                        claimedByName={wish.claimedBy?.name ?? null}
+                        claim={wish.claim}
+                        viewerId={viewer.userId}
                       />
                     }
                   />

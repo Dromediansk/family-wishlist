@@ -5,20 +5,17 @@ import { GiftIcon, UndoIcon } from "lucide-react";
 
 import { claimWish, unclaimWish } from "@/app/actions/wishes";
 import { Button } from "@/components/ui/button";
+import type { UserId } from "@/lib/ids";
+import type { ClaimView } from "@/lib/types";
 
 type Props = {
   wishId: string;
-  /** Null when nobody has claimed it yet. */
-  claimedByCurrentMember: boolean;
-  claimedByName: string | null;
+  claim: ClaimView;
+  viewerId: UserId;
 };
 
 /** Claim or release an item on someone else's list. Never rendered on your own. */
-export function ClaimButton({
-  wishId,
-  claimedByCurrentMember,
-  claimedByName,
-}: Props) {
+export function ClaimButton({ wishId, claim, viewerId }: Props) {
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
 
@@ -30,7 +27,7 @@ export function ClaimButton({
     });
   }
 
-  if (claimedByCurrentMember) {
+  if (claim.kind === "taken-by" && claim.by.id === viewerId) {
     return (
       <div className="flex flex-col items-end gap-1">
         <Button
@@ -50,11 +47,22 @@ export function ClaimButton({
     );
   }
 
-  // Taken by someone else — show who, and offer nothing to click.
-  if (claimedByName) {
+  // Taken by someone else in a group this viewer shares — show who, and offer
+  // nothing to click.
+  if (claim.kind === "taken-by") {
     return (
       <span className="text-muted-foreground shrink-0">
-        Toto kupuje {claimedByName}
+        Toto kupuje {claim.by.name}
+      </span>
+    );
+  }
+
+  // Reserved by somebody in a group this viewer is not in. They must know it is
+  // taken, so nobody buys it twice — and must not learn by whom.
+  if (claim.kind === "taken") {
+    return (
+      <span className="text-muted-foreground shrink-0">
+        Toto už niekto kupuje
       </span>
     );
   }

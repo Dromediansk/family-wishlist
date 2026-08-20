@@ -2,16 +2,19 @@ import type { GroupId, MembershipId, UserId } from "@/lib/ids";
 
 export type Role = "admin" | "member";
 
-/** docs/content/membership.md — everyone lands `pending` except the first. */
-export type MemberStatus = "pending" | "active";
-
+/** One person in one group. `id` is the membership, never the account. */
 export type Member = {
-  id: string;
+  id: MembershipId;
   name: string;
   role: Role;
   createdAt: string;
 };
 
+/**
+ * A member carrying both of their ids. `id` addresses the membership, which is
+ * what an admin control edits; `userId` addresses the account, which is what a
+ * list link and every visibility check take. Conflating them is a type error.
+ */
 export type MemberWithCount = Member & {
   userId: UserId;
   wishCount: number;
@@ -27,15 +30,6 @@ export type MemberSummary = MemberWithCount &
   ({ viewerIsOwner: true } | { viewerIsOwner: false; availableCount: number });
 
 /**
- * A member plus the fields only an admin may see. Separate from `Member` so
- * email addresses reach one screen rather than every member card.
- */
-export type MemberAccount = Member & {
-  status: MemberStatus;
-  email: string | null;
-};
-
-/**
  * A wish as shown to the person whose list it is. Deliberately NO claim fields,
  * so a leak is a type error. docs/content/privacy-rule.md
  */
@@ -49,15 +43,31 @@ export type OwnerWish = {
   createdAt: string;
 };
 
+/**
+ * What a viewer is told about a reservation.
+ *
+ * `taken` has no name to render, which is the point: a claim made in one group
+ * must not name a stranger to another. The union is the enforcement — a
+ * component handed a `taken` claim cannot reach for `by`.
+ * docs/content/privacy-rule.md#where-the-rule-is-enforced
+ */
+export type ClaimView =
+  | { kind: "free" }
+  | { kind: "taken"; at: string }
+  | { kind: "taken-by"; at: string; by: { id: UserId; name: string } };
+
 /** A wish as shown to everyone except the owner: claim status included. */
-export type ViewerWish = OwnerWish & {
-  claimedBy: { id: string; name: string } | null;
-  claimedAt: string | null;
+export type ViewerWish = OwnerWish & { claim: ClaimView };
+
+/** Somebody the viewer shares a group with, named for the screen they are on. */
+export type PeerUser = {
+  id: UserId;
+  name: string;
 };
 
 /** A wish the current member has claimed, with whose list it came from. */
 export type ClaimedWish = OwnerWish & {
-  owner: { id: string; name: string };
+  owner: PeerUser;
 };
 
 /**
@@ -79,7 +89,7 @@ export type WishListView =
 
 /**
  * Everything `WishRow` displays. The narrowing is the point: handed a
- * `ViewerWish`, the row still cannot reach `claimedBy` through this type.
+ * `ViewerWish`, the row still cannot reach `claim` through this type.
  */
 export type Displayable = Pick<
   OwnerWish,

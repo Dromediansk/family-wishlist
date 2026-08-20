@@ -1,8 +1,9 @@
-import { redirect } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 
 import { MemberCard } from "@/components/member-card";
 import { SetupRequired } from "@/components/setup-required";
-import { getAccess, getMemberSummaries } from "@/lib/queries";
+import { enterGroup, getAccess } from "@/lib/data/access";
+import { getMemberSummaries } from "@/lib/data/members";
 import { isConfigured } from "@/lib/supabase";
 
 export default async function HomePage() {
@@ -11,13 +12,15 @@ export default async function HomePage() {
   const access = await getAccess();
 
   // proxy.ts already bounced signed-out visitors, but that is an optimisation —
-  // this is the check that decides, and the pending case needs the database.
+  // this is the check that decides, and the groupless case needs the database.
   if (access.kind === "anonymous") redirect("/login");
-  if (access.kind === "pending") redirect("/pending");
+  if (access.kind === "groupless") redirect("/start");
 
-  const currentMember = access.member;
-  // The viewer's id decides whose availability count is withheld.
-  const members = await getMemberSummaries(currentMember.id);
+  const viewer = access.viewer;
+  const ctx = await enterGroup(viewer.groups[0].id);
+  if (!ctx) notFound();
+
+  const members = await getMemberSummaries(ctx);
 
   return (
     <div className="space-y-6">

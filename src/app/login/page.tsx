@@ -5,7 +5,7 @@ import { signInWithGoogle } from "@/app/actions/auth";
 import { GoogleIcon } from "@/components/google-icon";
 import { SetupRequired } from "@/components/setup-required";
 import { SubmitButton } from "@/components/submit-button";
-import { getAccess } from "@/lib/queries";
+import { getAccess } from "@/lib/data/access";
 import { isConfigured } from "@/lib/supabase";
 
 export default async function LoginPage({

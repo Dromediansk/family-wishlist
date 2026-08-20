@@ -1,74 +1,80 @@
 import { describe, expect, it } from "vitest";
 
-import { isAdmin, resolveAccess } from "@/lib/access";
-import type { Member, MemberStatus } from "@/lib/types";
+import { isGroupAdmin, resolveAccess } from "@/lib/access";
+import { asGroupId, asUserId } from "@/lib/ids";
+import type { GroupRef, Viewer } from "@/lib/types";
+
+/**
+ * Three doors, and the pages route off nothing else: no session, a session with
+ * no group, and a session inside at least one group.
+ */
 
 const AUTH_USER_ID = "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa";
+const USER_ID = asUserId("11111111-1111-4111-8111-111111111111");
 
-function memberRow(status: MemberStatus): Member & { status: MemberStatus } {
-  return {
-    id: "11111111-1111-4111-8111-111111111111",
-    name: "Miroslav",
-    role: "admin",
-    createdAt: "2026-01-01T00:00:00.000Z",
-    status,
-  };
+const family: GroupRef = {
+  id: asGroupId("22222222-2222-4222-8222-222222222222"),
+  name: "Naša rodina",
+  role: "admin",
+};
+
+function viewer(groups: GroupRef[]): Viewer {
+  return { userId: USER_ID, peers: new Set([USER_ID]), groups };
 }
 
 describe("resolveAccess", () => {
   it("treats a visitor with no session as anonymous", () => {
     expect(
-      resolveAccess({ authUserId: null, member: memberRow("active") }),
+      resolveAccess({ authUserId: null, viewer: viewer([family]) }),
     ).toEqual({ kind: "anonymous" });
   });
 
-  it("lets an approved member in", () => {
-    const access = resolveAccess({
-      authUserId: AUTH_USER_ID,
-      member: memberRow("active"),
-    });
-
-    expect(access.kind).toBe("active");
-    expect(access.kind === "active" && access.member.name).toBe("Miroslav");
-  });
-
-  it("holds an unapproved member at the door", () => {
-    const access = resolveAccess({
-      authUserId: AUTH_USER_ID,
-      member: memberRow("pending"),
-    });
-
-    expect(access.kind).toBe("pending");
-  });
-
-  it("does not admit a session whose member row is gone", () => {
-    expect(resolveAccess({ authUserId: AUTH_USER_ID, member: null })).toEqual({
+  it("does not admit a session whose account row is gone", () => {
+    expect(resolveAccess({ authUserId: AUTH_USER_ID, viewer: null })).toEqual({
       kind: "anonymous",
     });
   });
 
-  it("never carries status through to the member it returns", () => {
+  it("sends an account that belongs to no group to the groupless door", () => {
     const access = resolveAccess({
       authUserId: AUTH_USER_ID,
-      member: memberRow("active"),
+      viewer: viewer([]),
     });
 
-    expect(access.kind === "active" && Object.keys(access.member)).not.toContain(
-      "status",
+    expect(access.kind).toBe("groupless");
+  });
+
+  it("lets an account with one group in", () => {
+    const access = resolveAccess({
+      authUserId: AUTH_USER_ID,
+      viewer: viewer([family]),
+    });
+
+    expect(access.kind).toBe("member");
+    expect(access.kind === "member" && access.viewer.groups[0].name).toBe(
+      "Naša rodina",
+    );
+  });
+
+  it("leaves a groupless viewer their own id in peers", () => {
+    // Without it `canReadList` would refuse them their own list.
+    const access = resolveAccess({
+      authUserId: AUTH_USER_ID,
+      viewer: viewer([]),
+    });
+
+    expect(access.kind === "groupless" && access.viewer.peers.has(USER_ID)).toBe(
+      true,
     );
   });
 });
 
-describe("isAdmin", () => {
-  it("recognises an admin", () => {
-    const { status, ...member } = memberRow("active");
-    expect(status).toBe("active");
-    expect(isAdmin(member)).toBe(true);
+describe("isGroupAdmin", () => {
+  it("recognises an admin of this group", () => {
+    expect(isGroupAdmin(family)).toBe(true);
   });
 
   it("refuses an ordinary member", () => {
-    const { status, ...member } = memberRow("active");
-    expect(status).toBe("active");
-    expect(isAdmin({ ...member, role: "member" })).toBe(false);
+    expect(isGroupAdmin({ ...family, role: "member" })).toBe(false);
   });
 });
