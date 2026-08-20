@@ -22,7 +22,7 @@ describe("manifest", () => {
 
   it("is in Slovak", () => {
     expect(result.lang).toBe("sk");
-    expect(result.short_name).toBe("Želania");
+    expect(result.short_name).toBe("Prajem si..");
   });
 
   it("keeps short_name short enough for a home screen label", () => {
@@ -38,9 +38,9 @@ describe("manifest", () => {
       return width >= 192;
     });
     expect(installable.length).toBeGreaterThan(0);
-    expect(
-      installable.some((icon) => icon.purpose?.includes("maskable")),
-    ).toBe(true);
+    expect(installable.some((icon) => icon.purpose?.includes("maskable"))).toBe(
+      true,
+    );
   });
 
   it("uses plain sRGB colours, not the oklch() from globals.css", () => {

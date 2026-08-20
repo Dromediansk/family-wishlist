@@ -22,13 +22,13 @@ const atkinson = localFont({
 });
 
 export const metadata: Metadata = {
-  title: "Rodinný zoznam želaní",
-  description: "Čo by si kto želal a kto potichu kupuje čo.",
-  applicationName: "Rodinný zoznam želaní",
+  title: "Prajem si..",
+  description: "Čo by si kto prial a kto splní prianie komu.",
+  applicationName: "Prajem si..",
   appleWebApp: {
     capable: true,
     // Matches `short_name` in manifest.ts.
-    title: "Želania",
+    title: "Prajem si..",
     statusBarStyle: "default",
   },
 };

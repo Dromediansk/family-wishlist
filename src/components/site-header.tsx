@@ -26,7 +26,7 @@ export async function SiteHeader() {
         className="flex min-w-0 items-center gap-2 text-lg font-semibold sm:text-xl"
       >
         <GiftIcon className="text-primary size-6 shrink-0" />
-        <span className="truncate">Rodinný zoznam želaní</span>
+        <span className="truncate">Prajem si..</span>
       </Link>
       {/*
        * Without this boundary the account half's round trip sits in front of the

@@ -44,7 +44,7 @@ export default async function LoginPage({
 
       {/* The header does not render here, so this is the page's only heading. */}
       <h1 className="mt-6 text-2xl font-semibold text-balance sm:text-3xl">
-        Rodinný zoznam želaní
+        Prajem si..
       </h1>
 
       <p className="text-muted-foreground mt-3 text-balance">
