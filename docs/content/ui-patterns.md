@@ -166,6 +166,19 @@ Adding a wish whose *photo* fails is `final` for the same reason, even though
 nothing was reserved: the wish is already saved, so pressing the button again
 would add a second one. The message says so.
 
+### Two things `ConfirmActionDialog` allows for
+
+- **`confirmVariant`.** The confirm button is the primary colour unless a caller
+  asks for `destructive`. `DeleteGroupButton`
+  ([Deleting a group](groups.md#deleting-a-group)) is the only one that does —
+  red for the one action in the app that ends something for other people, rather
+  than red on every bin.
+- **An action that navigates away resolves with nothing.** Next's action reducer
+  drops a Server Action's return value when the response carries a redirect, so
+  the awaited result is `undefined` on the success path of `deleteGroup` and only
+  a real refusal ever reaches `setFailure`. Dereferencing it unguarded would
+  throw inside the transition, on the one path where everything worked.
+
 ## Picking a photo
 
 `WishPhotoField` ([`src/components/wish-photo-field.tsx`](../../src/components/wish-photo-field.tsx))

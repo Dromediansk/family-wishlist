@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { ArrowLeftIcon } from "lucide-react";
 
+import { DeleteGroupButton } from "@/components/delete-group";
 import { CreateInviteButton, InviteList } from "@/components/invites";
 import { ManageMembers } from "@/components/manage-members";
 import { SetupRequired } from "@/components/setup-required";
@@ -66,6 +67,23 @@ export default async function FamilyPage({
         </div>
         <CreateInviteButton groupId={ctx.groupId} />
         <InviteList groupId={ctx.groupId} invites={invites} />
+      </div>
+
+      {/* Behind a rule, so the one irreversible control on the page is not
+          sitting next to the everyday ones. */}
+      <div className="space-y-4 border-t pt-6">
+        <div className="space-y-2">
+          <h2 className="text-xl font-semibold text-balance">Vymazať skupinu</h2>
+          <p className="text-muted-foreground max-w-[62ch]">
+            Skupina zmizne pre všetkých jej členov. Želania a história o darovaní
+            zostávajú ľuďom — patria im, nie skupine.
+          </p>
+        </div>
+        <DeleteGroupButton
+          groupId={ctx.groupId}
+          groupName={ctx.groupName}
+          memberCount={members.length}
+        />
       </div>
     </div>
   );

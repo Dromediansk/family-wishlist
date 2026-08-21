@@ -23,6 +23,8 @@ type Props = {
   description: React.ReactNode;
   confirmLabel: string;
   cancelLabel: string;
+  /** The confirm button's colour. Red belongs on what cannot be undone. */
+  confirmVariant?: React.ComponentProps<typeof AlertDialogAction>["variant"];
   /** Replaces `question` once the action has refused for good. */
   refusedTitle: string;
   action: () => Promise<ActionResult>;
@@ -43,6 +45,7 @@ export function ConfirmActionDialog({
   description,
   confirmLabel,
   cancelLabel,
+  confirmVariant,
   refusedTitle,
   action,
 }: Props) {
@@ -79,13 +82,20 @@ export function ConfirmActionDialog({
           <AlertDialogCancel>{refused ? "Zavrieť" : cancelLabel}</AlertDialogCancel>
           {refused ? null : (
             <AlertDialogAction
+              variant={confirmVariant}
               loading={pending}
               onClick={(event) => {
                 event.preventDefault(); // keeps the dialog open on failure
                 setFailure(null);
                 startTransition(async () => {
-                  const result = await action();
-                  if (!result.ok) setFailure(result);
+                  /*
+                   * An action that navigates away resolves with nothing —
+                   * Next's action reducer drops the return value when the
+                   * response carries a redirect — so only a real refusal is
+                   * left to render.
+                   */
+                  const result: ActionResult | undefined = await action();
+                  if (result && !result.ok) setFailure(result);
                 });
               }}
             >

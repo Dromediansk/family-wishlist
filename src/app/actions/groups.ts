@@ -1,9 +1,15 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { redirect, RedirectType } from "next/navigation";
 import { z } from "zod";
 
-import { enterGroup, getAccountName, getViewer } from "@/lib/data/access";
+import {
+  enterGroup,
+  getAccountName,
+  getViewer,
+  requireGroupAdmin,
+} from "@/lib/data/access";
 import { countGroupsCreatedBy } from "@/lib/data/groups";
 import { MAX_GROUPS_PER_ACCOUNT } from "@/lib/groups";
 import { notifyChanged } from "@/lib/realtime";
@@ -90,4 +96,52 @@ export async function createGroup(
   const ctx = await enterGroup(groupId);
   if (ctx) await notifyChanged([ctx.groupId]);
   return { ok: true, groupId };
+}
+
+/**
+ * End a group. Every membership and every invite into it goes with it — both
+ * cascade in the database — and `memberships_release_claims` fires on each
+ * cascaded membership, so the reservations that only existed because two people
+ * shared *this* group are released in both directions.
+ *
+ * Nothing else moves: a wish list belongs to a person and a history row is a
+ * copied snapshot, which is why neither table has a group to cascade from.
+ * docs/content/groups.md#deleting-a-group
+ */
+export async function deleteGroup(groupId: string): Promise<ActionResult> {
+  const permitted = await requireGroupAdmin(
+    groupId,
+    "Skupinu môže vymazať len jej správca.",
+  );
+  if (!permitted.ok) return permitted;
+
+  // No Zod: `groupId` is the only input, and `enterGroup` already refused a
+  // malformed uuid before this line. Scope lives in the WHERE clause, and
+  // `ctx.groupId` is the membership row that just proved the caller is an
+  // admin here — never the id the client sent.
+  const { data, error } = await getSupabase()
+    .from("groups")
+    .delete()
+    .eq("id", permitted.ctx.groupId)
+    .select("id");
+
+  if (error) return { ok: false, error: error.message };
+  if (!data || data.length === 0) {
+    return { ok: false, error: "Táto skupina už neexistuje.", final: true };
+  }
+
+  revalidatePath("/", "layout");
+  // The channel is named by the id rather than by the row, so the ping still
+  // reaches the tabs that were watching this group after it has gone.
+  // docs/content/live-updates.md
+  await notifyChanged([permitted.ctx.groupId]);
+
+  /*
+   * Outside every try, because `redirect` throws. `/` owns no screen of its
+   * own: it lands on the first remaining group by join date, or on `/start`
+   * when this was the last one. `replace` rather than the Server Action default
+   * `push` — the URL being left is a group that no longer exists, so Back must
+   * not offer it again.
+   */
+  redirect("/", RedirectType.replace);
 }
