@@ -14,7 +14,7 @@ import {
 } from "@/lib/photos";
 import { notifyOwnerChanged } from "@/lib/realtime";
 import { getSupabase } from "@/lib/supabase";
-import type { ActionResult } from "@/lib/types";
+import type { ActionResult, Viewer } from "@/lib/types";
 import { refusalFor } from "@/lib/wishes";
 
 const idSchema = z.uuid("Neplatné želanie.");
@@ -67,6 +67,7 @@ const wishInputSchema = z.object({
         value == null || /^https?:\/\/\S+$/i.test(value),
       "Odkaz musí začínať na http:// alebo https://",
     ),
+  groupIds: z.array(z.uuid()).min(1, "Vyber aspoň jednu skupinu."),
   photo: photoSchema.optional().default({ kind: "unchanged" }),
 });
 
@@ -74,6 +75,12 @@ export type WishInput = z.input<typeof wishInputSchema>;
 
 function firstIssue(error: z.ZodError): string {
   return error.issues[0]?.message ?? "Toto nevyzerá správne.";
+}
+
+/** Never trust group ids from the client — only ones the caller actually belongs to. */
+function ownsEveryGroup(viewer: Viewer, groupIds: string[]): boolean {
+  const allowed = new Set(viewer.groups.map((group) => group.id as string));
+  return groupIds.every((id) => allowed.has(id));
 }
 
 /**
@@ -164,6 +171,10 @@ export async function addWish(input: WishInput): Promise<ActionResult> {
   const parsed = wishInputSchema.safeParse(input);
   if (!parsed.success) return { ok: false, error: firstIssue(parsed.error) };
 
+  if (!ownsEveryGroup(viewer, parsed.data.groupIds)) {
+    return { ok: false, error: "Neplatná skupina." };
+  }
+
   const supabase = getSupabase();
   const { data, error } = await supabase
     .from("wishes")
@@ -182,6 +193,23 @@ export async function addWish(input: WishInput): Promise<ActionResult> {
   if (error) return { ok: false, error: error.message };
 
   const { id: wishId } = data as { id: string };
+
+  const { error: groupsError } = await supabase.from("wish_groups").insert(
+    parsed.data.groupIds.map((groupId) => ({
+      wish_id: wishId,
+      group_id: groupId,
+    })),
+  );
+
+  if (groupsError) {
+    // The wish row already exists; retrying would add a second one.
+    return {
+      ok: false,
+      error: "Želanie je uložené, ale skupiny sa nepodarilo priradiť.",
+      final: true,
+    };
+  }
+
   const photo = await attachPhoto(wishId, viewer.userId, parsed.data.photo);
 
   revalidatePath("/", "layout");
@@ -218,23 +246,22 @@ export async function updateWish(
   const parsed = wishInputSchema.safeParse(input);
   if (!parsed.success) return { ok: false, error: firstIssue(parsed.error) };
 
+  if (!ownsEveryGroup(viewer, parsed.data.groupIds)) {
+    return { ok: false, error: "Neplatná skupina." };
+  }
+
   const supabase = getSupabase();
-  const { data, error } = await supabase
-    .from("wishes")
-    .update({
-      title: parsed.data.title,
-      description: parsed.data.description ?? null,
-      url: parsed.data.url ?? null,
-    })
-    // Both guards are in the predicate, never a read-then-write: someone else's
-    // wish does not match, and neither does one a claim has just landed on.
-    .eq("id", id.data)
-    .eq("owner_user_id", viewer.userId)
-    .is("claimed_by_user_id", null)
-    .select("id");
+  const { data, error } = await supabase.rpc("update_wish", {
+    p_wish_id: id.data,
+    p_owner_id: viewer.userId,
+    p_title: parsed.data.title,
+    p_description: parsed.data.description ?? null,
+    p_url: parsed.data.url ?? null,
+    p_group_ids: parsed.data.groupIds,
+  });
 
   if (error) return { ok: false, error: error.message };
-  if (!data || data.length === 0) {
+  if (!data) {
     return lookUpRefusal(id.data, viewer.userId, "update");
   }
 
