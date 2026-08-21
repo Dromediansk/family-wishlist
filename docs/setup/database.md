@@ -160,7 +160,7 @@ What this table is for and the two pages that read it:
 
 ## Functions and triggers
 
-Six, plus `clear_claim_timestamp` above. Every one of them is in the database
+Seven, plus `clear_claim_timestamp` above. Every one of them is in the database
 rather than in application code because it has to be unavoidable.
 
 | Name | Kind | Does |
