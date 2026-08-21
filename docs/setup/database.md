@@ -33,6 +33,12 @@ One row per Google account. This is identity, and nothing here is per group.
 nulled rather than cascaded, so deleting an account never takes a group other
 people are still using.
 
+Deleting the *group* is a thing the app does —
+[Deleting a group](../content/groups.md#deleting-a-group) — and it needs no code
+beyond the one `delete`: the two `ON DELETE CASCADE`s below take the memberships
+and the invites, and `memberships_release_claims` fires on each cascaded
+membership. No wish, no photo and no history row is reachable from here.
+
 ### `memberships`
 
 One row per (account, group). This is where belonging lives — and with it the

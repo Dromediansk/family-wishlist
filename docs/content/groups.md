@@ -78,6 +78,9 @@ An account may create at most `MAX_GROUPS_PER_ACCOUNT`
 `groups.created_by`, which holds an `app_users.id`, so **leaving a group does not
 give the budget back**: the row still records who brought it into existence.
 
+**Deleting one does**, and for the same reason read the other way round — the row
+that recorded it is gone. See [Deleting a group](#deleting-a-group).
+
 The number is cheap insurance rather than a derived limit, which is why it is a
 constant and not a setting. It is the one guard here built for a threat the
 invite-only design does not have yet.
@@ -190,11 +193,48 @@ Their **history** survives. `fulfilled_wishes` copies both names from
 `app_users` rather than joining to them, so a record stays readable whoever
 leaves — see [History](history.md).
 
+## Deleting a group
+
+**Any admin of the group may end it**, from *Vymazať skupinu* at the foot of
+`/g/{group id}/family` — behind a rule, so the one irreversible control on the
+page does not sit among the everyday ones. One `AlertDialog` is the whole
+ceremony: it names the group, says how many people lose access, and its confirm
+button is the only red one in the app. No typed name, no second step; a group is
+a circle of people, not a production database.
+
+Not the creator alone. Every other control on that page is "admin of *this*
+group", and one more spelling of who may do what would be a rule to keep in step
+rather than a safeguard — `requireGroupAdmin(groupId, "Skupinu môže vymazať len
+jej správca.")` is the same check as the rest.
+
+**The database does almost all of it.** `memberships.group_id` and
+`invites.group_id` are both `ON DELETE CASCADE`, so one `delete` on `groups`
+takes every membership and every invite with it, and
+`memberships_release_claims` fires on each cascaded membership — releasing, in
+both directions, the reservations that existed only because two people shared
+*this* group. The cascade removes the rows one at a time, but both memberships
+cannot survive it, so no release is missed. Nobody is told a reservation went;
+that silence is the same choice, and the same accepted hole, as
+[Removing somebody](#removing-somebody).
+
+**Nothing else moves.** Wishes, their photos and `fulfilled_wishes` are
+untouched, and neither table even has a group to cascade from: a list belongs to
+a person and a history row is a copied snapshot. Deleting the group somebody
+kept a list in does not touch the list.
+
+Afterwards `deleteGroup` ([`src/app/actions/groups.ts`](../../src/app/actions/groups.ts))
+sends the browser to `/`, which owns no screen of its own and lands on the first
+remaining group by join date — or on `/start` when that was the last one. The
+redirect `replace`s rather than pushes: the URL being left is a group that no
+longer exists, so Back must not offer it again. Everyone else's open tab gets
+the usual content-free ping, which still arrives because the channel is named by
+the group id and not by the row.
+
 ## What is deliberately missing
 
 - **Nobody can leave a group themselves.** An admin can remove a member; a
-  member cannot remove themselves. Asking an admin is the only exit.
-- **A group cannot be deleted.** Not from the app, at any rate.
+  member cannot remove themselves. Asking an admin is the only exit — and
+  deleting the group is not one, since that is the admin's power too.
 - **A signed-out visitor who opens a dead link lands on a bare `/login`.**
   `/join/{token}` sends them to `/start` with the refusal in the query string,
   but `src/proxy.ts` strips the query when it bounces a visitor with no session,

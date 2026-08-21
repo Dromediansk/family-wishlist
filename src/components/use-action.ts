@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from "react";
 
-import type { ActionResult } from "@/lib/types";
+import type { ActionOutcome } from "@/lib/types";
 
 /**
  * One transition and one message for a control that calls a single Server
@@ -16,7 +16,7 @@ import type { ActionResult } from "@/lib/types";
 export function useAction(): {
   pending: boolean;
   error: string | null;
-  run: (action: () => Promise<ActionResult>) => void;
+  run: (action: () => Promise<ActionOutcome>) => void;
   /** Forget the last message — for a dialog that closed and may reopen. */
   reset: () => void;
 } {
@@ -31,7 +31,7 @@ export function useAction(): {
       setError(null);
       startTransition(async () => {
         const result = await action();
-        if (!result.ok) setError(result.error);
+        if (result && !result.ok) setError(result.error);
       });
     },
   };

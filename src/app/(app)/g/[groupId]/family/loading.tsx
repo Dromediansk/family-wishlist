@@ -50,6 +50,16 @@ export default function FamilyLoading() {
           ))}
         </div>
       </div>
+
+      {/* And the delete section, or the page grows under whoever is reading it. */}
+      <div className="space-y-4 border-t pt-6">
+        <div className="space-y-2">
+          <Skeleton className="h-7 w-40" />
+          <Skeleton className="h-5 w-80 max-w-full" />
+        </div>
+
+        <Skeleton className="h-11 w-full sm:w-48" />
+      </div>
     </div>
   );
 }

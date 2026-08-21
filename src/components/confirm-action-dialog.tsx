@@ -14,7 +14,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import type { ActionFailure, ActionResult } from "@/lib/types";
+import type { ActionFailure, ActionOutcome } from "@/lib/types";
 
 type Props = {
   /** The control that opens the question. Rendered `asChild`. */
@@ -23,9 +23,11 @@ type Props = {
   description: React.ReactNode;
   confirmLabel: string;
   cancelLabel: string;
+  /** Red belongs on what ends something for other people, not on every bin. */
+  confirmVariant?: "default" | "destructive";
   /** Replaces `question` once the action has refused for good. */
   refusedTitle: string;
-  action: () => Promise<ActionResult>;
+  action: () => Promise<ActionOutcome>;
 };
 
 /**
@@ -43,6 +45,7 @@ export function ConfirmActionDialog({
   description,
   confirmLabel,
   cancelLabel,
+  confirmVariant,
   refusedTitle,
   action,
 }: Props) {
@@ -79,13 +82,14 @@ export function ConfirmActionDialog({
           <AlertDialogCancel>{refused ? "Zavrieť" : cancelLabel}</AlertDialogCancel>
           {refused ? null : (
             <AlertDialogAction
+              variant={confirmVariant}
               loading={pending}
               onClick={(event) => {
                 event.preventDefault(); // keeps the dialog open on failure
                 setFailure(null);
                 startTransition(async () => {
                   const result = await action();
-                  if (!result.ok) setFailure(result);
+                  if (result && !result.ok) setFailure(result);
                 });
               }}
             >

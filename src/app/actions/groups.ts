@@ -1,9 +1,15 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { redirect, RedirectType } from "next/navigation";
 import { z } from "zod";
 
-import { enterGroup, getAccountName, getViewer } from "@/lib/data/access";
+import {
+  enterGroup,
+  getAccountName,
+  getViewer,
+  requireGroupAdmin,
+} from "@/lib/data/access";
 import { countGroupsCreatedBy } from "@/lib/data/groups";
 import { MAX_GROUPS_PER_ACCOUNT } from "@/lib/groups";
 import { notifyChanged } from "@/lib/realtime";
@@ -90,4 +96,39 @@ export async function createGroup(
   const ctx = await enterGroup(groupId);
   if (ctx) await notifyChanged([ctx.groupId]);
   return { ok: true, groupId };
+}
+
+/**
+ * End a group. Memberships and invites cascade in the database, and
+ * `memberships_release_claims` fires on each cascaded membership.
+ * docs/content/groups.md#deleting-a-group
+ */
+export async function deleteGroup(groupId: string): Promise<ActionResult> {
+  const permitted = await requireGroupAdmin(
+    groupId,
+    "Skupinu môže vymazať len jej správca.",
+  );
+  if (!permitted.ok) return permitted;
+
+  // Scoped by `ctx.groupId` — the id the membership row proved, not the one the
+  // client sent.
+  const { data, error } = await getSupabase()
+    .from("groups")
+    .delete()
+    .eq("id", permitted.ctx.groupId)
+    .select("id");
+
+  if (error) return { ok: false, error: error.message };
+  if (!data || data.length === 0) {
+    return { ok: false, error: "Táto skupina už neexistuje.", final: true };
+  }
+
+  revalidatePath("/", "layout");
+  // The channel is named by the id, not the row, so the ping still reaches the
+  // tabs that were watching this group. docs/content/live-updates.md
+  await notifyChanged([permitted.ctx.groupId]);
+
+  // `/` re-lands on the first remaining group, or `/start` when this was the
+  // last. `replace`, not the action default `push` — the URL being left is gone.
+  redirect("/", RedirectType.replace);
 }

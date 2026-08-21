@@ -34,6 +34,11 @@ Which channels a write reaches depends on what changed:
 | a wish, a claim, a hand-over | every group the **owner** is in (`notifyOwnerChanged`) | the owner is the one person every interested viewer has in common — a claim made in one group has to reach the owner's other groups, whose members share nothing with the claimer |
 | a member, an invite, a group | that one group (`notifyChanged`) | nobody outside it can see the difference |
 
+A **deleted** group is pinged after its row has gone, which works because
+`channelFor` names the channel from the id rather than from anything that has to
+still exist. The tabs that were watching it sync, and their group-scoped route
+answers 404 — the same landing as being removed from a group.
+
 `notifyOwnerChanged` keeps its owner-groups lookup *inside* the same `try` as the
 send, because a read that fails must not fail a write that already succeeded. The
 payload is still empty either way, and always will be: the channel name is the
