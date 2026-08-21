@@ -26,6 +26,30 @@ export default function FamilyLoading() {
           </div>
         ))}
       </Card>
+
+      {/* Mirrors the Pozvánky section: heading, the create button, the list. */}
+      <div className="space-y-4">
+        <div className="space-y-2">
+          <Skeleton className="h-7 w-32" />
+          <Skeleton className="h-5 w-80 max-w-full" />
+        </div>
+
+        <Skeleton className="h-11 w-full sm:w-48" />
+
+        <div className="divide-y">
+          {Array.from({ length: 2 }, (_, i) => (
+            <div key={i} className="flex items-center gap-3 py-3">
+              <Skeleton className="size-5 shrink-0" />
+              <div className="min-w-0 flex-1 space-y-2">
+                <Skeleton className="h-4 w-32 max-w-full" />
+                <Skeleton className="h-4 w-20 max-w-full" />
+              </div>
+              <Skeleton className="size-11 shrink-0" />
+              <Skeleton className="size-11 shrink-0" />
+            </div>
+          ))}
+        </div>
+      </div>
     </div>
   );
 }
