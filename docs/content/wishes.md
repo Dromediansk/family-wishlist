@@ -32,8 +32,10 @@ Empty optional fields arrive from a form as `""`; they are stored as `NULL`.
 The owner is never taken from anything the browser sends. Every action
 re-derives the caller from their session and puts `owner_user_id` in the `WHERE`
 clause, so someone else's wish simply does not match. A wish hangs off an
-account, not a group, so nothing about ownership needs a group id at all —
-[Groups](groups.md).
+account, not a group — ownership needs no group id at all — but a separate
+`wish_groups` table decides *who else* can see it: the owner picks which of
+their own groups a wish is tagged visible in, at least one, and can change it
+any time it is not reserved — [Groups](groups.md).
 
 ## Editing and deleting
 
@@ -84,6 +86,12 @@ Two shapes come back, decided by who is looking:
 view by accident. `WishRow` itself is handed only `Displayable` (id, title,
 description, url, photo) and cannot reach claim state at all; the caller decides
 what, if anything, goes in the row's action slot.
+
+For everyone but the owner, the list is also scoped to the group they're
+viewing it from: a wish tagged for a different one of the owner's groups does
+not appear, even to someone who is a peer of the owner through that other
+group. The owner's own view is unscoped — they see and can retag every wish
+they own, regardless of which groups it currently reaches.
 
 Wishes are ordered oldest first, on every list.
 
@@ -145,11 +153,11 @@ already saved and pressing the button again would add a second one.
 `GET /wish-photo/{wish id}?v={token}`
 ([`src/app/wish-photo/[wishId]/route.ts`](../../src/app/wish-photo/%5BwishId%5D/route.ts)).
 It re-derives the caller exactly as a Server Action does, and `getWishPhotoPath`
-reads the photo's path together with its owner so that a wish whose owner shares
-no group with the caller is refused. Every refusal is the same 404 — a missing
-photo, a stranger's wish and a malformed id are indistinguishable — and
-`Content-Type` comes from a whitelist rather than from anything stored. It is one
-of the places the privacy rule is enforced —
+reads the photo's path together with its tagged groups so that a wish not
+tagged with any group the caller belongs to is refused. Every refusal is the
+same 404 — a missing photo, a stranger's wish and a malformed id are
+indistinguishable — and `Content-Type` comes from a whitelist rather than from
+anything stored. It is one of the places the privacy rule is enforced —
 [Serving a photo](privacy-rule.md#serving-a-photo).
 
 Addressed by wish id, never by object key, so no key from a URL is ever trusted.

@@ -16,10 +16,10 @@ serves it. Nobody is ever kept waiting for permission, because there is nothing
 to wait for.
 
 **A wish list belongs to a person, not to a group.** `wishes.owner_user_id`
-points at an account, so the list you keep is one list, and everyone in *any* of
-your groups reads the same one. That is what a person-level list means, and it
-is written down as one of the rule's accepted holes —
-[The privacy rule](privacy-rule.md#four-accepted-holes).
+points at an account, so the list you keep is one list, not one per group. What
+each group's members see of it is narrower than the whole: `wish_groups` tags
+every wish with which of the owner's groups can see it, at least one, and the
+owner alone decides the tagging — [Wishes](wishes.md#reading-a-list).
 
 Which group you are currently reading comes from the path: group-scoped screens
 live under `/g/{group id}`, and the switcher in the header moves between them.
@@ -180,14 +180,15 @@ Only an admin can, and it deletes **their membership and nothing else**.
 Their wishes are theirs, not the group's. Nothing cascades, no photo is pruned,
 and their other groups go on reading the same list they always did.
 
-What does change is claims. `memberships_release_claims` fires on any membership
-delete and releases every claim between two people who no longer share a group —
-in both directions, so a claim they held and a claim held on them both go. The
-reservation simply disappears, and nobody is told: the gift may already have
-been bought. That silence is deliberate and it has a precedent —
-`0005_drop_claim_notices.sql` made the same choice about telling a buyer their
-wish had gone. It is written down as an accepted hole in
-[The privacy rule](privacy-rule.md#four-accepted-holes).
+What does change is claims. `memberships_release_claims` fires on any
+membership delete and, for every wish the departing membership touches, checks
+whether the claimer is still in any group that wish is tagged with — releasing
+the claim if not, in both directions, so a claim they held and a claim held on
+them both can go. The reservation simply disappears, and nobody is told: the
+gift may already have been bought. That silence is deliberate and it has a
+precedent — `0005_drop_claim_notices.sql` made the same choice about telling a
+buyer their wish had gone. It is written down as an accepted hole in
+[The privacy rule](privacy-rule.md#three-accepted-holes).
 
 Their **history** survives. `fulfilled_wishes` copies both names from
 `app_users` rather than joining to them, so a record stays readable whoever
@@ -210,11 +211,12 @@ jej správca.")` is the same check as the rest.
 **The database does almost all of it.** `memberships.group_id` and
 `invites.group_id` are both `ON DELETE CASCADE`, so one `delete` on `groups`
 takes every membership and every invite with it, and
-`memberships_release_claims` fires on each cascaded membership — releasing, in
-both directions, the reservations that existed only because two people shared
-*this* group. The cascade removes the rows one at a time, but both memberships
-cannot survive it, so no release is missed. Nobody is told a reservation went;
-that silence is the same choice, and the same accepted hole, as
+`memberships_release_claims` fires on each cascaded membership — for every wish
+it touches, checking whether the claimer is still in any group that wish is
+tagged with, and releasing the claim in both directions if not. The cascade
+removes the rows one at a time, but both memberships cannot survive it, so no
+release is missed. Nobody is told a reservation went; that silence is the same
+choice, and the same accepted hole, as
 [Removing somebody](#removing-somebody).
 
 **Nothing else moves.** Wishes, their photos and `fulfilled_wishes` are

@@ -88,7 +88,10 @@ Eleven places, in four groups. Change one and the rest need checking.
 
 1. `getWishListFor` ([`src/lib/data/wishes.ts`](../../src/lib/data/wishes.ts))
    selects `OWNER_WISH_COLUMNS` on the owner path, so claim columns never leave
-   the database.
+   the database. Its query is also scoped to `ctx.groupId` through
+   `wish_groups` on the non-owner path — a wish tagged for a different one of
+   the owner's groups never reaches this query at all, regardless of peer
+   status.
 2. `OwnerWish` ([`src/lib/types.ts`](../../src/lib/types.ts)) has no claim
    fields, which makes a leak a type error rather than something to remember.
 3. `toOwnerWish` ([`src/lib/wishes.ts`](../../src/lib/wishes.ts)) builds an
@@ -123,10 +126,9 @@ An owner looking at their own list fetches their own photos, so the route that
 serves them is an owner-serving path like any other.
 
 9. `getWishPhotoPath` ([`src/lib/data/wishes.ts`](../../src/lib/data/wishes.ts))
-   selects the photo path **and the owner** — never a claim column — and hands
-   back nothing when that owner shares no group with the caller. Selecting the
-   owner is not selecting a claim; it is the only way the peer check has to run
-   at all. The handler at
+   selects the photo path and the wish's tagged groups — never a claim column
+   — and hands back nothing when the wish isn't tagged with any group the
+   caller belongs to. The handler at
    [`src/app/wish-photo/[wishId]/route.ts`](../../src/app/wish-photo/%5BwishId%5D/route.ts)
    answers 404 — not 403 — to everything it declines, so the response says
    nothing about which wishes exist either.
@@ -143,12 +145,15 @@ must be invisible to another.
     `ClaimView` ([`src/lib/types.ts`](../../src/lib/types.ts)) makes it stick:
     the `taken` variant of the union carries no name field, so a component
     handed one cannot render a stranger's name. The row still dims —
-    *Toto už niekto kupuje* — because "unavailable" is not a secret.
+    *Toto už niekto kupuje* — because "unavailable" is not a secret. This
+    governs the *claimer's* name; which wishes appear at all is governed a
+    level up, by the `wish_groups` filter on the query in item 1.
 11. Two triggers hold the same line in the database, where a trigger is not a
     policy and the zero-policy wall is untouched. `wishes_check_claim_peer`
-    makes a claim between two people who share no group **unstorable**, whatever
-    the app code forgot; `memberships_release_claims` releases the claims a
-    departure orphans, in both directions.
+    makes a claim from someone not in any group *this wish* is tagged with
+    **unstorable**, whatever the app code forgot; `memberships_release_claims`
+    releases the claims a departure orphans by re-checking, per wish, whether
+    the claimer is still in any of its tagged groups.
 
 Live updates are the last surface the rule reaches — see
 [Live updates](live-updates.md).
@@ -255,22 +260,17 @@ The two names on a record are snapshots from `app_users`, taken at the moment
 the gift changed hands, so the record outlives any group either party is in —
 [History](history.md).
 
-## Four accepted holes
+## Three accepted holes
 
-Four things the rule does not cover. All four are deliberate, and none of them
-is an argument for weakening it anywhere else.
+Three things the rule does not cover. All three are deliberate, and none of
+them is an argument for weakening it anywhere else.
 
 1. **An owner who tries to delete every wish learns which are taken** — the
    frozen-wish refusal, above:
    [This is a known, accepted hole](#this-is-a-known-accepted-hole).
 2. **A giver can spoil the surprise early** by pressing **Darované** before
    handing anything over: [The second accepted hole](#the-second-accepted-hole).
-3. **A person-level list is visible to every group its owner belongs to.** Your
-   colleagues read the same list your parents read, and a claim from either
-   audience makes the row unavailable to the other. That is what a person-level
-   list *is* — the list belongs to the person, not to the circle. Per-wish
-   visibility would be the fix and it is not built.
-4. **Removal silently un-reserves gifts.** When somebody is
+3. **Removal silently un-reserves gifts.** When somebody is
    [removed from a group](groups.md#removing-somebody),
    `memberships_release_claims` releases the claims that group made possible,
    and the gift may already have been bought. Nobody is told, on either side —
