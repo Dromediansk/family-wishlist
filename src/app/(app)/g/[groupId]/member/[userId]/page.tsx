@@ -36,7 +36,7 @@ export default async function MemberPage({
   const owner = await getGroupPeerUser(ctx, userId);
   if (!owner) notFound();
 
-  const list = await getWishListFor(ctx, owner.id, ctx.groupId);
+  const list = await getWishListFor(ctx, owner.id);
 
   return (
     <div className="space-y-6">

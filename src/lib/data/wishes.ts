@@ -1,10 +1,10 @@
 import "server-only";
 
 import { getPeerNames } from "@/lib/data/members";
-import { asUserId, type GroupId, type UserId } from "@/lib/ids";
+import { asGroupId, asUserId, type UserId } from "@/lib/ids";
 import { getSupabase } from "@/lib/supabase";
-import type { ClaimedWish, Viewer, WishListView } from "@/lib/types";
-import { canReadList } from "@/lib/visibility";
+import type { ClaimedWish, GroupContext, Viewer, WishListView } from "@/lib/types";
+import { canReadList, wishVisibleTo } from "@/lib/visibility";
 import {
   OWNER_WISH_COLUMNS,
   VIEWER_WISH_COLUMNS,
@@ -12,51 +12,75 @@ import {
   toOwnerWish,
   toViewerWish,
   type ClaimedWishRow,
-  type OwnerWishRow,
   type ViewerWishRow,
 } from "@/lib/wishes";
 
 /**
  * One person's wish list, shaped for whoever is looking. The owner branch
- * selects only the non-claim columns, so claim data never leaves the database on
- * that path. docs/content/privacy-rule.md#reading-a-list
+ * selects only the non-claim columns, so claim data never leaves the database
+ * on that path. docs/content/privacy-rule.md#reading-a-list
+ *
+ * The non-owner branch is scoped to `ctx.groupId`: a wish tagged for a
+ * different one of the owner's groups does not appear here, even when the
+ * viewer is also a peer of the owner through that other group.
  */
 export async function getWishListFor(
-  viewer: Viewer,
+  ctx: GroupContext,
   ownerId: UserId,
-  currentGroupId?: GroupId,
 ): Promise<WishListView> {
   /*
    * The page asks `getGroupPeerUser` first and 404s on null, so reaching this
    * line is a bug in the caller rather than anything a visitor can do.
    */
-  if (!canReadList(viewer.peers, ownerId)) {
+  if (!canReadList(ctx.peers, ownerId)) {
     throw new Error("getWishListFor called for a non-peer");
   }
 
   const supabase = getSupabase();
 
-  if (viewer.userId === ownerId) {
+  if (ctx.userId === ownerId) {
     const { data, error } = await supabase
       .from("wishes")
-      .select(OWNER_WISH_COLUMNS)
+      .select(`${OWNER_WISH_COLUMNS}, wish_groups(group_id)`)
       .eq("owner_user_id", ownerId)
       .order("created_at", { ascending: true });
 
     if (error) throw error;
+
+    const rows = (data ?? []) as unknown as {
+      id: string;
+      title: string;
+      description: string | null;
+      url: string | null;
+      photo_path: string | null;
+      created_at: string;
+      wish_groups: { group_id: string }[];
+    }[];
+
     return {
       viewerIsOwner: true,
-      wishes: ((data ?? []) as unknown as OwnerWishRow[]).map(toOwnerWish),
+      wishes: rows.map((row) =>
+        toOwnerWish({
+          id: row.id,
+          title: row.title,
+          description: row.description,
+          url: row.url,
+          photo_path: row.photo_path,
+          created_at: row.created_at,
+          group_ids: row.wish_groups.map((g) => asGroupId(g.group_id)),
+        }),
+      ),
     };
   }
 
   const [listResult, names] = await Promise.all([
     supabase
       .from("wishes")
-      .select(VIEWER_WISH_COLUMNS)
+      .select(`${VIEWER_WISH_COLUMNS}, wish_groups!inner(group_id)`)
       .eq("owner_user_id", ownerId)
+      .eq("wish_groups.group_id", ctx.groupId)
       .order("created_at", { ascending: true }),
-    getPeerNames(viewer, currentGroupId),
+    getPeerNames(ctx, ctx.groupId),
   ]);
 
   if (listResult.error) throw listResult.error;
@@ -69,7 +93,7 @@ export async function getWishListFor(
   return {
     viewerIsOwner: false,
     wishes: ((listResult.data ?? []) as unknown as ViewerWishRow[]).map((row) =>
-      toViewerWish(row, viewer.peers, names),
+      toViewerWish(row, ctx.peers, names),
     ),
   };
 }
@@ -99,10 +123,10 @@ export async function getClaimedBy(viewer: Viewer): Promise<ClaimedWish[]> {
 }
 
 /**
- * Whose list a wish is on, or null when there is no such wish or its owner
- * shares no group with the viewer. Both answers are the same refusal to the
- * caller, which is what keeps a stranger's wish id from being distinguishable
- * from a nonexistent one.
+ * Whose list a wish is on, or null when there is no such wish or it is not
+ * tagged with any group the viewer belongs to. Both answers are the same
+ * refusal to the caller, which is what keeps a stranger's wish id from being
+ * distinguishable from a nonexistent one.
  */
 export async function getWishOwner(
   viewer: Viewer,
@@ -110,27 +134,35 @@ export async function getWishOwner(
 ): Promise<UserId | null> {
   const { data, error } = await getSupabase()
     .from("wishes")
-    .select("owner_user_id")
+    .select("owner_user_id, wish_groups(group_id)")
     .eq("id", wishId)
     .maybeSingle();
 
   if (error) throw error;
 
-  const row = data as { owner_user_id: string } | null;
+  const row = data as
+    | { owner_user_id: string; wish_groups: { group_id: string }[] }
+    | null;
   if (!row) return null;
 
-  const ownerId = asUserId(row.owner_user_id);
-  return canReadList(viewer.peers, ownerId) ? ownerId : null;
+  const wishGroupIds = new Set(
+    row.wish_groups.map((g) => asGroupId(g.group_id)),
+  );
+  const viewerGroupIds = new Set(viewer.groups.map((g) => g.id));
+  if (!wishVisibleTo(wishGroupIds, viewerGroupIds)) return null;
+
+  return asUserId(row.owner_user_id);
 }
 
 /**
- * The Storage key of one wish's photo, or null when the viewer may not have it.
+ * The Storage key of one wish's photo, or null when the viewer may not have
+ * it.
  *
  * An owner reads their own list through the photo route too, so this is an
- * owner-serving path: it selects the photo path and the owner and never a claim
- * column. The owner is what the peer check needs — without it the route serves
- * any wish's photo to anybody signed in, which is a cross-group leak the moment
- * there is more than one group.
+ * owner-serving path: it selects the photo path and the wish's tagged groups
+ * and never a claim column. The group check is what the photo route relies on
+ * to answer 404 — not 403 — to everything it declines, so the response says
+ * nothing about which wishes exist either.
  * docs/content/privacy-rule.md#serving-a-photo
  */
 export async function getWishPhotoPath(
@@ -139,18 +171,22 @@ export async function getWishPhotoPath(
 ): Promise<string | null> {
   const { data, error } = await getSupabase()
     .from("wishes")
-    .select("photo_path, owner_user_id")
+    .select("photo_path, wish_groups(group_id)")
     .eq("id", wishId)
     .maybeSingle();
 
   if (error) throw error;
 
-  const row = data as {
-    photo_path: string | null;
-    owner_user_id: string;
-  } | null;
+  const row = data as
+    | { photo_path: string | null; wish_groups: { group_id: string }[] }
+    | null;
   if (!row) return null;
-  if (!canReadList(viewer.peers, asUserId(row.owner_user_id))) return null;
+
+  const wishGroupIds = new Set(
+    row.wish_groups.map((g) => asGroupId(g.group_id)),
+  );
+  const viewerGroupIds = new Set(viewer.groups.map((g) => g.id));
+  if (!wishVisibleTo(wishGroupIds, viewerGroupIds)) return null;
 
   return row.photo_path;
 }

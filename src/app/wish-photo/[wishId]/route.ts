@@ -29,9 +29,9 @@ export async function GET(
   if (!id.success) return notFound();
 
   /*
-   * `getWishPhotoPath` refuses a wish whose owner shares no group with the
-   * caller, and every refusal here is the same 404 as a missing photo.
-   * docs/content/privacy-rule.md#serving-a-photo
+   * `getWishPhotoPath` refuses a wish that isn't tagged with any group the
+   * caller belongs to, and every refusal here is the same 404 as a missing
+   * photo. docs/content/privacy-rule.md#serving-a-photo
    */
   const path = await getWishPhotoPath(viewer, id.data);
   if (!path) return notFound();
