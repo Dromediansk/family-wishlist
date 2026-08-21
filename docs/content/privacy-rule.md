@@ -127,8 +127,11 @@ serves them is an owner-serving path like any other.
 
 9. `getWishPhotoPath` ([`src/lib/data/wishes.ts`](../../src/lib/data/wishes.ts))
    selects the photo path and the wish's tagged groups — never a claim column
-   — and hands back nothing when the wish isn't tagged with any group the
-   caller belongs to. The handler at
+   — and hands back nothing unless the wish is tagged with a group the caller
+   AND the owner currently both belong to. The owner's groups are re-fetched
+   rather than trusted from the tag alone, since nothing prunes `wish_groups`
+   when its owner leaves a group — a stale tag must not go on answering for a
+   membership that is gone. The handler at
    [`src/app/wish-photo/[wishId]/route.ts`](../../src/app/wish-photo/%5BwishId%5D/route.ts)
    answers 404 — not 403 — to everything it declines, so the response says
    nothing about which wishes exist either.

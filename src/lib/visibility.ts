@@ -23,16 +23,20 @@ export function canReadList(
 }
 
 /**
- * Is this wish tagged with any group the viewer belongs to? The read-side
- * counterpart to check_claim_peer: a wish visible through one group must
- * stay invisible to somebody who only shares a different one.
+ * Is this wish, right now, tagged with a group the viewer AND the owner both
+ * belong to? The read-side counterpart to check_claim_peer, and for the same
+ * reason it needs all three sets: nothing prunes `wish_groups` when its owner
+ * leaves the group behind, so a tag the viewer still reaches is not enough on
+ * its own — the owner has to still be standing in that same group too, or the
+ * tag is stale and must not outlive the membership that justified it.
  */
 export function wishVisibleTo(
   wishGroupIds: ReadonlySet<GroupId>,
   viewerGroupIds: ReadonlySet<GroupId>,
+  ownerGroupIds: ReadonlySet<GroupId>,
 ): boolean {
   for (const id of viewerGroupIds) {
-    if (wishGroupIds.has(id)) return true;
+    if (wishGroupIds.has(id) && ownerGroupIds.has(id)) return true;
   }
   return false;
 }

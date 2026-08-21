@@ -1,6 +1,6 @@
 import "server-only";
 
-import { getPeerNames } from "@/lib/data/members";
+import { getPeerNames, groupIdsOf } from "@/lib/data/members";
 import { asGroupId, asUserId, type UserId } from "@/lib/ids";
 import { getSupabase } from "@/lib/supabase";
 import type { ClaimedWish, GroupContext, Viewer, WishListView } from "@/lib/types";
@@ -141,14 +141,16 @@ export async function getClaimedBy(viewer: Viewer): Promise<ClaimedWish[]> {
 }
 
 /**
- * Whose list a wish is on, or null when there is no such wish, the viewer is
- * no peer of its owner, or it is not tagged with any group the viewer belongs
- * to. Every answer is the same refusal to the caller, which is what keeps a
+ * Whose list a wish is on, or null when there is no such wish or it is not,
+ * right now, tagged with a group both the viewer and its owner belong to.
+ * Every answer is the same refusal to the caller, which is what keeps a
  * stranger's wish id from being distinguishable from a nonexistent one.
  *
- * Both checks are needed, not either: `peers` says the two people still share
- * a group *today*, and the tag says this wish reaches it. A tag alone would
- * outlive the owner's own membership, since nothing prunes wish_groups.
+ * The owner's current groups are re-fetched rather than trusted from the tag
+ * alone: nothing prunes `wish_groups` when its owner leaves a group, so a
+ * stale tag must not go on answering for a membership that is gone. Sharing
+ * *some* group with the owner is not enough either — it has to be the same
+ * group the wish is tagged with.
  */
 export async function getWishOwner(
   viewer: Viewer,
@@ -168,13 +170,12 @@ export async function getWishOwner(
   if (!row) return null;
 
   const ownerId = asUserId(row.owner_user_id);
-  if (!canReadList(viewer.peers, ownerId)) return null;
-
   const wishGroupIds = new Set(
     row.wish_groups.map((g) => asGroupId(g.group_id)),
   );
   const viewerGroupIds = new Set(viewer.groups.map((g) => g.id));
-  if (!wishVisibleTo(wishGroupIds, viewerGroupIds)) return null;
+  const ownerGroupIds = new Set(await groupIdsOf(ownerId));
+  if (!wishVisibleTo(wishGroupIds, viewerGroupIds, ownerGroupIds)) return null;
 
   return ownerId;
 }
@@ -189,10 +190,13 @@ export async function getWishOwner(
  * owner check alone — their own list is unscoped, and a tag left stale by a
  * group they have since left must not cost them their own picture.
  *
- * Everybody else needs both: still a peer of the owner, and this wish tagged
- * with a group they share. The checks are what the photo route relies on to
- * answer 404 — not 403 — to everything it declines, so the response says
- * nothing about which wishes exist either.
+ * Everybody else needs the wish tagged with a group *both* they and the
+ * owner currently belong to — not merely some group they happen to share
+ * with the owner elsewhere. `wishVisibleTo` re-fetches the owner's current
+ * groups for exactly that reason: a tag survives the owner leaving the
+ * group it named, since nothing prunes `wish_groups`. The checks are what
+ * the photo route relies on to answer 404 — not 403 — to everything it
+ * declines, so the response says nothing about which wishes exist either.
  * docs/content/privacy-rule.md#serving-a-photo
  */
 export async function getWishPhotoPath(
@@ -219,13 +223,12 @@ export async function getWishPhotoPath(
   const ownerId = asUserId(row.owner_user_id);
   if (viewer.userId === ownerId) return row.photo_path;
 
-  if (!canReadList(viewer.peers, ownerId)) return null;
-
   const wishGroupIds = new Set(
     row.wish_groups.map((g) => asGroupId(g.group_id)),
   );
   const viewerGroupIds = new Set(viewer.groups.map((g) => g.id));
-  if (!wishVisibleTo(wishGroupIds, viewerGroupIds)) return null;
+  const ownerGroupIds = new Set(await groupIdsOf(ownerId));
+  if (!wishVisibleTo(wishGroupIds, viewerGroupIds, ownerGroupIds)) return null;
 
   return row.photo_path;
 }

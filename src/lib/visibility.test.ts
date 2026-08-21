@@ -155,21 +155,47 @@ describe("canRevokeInvite", () => {
 });
 
 describe("wishVisibleTo", () => {
-  it("is visible when the wish and the viewer share a tagged group", () => {
-    expect(wishVisibleTo(new Set([FAMILY]), new Set([FAMILY, WORK]))).toBe(
-      true,
-    );
+  it("is visible when the wish, the viewer and the owner all share a tagged group", () => {
+    expect(
+      wishVisibleTo(
+        new Set([FAMILY]),
+        new Set([FAMILY, WORK]),
+        new Set([FAMILY]),
+      ),
+    ).toBe(true);
   });
 
-  it("is invisible when they share no tagged group", () => {
-    expect(wishVisibleTo(new Set([FAMILY]), new Set([WORK]))).toBe(false);
+  it("is invisible when the viewer shares no tagged group", () => {
+    expect(
+      wishVisibleTo(new Set([FAMILY]), new Set([WORK]), new Set([FAMILY])),
+    ).toBe(false);
   });
 
   it("is invisible when the wish has no groups at all", () => {
-    expect(wishVisibleTo(new Set(), new Set([FAMILY]))).toBe(false);
+    expect(
+      wishVisibleTo(new Set(), new Set([FAMILY]), new Set([FAMILY])),
+    ).toBe(false);
   });
 
   it("is invisible when the viewer has no groups at all", () => {
-    expect(wishVisibleTo(new Set([FAMILY]), new Set())).toBe(false);
+    expect(
+      wishVisibleTo(new Set([FAMILY]), new Set(), new Set([FAMILY])),
+    ).toBe(false);
+  });
+
+  it("is invisible when the tag is stale — the owner has since left that group", () => {
+    // The wish is still tagged FAMILY and the viewer is still in FAMILY, but
+    // the owner left FAMILY and nothing pruned the tag behind them.
+    expect(
+      wishVisibleTo(new Set([FAMILY]), new Set([FAMILY]), new Set([WORK])),
+    ).toBe(false);
+  });
+
+  it("survives a stale tag on one group when another tagged group still holds", () => {
+    // Tagged FAMILY and WORK; the owner left FAMILY but is still in WORK,
+    // and the viewer is in WORK too.
+    expect(
+      wishVisibleTo(new Set([FAMILY, WORK]), new Set([WORK]), new Set([WORK])),
+    ).toBe(true);
   });
 });
