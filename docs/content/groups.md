@@ -85,7 +85,7 @@ invite-only design does not have yet.
 ### Invites
 
 **Only an admin may open the door.** The link *is* the permission — an
-unlimited-use key to every wish in the group, good for 30 days — so minting one
+unlimited-use key to every wish in the group, good for 24 hours — so minting one
 is group management, and group management is the admin's. A member who wants a
 cousin in asks the admin for the link.
 
@@ -102,7 +102,7 @@ An invite is a link — `/join/{token}` — and it carries:
 | Field | Value |
 |---|---|
 | `token` | 32 random bytes, base64url. Stored in plaintext |
-| `expires_at` | 30 days from creation |
+| `expires_at` | 24 hours from creation |
 | `max_uses` | never set by the app, so every invite is unlimited-use |
 | `uses` | how many joins it has admitted |
 | `revoked_at` | set by a revoke, which is the only way to close a link early |

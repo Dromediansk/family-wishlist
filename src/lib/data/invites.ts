@@ -36,7 +36,7 @@ function toInvite(row: InviteRow): Invite {
   };
 }
 
-const THIRTY_DAYS_MS = 30 * 24 * 60 * 60 * 1000;
+const ONE_DAY_MS = 24 * 60 * 60 * 1000;
 
 /**
  * Mints a fresh invite for `ctx`'s group, credited to `ctx`'s own
@@ -46,7 +46,7 @@ const THIRTY_DAYS_MS = 30 * 24 * 60 * 60 * 1000;
  */
 export async function insertInvite(ctx: GroupContext): Promise<Invite> {
   const token = crypto.randomBytes(32).toString("base64url");
-  const expiresAt = new Date(Date.now() + THIRTY_DAYS_MS).toISOString();
+  const expiresAt = new Date(Date.now() + ONE_DAY_MS).toISOString();
 
   const { data, error } = await getSupabase()
     .from("invites")

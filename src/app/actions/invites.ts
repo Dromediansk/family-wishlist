@@ -27,7 +27,7 @@ const inviteIdSchema = z.uuid("Neplatná pozvánka.");
 
 /**
  * Only an admin may open the door. The link *is* the permission — an
- * unlimited-use key to every wish in the group, good for 30 days — so minting
+ * unlimited-use key to every wish in the group, good for 24 hours — so minting
  * one is group management, and group management is the admin's.
  * docs/content/groups.md#invites
  */

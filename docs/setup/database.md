@@ -63,7 +63,7 @@ Two unique constraints, and the second is not redundant with the primary key:
 | `group_id` | → `groups(id)` `ON DELETE CASCADE`, indexed |
 | `token` | unique, and stored in **plaintext** so a link already sent can be copied again |
 | `created_by` | a `memberships.id` — never an `app_users.id`. See the constraint below |
-| `expires_at` | nullable; the app sets 30 days |
+| `expires_at` | nullable; the app sets 24 hours |
 | `max_uses` | nullable, `> 0` when set. **Nothing in the app sets it**, so every invite is unlimited-use — [before changing that](../content/groups.md#before-exposing-a-use-limit) |
 | `uses` | how many joins it has admitted, default 0 |
 | `revoked_at` | nullable |

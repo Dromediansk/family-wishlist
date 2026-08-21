@@ -61,7 +61,7 @@ export default async function FamilyPage({
         <div className="space-y-2">
           <h2 className="text-xl font-semibold text-balance">Pozvánky</h2>
           <p className="text-muted-foreground max-w-[62ch]">
-            Kto odkaz otvorí, sa hneď pridá do tejto skupiny. Odkaz platí 30 dní.
+            Kto odkaz otvorí, sa hneď pridá do tejto skupiny. Odkaz platí 24 hodín.
           </p>
         </div>
         <CreateInviteButton groupId={ctx.groupId} />
