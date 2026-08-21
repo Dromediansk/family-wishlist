@@ -66,9 +66,11 @@ create trigger wish_groups_check_owner
 -- --------------------------------------------- the wish-specific claim guard
 
 -- Replaces the old blanket "share any group" rule: a claim now requires the
--- claimer to be in one of THIS wish's tagged groups, not merely any group in
--- common with the owner. Same trigger binding as 0008 (wishes_check_claim_peer);
--- only the function body changes.
+-- claimer AND the owner to both be in one of THIS wish's tagged groups. Both
+-- halves matter — nothing prunes wish_groups when a membership goes, so a tag
+-- can outlive the owner's own membership in the group it names, and checking
+-- only the claimer would let that stale tag stand in for a shared group.
+-- Same trigger binding as 0008 (wishes_check_claim_peer); only the body changes.
 create or replace function check_claim_peer()
 returns trigger
 language plpgsql
@@ -79,11 +81,12 @@ begin
      and not exists (
        select 1
          from wish_groups wg
-         join memberships m on m.group_id = wg.group_id
-        where wg.wish_id = new.id and m.user_id = new.claimed_by_user_id
+         join memberships mc on mc.group_id = wg.group_id and mc.user_id = new.claimed_by_user_id
+         join memberships mo on mo.group_id = wg.group_id and mo.user_id = new.owner_user_id
+        where wg.wish_id = new.id
      ) then
-    raise exception 'claimer % is not in any group wish % is tagged with',
-      new.claimed_by_user_id, new.id;
+    raise exception 'claimer % and owner % share no group wish % is tagged with',
+      new.claimed_by_user_id, new.owner_user_id, new.id;
   end if;
   return new;
 end;
@@ -91,10 +94,14 @@ $$;
 
 -- ------------------------------------------- releasing claims, sharpened
 
--- Strictly finer than the old version: if owner and claimer no longer share
--- any group at all, they certainly don't share one of the wish's tagged
--- groups either, so this subsumes it. Same trigger binding as 0008
--- (memberships_release_claims); only the function body changes.
+-- The claim survives only while claimer and owner still BOTH belong to some
+-- group the wish is currently tagged with. Either one leaving is enough to
+-- release it, and so is the tag itself going away — which is why the owner's
+-- membership is checked here and not taken on trust from the tag: nothing
+-- prunes wish_groups, so a tag naming a group the owner has left would
+-- otherwise keep a claim alive between two people who no longer share one.
+-- Same trigger binding as 0008 (memberships_release_claims); only the function
+-- body changes.
 create or replace function release_orphaned_claims()
 returns trigger
 language plpgsql
@@ -108,8 +115,8 @@ begin
      and not exists (
        select 1
          from wish_groups wg
-         join memberships m
-           on m.group_id = wg.group_id and m.user_id = w.claimed_by_user_id
+         join memberships mc on mc.group_id = wg.group_id and mc.user_id = w.claimed_by_user_id
+         join memberships mo on mo.group_id = wg.group_id and mo.user_id = w.owner_user_id
         where wg.wish_id = w.id
      );
   return old;
