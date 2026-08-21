@@ -39,15 +39,33 @@ any time it is not reserved — [Groups](groups.md).
 
 ## Editing and deleting
 
-Both actions carry two conditions in the same `WHERE` clause:
+Both actions carry the same three conditions:
 
 ```
-.eq("id", …).eq("owner_user_id", viewer.userId).is("claimed_by_user_id", null)
+id = … and owner_user_id = viewer.userId and claimed_by_user_id is null
 ```
 
 Ownership and reservation are checked the same way — by not matching — rather
 than by a separate read beforehand. That is what makes the reserved case
 race-free.
+
+`deleteWish` spells them straight into its `WHERE` clause:
+
+```
+.eq("id", …).eq("owner_user_id", viewer.userId).is("claimed_by_user_id", null)
+```
+
+`updateWish` cannot, because an edit now writes two tables: the wish's text and
+its `wish_groups` tags. So it calls one Postgres function instead —
+`update_wish(p_wish_id, p_owner_id, p_title, p_description, p_url,
+p_group_ids)`, which carries those same three conditions on its own `UPDATE`,
+and only if that matched replaces the wish's tags. Both halves land together or
+neither does, so a claim arriving mid-edit cannot leave the text rewritten and
+the tags stale — [Database](../setup/database.md#functions-and-triggers).
+
+The function returns the wish id, or `NULL` when the guard did not match, which
+is the same "no rows" signal a `.update()` gave and routes to the same
+`lookUpRefusal`.
 
 Refusing a reserved wish is the app's one deliberate exception to the privacy
 rule, and it is documented in full at

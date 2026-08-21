@@ -168,13 +168,14 @@ rather than in application code because it has to be unavoidable.
 | `handle_new_auth_user` | trigger on `auth.users` | Writes one `app_users` row per new auth user and decides nothing else — [Identity](../content/membership.md#one-row-per-google-account) |
 | `check_wish_group_owner` | `before insert` on `wish_groups` (`wish_groups_check_owner`) | Refuses a group tag the wish's owner does not belong to |
 | `peer_user_ids` | `stable` sql, `setof uuid` | Every account a viewer may see. Self-membership comes from the join, so it returns **nothing** for an account in no group — `seedPeers` adds the viewer's own id whatever the query said |
-| `check_claim_peer` | `before insert or update` on `wishes` (`wishes_check_claim_peer`) | Refuses a claim from someone not in any group *this wish* is tagged with. The write-side backstop the read side cannot have |
-| `release_orphaned_claims` | `after delete` on `memberships` (`memberships_release_claims`) | Releases a claim once the claimer is no longer in any group the wish is tagged with — [Removing somebody](../content/groups.md#removing-somebody) |
+| `check_claim_peer` | `before insert or update` on `wishes` (`wishes_check_claim_peer`) | Refuses a claim unless claimer **and** owner both belong to a group *this wish* is tagged with. The write-side backstop the read side cannot have |
+| `release_orphaned_claims` | `after delete` on `memberships` (`memberships_release_claims`) | Releases a claim once claimer and owner no longer both belong to a group the wish is tagged with — either one leaving is enough — [Removing somebody](../content/groups.md#removing-somebody) |
 | `update_wish` | plpgsql | Rewrites a wish's text and its group tags in one guarded statement, so a claim landing mid-edit can't split the two |
 | `fulfil_wish` | sql | Deletes a claimed wish and writes its history row in one statement — [History](../content/history.md) |
 
-A trigger is not a policy, so the two on `wishes` and `memberships` leave the
-zero-policy wall exactly where it was.
+A trigger is not a policy, so the three on `wishes`, `memberships` and
+`wish_groups` (`wish_groups_check_owner`) leave the zero-policy wall exactly
+where it was.
 
 `release_orphaned_claims` nulls `claimed_by_user_id` and lets
 `clear_claim_timestamp` null the timestamp, which is the same path
