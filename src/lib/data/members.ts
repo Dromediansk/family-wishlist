@@ -60,12 +60,16 @@ const groupMemberships = cache(
   },
 );
 
-/** How many wishes each of these people has. No claim column is selected. */
-async function countWishes(userIds: string[]): Promise<Map<UserId, number>> {
+/** How many wishes each of these people has, tagged for this group. */
+async function countWishes(
+  ctx: GroupContext,
+  userIds: string[],
+): Promise<Map<UserId, number>> {
   const { data, error } = await getSupabase()
     .from("wishes")
-    .select("owner_user_id")
-    .in("owner_user_id", userIds);
+    .select("owner_user_id, wish_groups!inner(group_id)")
+    .in("owner_user_id", userIds)
+    .eq("wish_groups.group_id", ctx.groupId);
 
   if (error) throw error;
   return tally(data);
@@ -99,7 +103,10 @@ export const getGroupMembers = cache(
     const rows = await groupMemberships(ctx);
     if (rows.length === 0) return [];
 
-    const counts = await countWishes(rows.map((row) => row.user_id));
+    const counts = await countWishes(
+      ctx,
+      rows.map((row) => row.user_id),
+    );
     return rows.map((row) => toMemberWithCount(row, counts));
   },
 );
@@ -109,7 +116,8 @@ export const getGroupMembers = cache(
  * how many of their wishes are still free.
  *
  * The availability query is scoped to this group's own members with
- * `.in("owner_user_id", …)`, selects no claim column, and drops the viewer's own
+ * `.in("owner_user_id", …)` and to this group's own wishes with the
+ * `wish_groups` join, selects no claim column, and drops the viewer's own
  * rows in the `WHERE` clause, so their number is never computed.
  * docs/content/privacy-rule.md#counting-on-the-family-grid
  *
@@ -127,11 +135,12 @@ export const getMemberSummaries = cache(
     const userIds = rows.map((row) => row.user_id);
 
     const [counts, freeResult] = await Promise.all([
-      countWishes(userIds),
+      countWishes(ctx, userIds),
       getSupabase()
         .from("wishes")
-        .select("owner_user_id")
+        .select("owner_user_id, wish_groups!inner(group_id)")
         .in("owner_user_id", userIds)
+        .eq("wish_groups.group_id", ctx.groupId)
         .is("claimed_by_user_id", null)
         .neq("owner_user_id", ctx.userId),
     ]);
