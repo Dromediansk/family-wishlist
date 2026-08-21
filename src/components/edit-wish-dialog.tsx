@@ -15,11 +15,17 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { WishForm } from "@/components/wish-form";
-import type { OwnerWish } from "@/lib/types";
+import type { GroupRef, OwnerWish } from "@/lib/types";
 import { wishPhotoUrl } from "@/lib/wishes";
 
 /** Edit and delete controls, shown only on your own list. */
-export function EditWishDialog({ wish }: { wish: OwnerWish }) {
+export function EditWishDialog({
+  wish,
+  groups,
+}: {
+  wish: OwnerWish;
+  groups: readonly GroupRef[];
+}) {
   const [open, setOpen] = useState(false);
 
   return (
@@ -40,9 +46,12 @@ export function EditWishDialog({ wish }: { wish: OwnerWish }) {
             title: wish.title,
             description: wish.description ?? "",
             url: wish.url ?? "",
+            groupIds: wish.groupIds,
             photo: { kind: "unchanged" },
           }}
           initialPhotoUrl={wishPhotoUrl(wish)}
+          groups={groups}
+          defaultGroupIds={wish.groupIds}
           submitLabel="Uložiť zmeny"
           onSubmit={(values) => updateWish(wish.id, values)}
           onDone={() => setOpen(false)}

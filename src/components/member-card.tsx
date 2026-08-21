@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import type { GroupId } from "@/lib/ids";
 import { cn, wishCount } from "@/lib/utils";
-import type { MemberSummary } from "@/lib/types";
+import type { GroupRef, MemberSummary } from "@/lib/types";
 
 /**
  * One family member, as a nameplate you tap to open their list. The name's
@@ -21,9 +21,11 @@ import type { MemberSummary } from "@/lib/types";
  */
 export function MemberCard({
   groupId,
+  groups,
   member,
 }: {
   groupId: GroupId;
+  groups: readonly GroupRef[];
   member: MemberSummary;
 }) {
   // An empty list reads better as a lone "0" than as "0 / 0".
@@ -59,7 +61,11 @@ export function MemberCard({
 
       <div className="pointer-events-none relative flex items-center gap-2">
         {member.viewerIsOwner ? (
-          <AddWishDialog className="pointer-events-auto" />
+          <AddWishDialog
+            className="pointer-events-auto"
+            groups={groups}
+            currentGroupId={groupId}
+          />
         ) : null}
         <span
           className={cn(

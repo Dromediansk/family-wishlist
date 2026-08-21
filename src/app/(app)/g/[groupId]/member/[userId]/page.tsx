@@ -70,7 +70,11 @@ export default async function MemberPage({
                 Čo som dostal
               </Link>
             </Button>
-            <AddWishDialog size="default" />
+            <AddWishDialog
+              size="default"
+              groups={ctx.groups}
+              currentGroupId={ctx.groupId}
+            />
           </div>
         ) : null}
       </div>
@@ -92,7 +96,7 @@ export default async function MemberPage({
                     action={
                       // A gap between two 44px targets, one of which deletes.
                       <div className="flex items-center gap-1">
-                        <EditWishDialog wish={wish} />
+                        <EditWishDialog wish={wish} groups={ctx.groups} />
                         <DeleteWishButton wish={wish} />
                       </div>
                     }

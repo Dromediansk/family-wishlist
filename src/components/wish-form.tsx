@@ -11,12 +11,14 @@ import {
   WishPhotoField,
   type WishPhotoChoice,
 } from "@/components/wish-photo-field";
-import type { ActionFailure, ActionResult } from "@/lib/types";
+import type { GroupId } from "@/lib/ids";
+import type { ActionFailure, ActionResult, GroupRef } from "@/lib/types";
 
 export type WishFormValues = {
   title: string;
   description: string;
   url: string;
+  groupIds: GroupId[];
   photo: WishPhotoChoice;
 };
 
@@ -24,12 +26,16 @@ type Props = {
   initial?: WishFormValues;
   /** The wish's current photo, when editing one that already has it. */
   initialPhotoUrl?: string | null;
+  /** Every group the owner belongs to. The picker is hidden when there's only one. */
+  groups: readonly GroupRef[];
+  /** Used only when `initial` is absent — i.e. adding a new wish. */
+  defaultGroupIds: GroupId[];
   submitLabel: string;
   onSubmit: (values: WishFormValues) => Promise<ActionResult>;
   onDone: () => void;
 };
 
-const EMPTY: WishFormValues = {
+const EMPTY_TEXT: Pick<WishFormValues, "title" | "description" | "url" | "photo"> = {
   title: "",
   description: "",
   url: "",
@@ -44,11 +50,15 @@ const ACTION_BUTTON = "w-full sm:w-auto";
 export function WishForm({
   initial,
   initialPhotoUrl = null,
+  groups,
+  defaultGroupIds,
   submitLabel,
   onSubmit,
   onDone,
 }: Props) {
-  const [values, setValues] = useState<WishFormValues>(initial ?? EMPTY);
+  const [values, setValues] = useState<WishFormValues>(
+    initial ?? { ...EMPTY_TEXT, groupIds: defaultGroupIds },
+  );
   const [failure, setFailure] = useState<ActionFailure | null>(null);
   const [pending, startTransition] = useTransition();
 
@@ -75,7 +85,7 @@ export function WishForm({
         setFailure(result);
         return;
       }
-      if (!initial) setValues(EMPTY);
+      if (!initial) setValues({ ...EMPTY_TEXT, groupIds: defaultGroupIds });
       onDone();
     });
   }
@@ -128,6 +138,35 @@ export function WishForm({
           />
         </div>
 
+        {groups.length > 1 ? (
+          <div className="flex flex-col gap-2">
+            <Label>Viditeľné v skupinách</Label>
+            <div className="flex flex-col gap-2">
+              {groups.map((group) => (
+                <label
+                  key={group.id}
+                  className="flex items-center gap-2 text-base"
+                >
+                  <input
+                    type="checkbox"
+                    className="h-5 w-5 accent-primary"
+                    checked={values.groupIds.includes(group.id)}
+                    onChange={(event) =>
+                      update(
+                        "groupIds",
+                        event.target.checked
+                          ? [...values.groupIds, group.id]
+                          : values.groupIds.filter((id) => id !== group.id),
+                      )
+                    }
+                  />
+                  {group.name}
+                </label>
+              ))}
+            </div>
+          </div>
+        ) : null}
+
         <div className="flex flex-col gap-2">
           <Label htmlFor="wish-photo">
             Fotka <span className="text-muted-foreground">(nepovinné)</span>
@@ -169,7 +208,7 @@ export function WishForm({
             size="lg"
             className={ACTION_BUTTON}
             loading={pending}
-            disabled={values.title.trim() === ""}
+            disabled={values.title.trim() === "" || values.groupIds.length === 0}
           >
             {submitLabel}
           </Button>
