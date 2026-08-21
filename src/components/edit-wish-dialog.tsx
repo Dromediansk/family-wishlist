@@ -28,6 +28,18 @@ export function EditWishDialog({
 }) {
   const [open, setOpen] = useState(false);
 
+  /*
+   * A tag can name a group the owner has since left or deleted, and the picker
+   * only draws a checkbox per current group — a stale id would be selected but
+   * invisible, and every save refused with "Neplatná skupina." and no way to
+   * clear it. Dropping the stale ones leaves the form saveable; if they are all
+   * stale, every current group is a better default than an empty selection.
+   */
+  const currentGroupIds = new Set(groups.map((group) => group.id));
+  const stillValid = wish.groupIds.filter((id) => currentGroupIds.has(id));
+  const initialGroupIds =
+    stillValid.length > 0 ? stillValid : groups.map((group) => group.id);
+
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
@@ -46,12 +58,12 @@ export function EditWishDialog({
             title: wish.title,
             description: wish.description ?? "",
             url: wish.url ?? "",
-            groupIds: wish.groupIds,
+            groupIds: initialGroupIds,
             photo: { kind: "unchanged" },
           }}
           initialPhotoUrl={wishPhotoUrl(wish)}
           groups={groups}
-          defaultGroupIds={wish.groupIds}
+          defaultGroupIds={initialGroupIds}
           submitLabel="Uložiť zmeny"
           onSubmit={(values) => updateWish(wish.id, values)}
           onDone={() => setOpen(false)}
