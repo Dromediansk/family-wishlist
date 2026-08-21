@@ -23,6 +23,21 @@ export function canReadList(
 }
 
 /**
+ * Is this wish tagged with any group the viewer belongs to? The read-side
+ * counterpart to check_claim_peer: a wish visible through one group must
+ * stay invisible to somebody who only shares a different one.
+ */
+export function wishVisibleTo(
+  wishGroupIds: ReadonlySet<GroupId>,
+  viewerGroupIds: ReadonlySet<GroupId>,
+): boolean {
+  for (const id of viewerGroupIds) {
+    if (wishGroupIds.has(id)) return true;
+  }
+  return false;
+}
+
+/**
  * May the viewer be told *who* reserved something? Only when they share a group
  * with that person — otherwise a claim made in one group would name a stranger
  * to another, along with the fact that the two are in a group together.

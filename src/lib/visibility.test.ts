@@ -7,6 +7,7 @@ import {
   claimedByOther,
   preferredName,
   revealClaimer,
+  wishVisibleTo,
 } from "@/lib/visibility";
 import type { ClaimView, GroupRef } from "@/lib/types";
 
@@ -150,5 +151,25 @@ describe("canRevokeInvite", () => {
         { groupId: WORK, createdBy: admin },
       ),
     ).toBe(false);
+  });
+});
+
+describe("wishVisibleTo", () => {
+  it("is visible when the wish and the viewer share a tagged group", () => {
+    expect(wishVisibleTo(new Set([FAMILY]), new Set([FAMILY, WORK]))).toBe(
+      true,
+    );
+  });
+
+  it("is invisible when they share no tagged group", () => {
+    expect(wishVisibleTo(new Set([FAMILY]), new Set([WORK]))).toBe(false);
+  });
+
+  it("is invisible when the wish has no groups at all", () => {
+    expect(wishVisibleTo(new Set(), new Set([FAMILY]))).toBe(false);
+  });
+
+  it("is invisible when the viewer has no groups at all", () => {
+    expect(wishVisibleTo(new Set([FAMILY]), new Set())).toBe(false);
   });
 });
