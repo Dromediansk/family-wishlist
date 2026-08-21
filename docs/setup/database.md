@@ -113,6 +113,21 @@ timestamp. Its body is plpgsql, so it names the column in stored text that no
 rename reaches; the two `CHECK` expressions above are re-written by Postgres and
 need nothing.
 
+### `wish_groups`
+
+One row per (wish, group). Decides which of the owner's groups can see one
+particular wish — a wish itself has no single group, only a set of them.
+
+| Column | Notes |
+|---|---|
+| `wish_id` | → `wishes(id)` `ON DELETE CASCADE` |
+| `group_id` | → `groups(id)` `ON DELETE CASCADE`, indexed |
+| `created_at` | |
+
+Primary key is `(wish_id, group_id)` — one tag per wish per group, at most.
+`check_wish_group_owner` refuses a row whose `group_id` the wish's own
+`owner_user_id` does not belong to: unstorable, not merely unvalidated.
+
 ### `fulfilled_wishes`
 
 | Column | Notes |
@@ -151,10 +166,11 @@ rather than in application code because it has to be unavoidable.
 | Name | Kind | Does |
 |---|---|---|
 | `handle_new_auth_user` | trigger on `auth.users` | Writes one `app_users` row per new auth user and decides nothing else — [Identity](../content/membership.md#one-row-per-google-account) |
-| `shares_group` | `stable` sql | Do these two accounts share at least one group? |
+| `check_wish_group_owner` | `before insert` on `wish_groups` (`wish_groups_check_owner`) | Refuses a group tag the wish's owner does not belong to |
 | `peer_user_ids` | `stable` sql, `setof uuid` | Every account a viewer may see. Self-membership comes from the join, so it returns **nothing** for an account in no group — `seedPeers` adds the viewer's own id whatever the query said |
-| `check_claim_peer` | `before insert or update` on `wishes` (`wishes_check_claim_peer`) | Refuses a claim between two people who share no group. The write-side backstop the read side cannot have |
-| `release_orphaned_claims` | `after delete` on `memberships` (`memberships_release_claims`) | Releases the claims a departure orphans, in both directions — [Removing somebody](../content/groups.md#removing-somebody) |
+| `check_claim_peer` | `before insert or update` on `wishes` (`wishes_check_claim_peer`) | Refuses a claim from someone not in any group *this wish* is tagged with. The write-side backstop the read side cannot have |
+| `release_orphaned_claims` | `after delete` on `memberships` (`memberships_release_claims`) | Releases a claim once the claimer is no longer in any group the wish is tagged with — [Removing somebody](../content/groups.md#removing-somebody) |
+| `update_wish` | plpgsql | Rewrites a wish's text and its group tags in one guarded statement, so a claim landing mid-edit can't split the two |
 | `fulfil_wish` | sql | Deletes a claimed wish and writes its history row in one statement — [History](../content/history.md) |
 
 A trigger is not a policy, so the two on `wishes` and `memberships` leave the
@@ -181,7 +197,7 @@ Functions are the exception, and the only place a migration issues a `GRANT`.
 Postgres grants `EXECUTE` on a new function to `PUBLIC` by default, which would
 let the anon key call it straight past the zero-policy wall — a function is not a
 table, so `auto_expose_new_tables` does nothing for it either way. So
-`fulfil_wish`, `shares_group` and `peer_user_ids` are each revoked from
+`fulfil_wish`, `update_wish` and `peer_user_ids` are each revoked from
 `public, anon, authenticated` and granted back to `service_role` alone, because
 `PUBLIC` includes `service_role` and the revoke would otherwise take that with
 it. Add a function and you owe it the same pair.
@@ -198,6 +214,7 @@ it. Add a function and you owe it the same pair.
 | `0006_wish_photo.sql` | Adds the nullable `photo_path` column | no |
 | `0007_fulfilled_wishes.sql` | The `fulfilled_wishes` table and the `fulfil_wish` function | no |
 | `0008_multi_tenant.sql` | Many groups, one account: the four identity tables, the peer functions and triggers, the renamed wish columns | **reshapes every table — take a snapshot first** |
+| `0009_wish_groups.sql` | Per-wish group visibility: the `wish_groups` table, its ownership guard, the two sharpened claim triggers, `update_wish`, and dropping `shares_group` | no |
 
 `0003_auth.sql` deletes every member and every wish. Identity moved from "a name
 you picked" to "a Google account", and there is no way to tell which account an
