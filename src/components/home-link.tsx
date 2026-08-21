@@ -21,11 +21,10 @@ export function HomeLink() {
   return (
     <Link
       href={groupId ? `/g/${groupId}` : "/"}
-      // A step smaller on phones, or the full Slovak name truncates.
-      className="flex min-w-0 items-center gap-2 text-lg font-semibold sm:text-xl"
+      aria-label="Prajem si.."
+      className="flex min-w-0 items-center"
     >
       <GiftIcon className="text-primary size-6 shrink-0" />
-      <span className="truncate">Prajem si..</span>
     </Link>
   );
 }
