@@ -6,6 +6,7 @@ import {
   canRevokeInvite,
   claimedByOther,
   preferredName,
+  liveWishGroups,
   revealClaimer,
   wishVisibleTo,
 } from "@/lib/visibility";
@@ -197,5 +198,31 @@ describe("wishVisibleTo", () => {
     expect(
       wishVisibleTo(new Set([FAMILY, WORK]), new Set([WORK]), new Set([WORK])),
     ).toBe(true);
+  });
+});
+
+describe("liveWishGroups", () => {
+  it("keeps the tags naming a group the owner is still in", () => {
+    expect(liveWishGroups([FAMILY, WORK], new Set([FAMILY, WORK]))).toEqual([
+      FAMILY,
+      WORK,
+    ]);
+  });
+
+  it("drops a tag the owner's membership no longer backs", () => {
+    // Tagged FAMILY and WORK; the owner has since left FAMILY, and nothing
+    // pruned the tag behind them.
+    expect(liveWishGroups([FAMILY, WORK], new Set([WORK]))).toEqual([WORK]);
+  });
+
+  it("can empty the list, which is what the picker falls back from", () => {
+    expect(liveWishGroups([FAMILY], new Set([WORK]))).toEqual([]);
+  });
+
+  it("keeps the tags in tag order, not the owner's join order", () => {
+    expect(liveWishGroups([WORK, FAMILY], new Set([FAMILY, WORK]))).toEqual([
+      WORK,
+      FAMILY,
+    ]);
   });
 });

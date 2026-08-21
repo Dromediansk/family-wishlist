@@ -46,9 +46,18 @@ export type OwnerWish = {
   /** The Storage object key, not a URL. `wishPhotoUrl` turns it into one. */
   photo: string | null;
   createdAt: string;
-  /** Which of the owner's groups this wish is tagged visible in. */
-  groupIds: GroupId[];
 };
+
+/**
+ * An owner's own wish, plus which of their groups it is tagged visible in.
+ *
+ * Only this view carries the tags, because only the owner ever chooses them:
+ * every other reader's query is already scoped to one group, so a tag list
+ * would tell them nothing they did not already know. `getWishListFor` drops
+ * tags naming a group the owner has since left, so these are always live.
+ * docs/content/wishes.md#reading-a-list
+ */
+export type TaggedWish = OwnerWish & { groupIds: GroupId[] };
 
 /**
  * What a viewer is told about a reservation.
@@ -91,7 +100,7 @@ export type FulfilledWish = Displayable & {
 
 /** Discriminated so a component can never render the wrong view by accident. */
 export type WishListView =
-  | { viewerIsOwner: true; wishes: OwnerWish[] }
+  | { viewerIsOwner: true; wishes: TaggedWish[] }
   | { viewerIsOwner: false; wishes: ViewerWish[] };
 
 /**

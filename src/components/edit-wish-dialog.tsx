@@ -15,7 +15,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { WishForm } from "@/components/wish-form";
-import type { GroupRef, OwnerWish } from "@/lib/types";
+import type { GroupRef, OwnerWish, TaggedWish } from "@/lib/types";
 import { wishPhotoUrl } from "@/lib/wishes";
 
 /** Edit and delete controls, shown only on your own list. */
@@ -23,22 +23,19 @@ export function EditWishDialog({
   wish,
   groups,
 }: {
-  wish: OwnerWish;
+  wish: TaggedWish;
   groups: readonly GroupRef[];
 }) {
   const [open, setOpen] = useState(false);
 
   /*
-   * A tag can name a group the owner has since left or deleted, and the picker
-   * only draws a checkbox per current group — a stale id would be selected but
-   * invisible, and every save refused with "Neplatná skupina." and no way to
-   * clear it. Dropping the stale ones leaves the form saveable; if they are all
-   * stale, every current group is a better default than an empty selection.
+   * `getWishListFor` has already dropped tags naming a group the owner has
+   * since left, which can leave none at all — and the picker only draws a
+   * checkbox per current group, so an empty selection would be unsaveable with
+   * nothing to un-tick. Every current group is a better default than none.
    */
-  const currentGroupIds = new Set(groups.map((group) => group.id));
-  const stillValid = wish.groupIds.filter((id) => currentGroupIds.has(id));
   const initialGroupIds =
-    stillValid.length > 0 ? stillValid : groups.map((group) => group.id);
+    wish.groupIds.length > 0 ? wish.groupIds : groups.map((group) => group.id);
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -63,7 +60,6 @@ export function EditWishDialog({
           }}
           initialPhotoUrl={wishPhotoUrl(wish)}
           groups={groups}
-          defaultGroupIds={initialGroupIds}
           submitLabel="Uložiť zmeny"
           onSubmit={(values) => updateWish(wish.id, values)}
           onDone={() => setOpen(false)}

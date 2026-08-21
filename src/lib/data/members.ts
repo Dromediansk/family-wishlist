@@ -21,6 +21,7 @@ import {
   type Viewer,
 } from "@/lib/types";
 import { canReadList, preferredName } from "@/lib/visibility";
+import { WISH_GROUPS_SCOPE } from "@/lib/wishes";
 
 const MEMBERSHIP_COLUMNS = "id, user_id, name, role, created_at";
 
@@ -60,16 +61,27 @@ const groupMemberships = cache(
   },
 );
 
+/**
+ * Every wish these people have that is tagged for this group — the query both
+ * tallies below start from, so the group scope and the claim-free projection
+ * are spelled once. `owner_user_id` is all it selects, and the `!inner` embed
+ * is what makes the `.eq` drop a wish tagged only for one of the owner's other
+ * groups. docs/content/privacy-rule.md#counting-on-the-family-grid
+ */
+function taggedWishesOf(ctx: GroupContext, userIds: string[]) {
+  return getSupabase()
+    .from("wishes")
+    .select(`owner_user_id, ${WISH_GROUPS_SCOPE}`)
+    .in("owner_user_id", userIds)
+    .eq("wish_groups.group_id", ctx.groupId);
+}
+
 /** How many wishes each of these people has, tagged for this group. */
 async function countWishes(
   ctx: GroupContext,
   userIds: string[],
 ): Promise<Map<UserId, number>> {
-  const { data, error } = await getSupabase()
-    .from("wishes")
-    .select("owner_user_id, wish_groups!inner(group_id)")
-    .in("owner_user_id", userIds)
-    .eq("wish_groups.group_id", ctx.groupId);
+  const { data, error } = await taggedWishesOf(ctx, userIds);
 
   if (error) throw error;
   return tally(data);
@@ -136,11 +148,7 @@ export const getMemberSummaries = cache(
 
     const [counts, freeResult] = await Promise.all([
       countWishes(ctx, userIds),
-      getSupabase()
-        .from("wishes")
-        .select("owner_user_id, wish_groups!inner(group_id)")
-        .in("owner_user_id", userIds)
-        .eq("wish_groups.group_id", ctx.groupId)
+      taggedWishesOf(ctx, userIds)
         .is("claimed_by_user_id", null)
         .neq("owner_user_id", ctx.userId),
     ]);

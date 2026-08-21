@@ -94,6 +94,8 @@ Eleven places, in four groups. Change one and the rest need checking.
    status.
 2. `OwnerWish` ([`src/lib/types.ts`](../../src/lib/types.ts)) has no claim
    fields, which makes a leak a type error rather than something to remember.
+   `TaggedWish` — the owner's own view — adds only the group tags to it, so the
+   same holds there.
 3. `toOwnerWish` ([`src/lib/wishes.ts`](../../src/lib/wishes.ts)) builds an
    explicit object instead of spreading the row, so a claim column cannot ride
    along even if the query is later widened.

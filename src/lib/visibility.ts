@@ -42,6 +42,21 @@ export function wishVisibleTo(
 }
 
 /**
+ * Which of a wish's tags still name a group its owner is in, in tag order.
+ *
+ * The same staleness `wishVisibleTo` guards against, answered as a list rather
+ * than a yes: nothing prunes `wish_groups` when a membership goes, so dropping
+ * the dead tags here is what lets `TaggedWish.groupIds` mean what it says, and
+ * spares every reader of it the repair.
+ */
+export function liveWishGroups(
+  wishGroupIds: readonly GroupId[],
+  ownerGroupIds: ReadonlySet<GroupId>,
+): GroupId[] {
+  return wishGroupIds.filter((id) => ownerGroupIds.has(id));
+}
+
+/**
  * May the viewer be told *who* reserved something? Only when they share a group
  * with that person — otherwise a claim made in one group would name a stranger
  * to another, along with the fact that the two are in a group together.

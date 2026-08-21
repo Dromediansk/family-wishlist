@@ -28,8 +28,12 @@ type Props = {
   initialPhotoUrl?: string | null;
   /** Every group the owner belongs to. The picker is hidden when there's only one. */
   groups: readonly GroupRef[];
-  /** Used only when `initial` is absent — i.e. adding a new wish. */
-  defaultGroupIds: GroupId[];
+  /**
+   * What a *new* wish starts tagged with, and what the form resets to once one
+   * is added. Optional because an edit has no use for it — `initial` carries
+   * the wish's own tags — and the type is what says so.
+   */
+  defaultGroupIds?: GroupId[];
   submitLabel: string;
   onSubmit: (values: WishFormValues) => Promise<ActionResult>;
   onDone: () => void;
@@ -51,14 +55,13 @@ export function WishForm({
   initial,
   initialPhotoUrl = null,
   groups,
-  defaultGroupIds,
+  defaultGroupIds = [],
   submitLabel,
   onSubmit,
   onDone,
 }: Props) {
-  const [values, setValues] = useState<WishFormValues>(
-    initial ?? { ...EMPTY_TEXT, groupIds: defaultGroupIds },
-  );
+  const blank: WishFormValues = { ...EMPTY_TEXT, groupIds: defaultGroupIds };
+  const [values, setValues] = useState<WishFormValues>(initial ?? blank);
   const [failure, setFailure] = useState<ActionFailure | null>(null);
   const [pending, startTransition] = useTransition();
 
@@ -85,7 +88,7 @@ export function WishForm({
         setFailure(result);
         return;
       }
-      if (!initial) setValues({ ...EMPTY_TEXT, groupIds: defaultGroupIds });
+      if (!initial) setValues(blank);
       onDone();
     });
   }

@@ -1,19 +1,56 @@
 import "server-only";
 
 import { getPeerNames, groupIdsOf } from "@/lib/data/members";
-import { asGroupId, asUserId, type UserId } from "@/lib/ids";
+import { asGroupId, asUserId, type GroupId, type UserId } from "@/lib/ids";
 import { getSupabase } from "@/lib/supabase";
 import type { ClaimedWish, GroupContext, Viewer, WishListView } from "@/lib/types";
-import { canReadList, wishVisibleTo } from "@/lib/visibility";
+import { canReadList, liveWishGroups, wishVisibleTo } from "@/lib/visibility";
 import {
   OWNER_WISH_COLUMNS,
   VIEWER_WISH_COLUMNS,
+  WISH_GROUPS_EMBED,
+  WISH_GROUPS_SCOPE,
   toClaimedWish,
   toOwnerWish,
   toViewerWish,
   type ClaimedWishRow,
+  type OwnerWishRow,
   type ViewerWishRow,
 } from "@/lib/wishes";
+
+/** The `wish_groups` embed as PostgREST hands it back, ids not yet branded. */
+type WishGroupsEmbed = { wish_groups: { group_id: string }[] };
+
+/**
+ * The one place a `wish_groups` embed becomes branded ids: read from a column
+ * that references `groups`, so this boundary is what can vouch for them.
+ */
+function embeddedGroupIds(embed: { group_id: string }[]): GroupId[] {
+  return embed.map((row) => asGroupId(row.group_id));
+}
+
+/**
+ * Is this wish, right now, tagged with a group the viewer *and* its owner both
+ * belong to? The impure half of `wishVisibleTo`, in one place because the two
+ * id-lookup paths below are both privacy-rule enforcement points and must not
+ * be able to drift apart. docs/content/privacy-rule.md#where-the-rule-is-enforced
+ *
+ * The owner's current groups are fetched rather than trusted from the tag
+ * alone: nothing prunes `wish_groups` when its owner leaves a group, so a stale
+ * tag must not go on answering for a membership that is gone. `groupIdsOf` is
+ * `cache`d, so asking twice in one request costs one trip.
+ */
+async function wishReachableBy(
+  viewer: Viewer,
+  ownerId: UserId,
+  embed: { group_id: string }[],
+): Promise<boolean> {
+  return wishVisibleTo(
+    new Set(embeddedGroupIds(embed)),
+    new Set(viewer.groups.map((group) => group.id)),
+    new Set(await groupIdsOf(ownerId)),
+  );
+}
 
 /**
  * One person's wish list, shaped for whoever is looking. The owner branch
@@ -41,42 +78,34 @@ export async function getWishListFor(
   if (ctx.userId === ownerId) {
     const { data, error } = await supabase
       .from("wishes")
-      .select(`${OWNER_WISH_COLUMNS}, wish_groups(group_id)`)
+      .select(`${OWNER_WISH_COLUMNS}, ${WISH_GROUPS_EMBED}`)
       .eq("owner_user_id", ownerId)
       .order("created_at", { ascending: true });
 
     if (error) throw error;
 
-    const rows = (data ?? []) as unknown as {
-      id: string;
-      title: string;
-      description: string | null;
-      url: string | null;
-      photo_path: string | null;
-      created_at: string;
-      wish_groups: { group_id: string }[];
-    }[];
+    const rows = (data ?? []) as unknown as (OwnerWishRow & WishGroupsEmbed)[];
+
+    // The viewer *is* the owner on this branch, so their groups are the ones a
+    // tag has to still name to count. Built once rather than per wish.
+    const ownerGroupIds = new Set(ctx.groups.map((group) => group.id));
 
     return {
       viewerIsOwner: true,
-      wishes: rows.map((row) =>
-        toOwnerWish({
-          id: row.id,
-          title: row.title,
-          description: row.description,
-          url: row.url,
-          photo_path: row.photo_path,
-          created_at: row.created_at,
-          group_ids: row.wish_groups.map((g) => asGroupId(g.group_id)),
-        }),
-      ),
+      wishes: rows.map(({ wish_groups, ...row }) => ({
+        ...toOwnerWish(row),
+        groupIds: liveWishGroups(embeddedGroupIds(wish_groups), ownerGroupIds),
+      })),
     };
   }
 
   const [listResult, names] = await Promise.all([
     supabase
       .from("wishes")
-      .select(`${VIEWER_WISH_COLUMNS}, wish_groups!inner(group_id)`)
+      // The embed is the filter and nothing else — `!inner` is what makes the
+      // `.eq` below drop a wish tagged for one of the owner's other groups,
+      // rather than hand it over with an empty embed. Its rows are never read.
+      .select(`${VIEWER_WISH_COLUMNS}, ${WISH_GROUPS_SCOPE}`)
       .eq("owner_user_id", ownerId)
       .eq("wish_groups.group_id", ctx.groupId)
       .order("created_at", { ascending: true }),
@@ -90,20 +119,11 @@ export async function getWishListFor(
    * columns that reference app_users, so this is the boundary that can vouch
    * for them. Same for getClaimedBy below.
    */
-  const viewerRows = (listResult.data ?? []) as unknown as (Omit<
-    ViewerWishRow,
-    "group_ids"
-  > & { wish_groups: { group_id: string }[] })[];
+  const viewerRows = (listResult.data ?? []) as unknown as ViewerWishRow[];
 
   return {
     viewerIsOwner: false,
-    wishes: viewerRows.map(({ wish_groups, ...row }) =>
-      toViewerWish(
-        { ...row, group_ids: wish_groups.map((g) => asGroupId(g.group_id)) },
-        ctx.peers,
-        names,
-      ),
-    ),
+    wishes: viewerRows.map((row) => toViewerWish(row, ctx.peers, names)),
   };
 }
 
@@ -118,7 +138,7 @@ export async function getClaimedBy(viewer: Viewer): Promise<ClaimedWish[]> {
   const [result, names] = await Promise.all([
     getSupabase()
       .from("wishes")
-      .select(`${OWNER_WISH_COLUMNS}, owner_user_id, wish_groups(group_id)`)
+      .select(`${OWNER_WISH_COLUMNS}, owner_user_id`)
       .eq("claimed_by_user_id", viewer.userId)
       // Newest first. Ordering needs no projection, and no date is displayed.
       .order("claimed_at", { ascending: false }),
@@ -127,30 +147,17 @@ export async function getClaimedBy(viewer: Viewer): Promise<ClaimedWish[]> {
 
   if (result.error) throw result.error;
 
-  const rows = (result.data ?? []) as unknown as (Omit<
-    ClaimedWishRow,
-    "group_ids"
-  > & { wish_groups: { group_id: string }[] })[];
+  const rows = (result.data ?? []) as unknown as ClaimedWishRow[];
 
-  return rows.map(({ wish_groups, ...row }) =>
-    toClaimedWish(
-      { ...row, group_ids: wish_groups.map((g) => asGroupId(g.group_id)) },
-      names,
-    ),
-  );
+  return rows.map((row) => toClaimedWish(row, names));
 }
 
 /**
- * Whose list a wish is on, or null when there is no such wish or it is not,
- * right now, tagged with a group both the viewer and its owner belong to.
- * Every answer is the same refusal to the caller, which is what keeps a
- * stranger's wish id from being distinguishable from a nonexistent one.
- *
- * The owner's current groups are re-fetched rather than trusted from the tag
- * alone: nothing prunes `wish_groups` when its owner leaves a group, so a
- * stale tag must not go on answering for a membership that is gone. Sharing
- * *some* group with the owner is not enough either — it has to be the same
- * group the wish is tagged with.
+ * Whose list a wish is on, or null when there is no such wish or
+ * `wishReachableBy` says no. Every answer is the same refusal to the caller,
+ * which is what keeps a stranger's wish id from being distinguishable from a
+ * nonexistent one — including for the owner's own wish, which nothing here
+ * needs to single out: an owner cannot claim off their own list anyway.
  */
 export async function getWishOwner(
   viewer: Viewer,
@@ -158,24 +165,17 @@ export async function getWishOwner(
 ): Promise<UserId | null> {
   const { data, error } = await getSupabase()
     .from("wishes")
-    .select("owner_user_id, wish_groups(group_id)")
+    .select(`owner_user_id, ${WISH_GROUPS_EMBED}`)
     .eq("id", wishId)
     .maybeSingle();
 
   if (error) throw error;
 
-  const row = data as
-    | { owner_user_id: string; wish_groups: { group_id: string }[] }
-    | null;
+  const row = data as (WishGroupsEmbed & { owner_user_id: string }) | null;
   if (!row) return null;
 
   const ownerId = asUserId(row.owner_user_id);
-  const wishGroupIds = new Set(
-    row.wish_groups.map((g) => asGroupId(g.group_id)),
-  );
-  const viewerGroupIds = new Set(viewer.groups.map((g) => g.id));
-  const ownerGroupIds = new Set(await groupIdsOf(ownerId));
-  if (!wishVisibleTo(wishGroupIds, viewerGroupIds, ownerGroupIds)) return null;
+  if (!(await wishReachableBy(viewer, ownerId, row.wish_groups))) return null;
 
   return ownerId;
 }
@@ -188,16 +188,13 @@ export async function getWishOwner(
  * owner-serving path: it selects the photo path, the owner and the wish's
  * tagged groups, and never a claim column. The owner is answered from the
  * owner check alone — their own list is unscoped, and a tag left stale by a
- * group they have since left must not cost them their own picture.
+ * group they have since left must not cost them their own picture. That
+ * short-circuit is the one thing this path and `getWishOwner` do differently;
+ * everything after it is the shared `wishReachableBy`.
  *
- * Everybody else needs the wish tagged with a group *both* they and the
- * owner currently belong to — not merely some group they happen to share
- * with the owner elsewhere. `wishVisibleTo` re-fetches the owner's current
- * groups for exactly that reason: a tag survives the owner leaving the
- * group it named, since nothing prunes `wish_groups`. The checks are what
- * the photo route relies on to answer 404 — not 403 — to everything it
- * declines, so the response says nothing about which wishes exist either.
- * docs/content/privacy-rule.md#serving-a-photo
+ * Its checks are what the photo route relies on to answer 404 — not 403 — to
+ * everything it declines, so the response says nothing about which wishes
+ * exist either. docs/content/privacy-rule.md#serving-a-photo
  */
 export async function getWishPhotoPath(
   viewer: Viewer,
@@ -205,30 +202,21 @@ export async function getWishPhotoPath(
 ): Promise<string | null> {
   const { data, error } = await getSupabase()
     .from("wishes")
-    .select("photo_path, owner_user_id, wish_groups(group_id)")
+    .select(`photo_path, owner_user_id, ${WISH_GROUPS_EMBED}`)
     .eq("id", wishId)
     .maybeSingle();
 
   if (error) throw error;
 
   const row = data as
-    | {
-        photo_path: string | null;
-        owner_user_id: string;
-        wish_groups: { group_id: string }[];
-      }
+    | (WishGroupsEmbed & { photo_path: string | null; owner_user_id: string })
     | null;
   if (!row) return null;
 
   const ownerId = asUserId(row.owner_user_id);
   if (viewer.userId === ownerId) return row.photo_path;
 
-  const wishGroupIds = new Set(
-    row.wish_groups.map((g) => asGroupId(g.group_id)),
-  );
-  const viewerGroupIds = new Set(viewer.groups.map((g) => g.id));
-  const ownerGroupIds = new Set(await groupIdsOf(ownerId));
-  if (!wishVisibleTo(wishGroupIds, viewerGroupIds, ownerGroupIds)) return null;
+  if (!(await wishReachableBy(viewer, ownerId, row.wish_groups))) return null;
 
   return row.photo_path;
 }

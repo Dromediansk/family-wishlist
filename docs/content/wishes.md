@@ -96,9 +96,13 @@ group takes nothing but the membership —
 
 Two shapes come back, decided by who is looking:
 
-- **The owner** gets `OwnerWish[]` — no claim fields exist on the type.
+- **The owner** gets `TaggedWish[]` — `OwnerWish`, on which no claim field
+  exists, plus the wish's `groupIds`. Only the owner's view carries those,
+  because only the owner chooses them, and `getWishListFor` drops any that name
+  a group they have since left, so the picker never has to repair the list.
 - **Everyone else** gets `ViewerWish[]` — claim status included, so the row can
-  show *Toto kupuje Zuzana* and dim itself.
+  show *Toto kupuje Zuzana* and dim itself. No tag list: their query is already
+  scoped to one group, so it would tell them nothing.
 
 `WishListView` is a discriminated union, so a component cannot render the wrong
 view by accident. `WishRow` itself is handed only `Displayable` (id, title,

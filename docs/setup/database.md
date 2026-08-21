@@ -160,13 +160,14 @@ What this table is for and the two pages that read it:
 
 ## Functions and triggers
 
-Seven, plus `clear_claim_timestamp` above. Every one of them is in the database
+Eight, plus `clear_claim_timestamp` above. Every one of them is in the database
 rather than in application code because it has to be unavoidable.
 
 | Name | Kind | Does |
 |---|---|---|
 | `handle_new_auth_user` | trigger on `auth.users` | Writes one `app_users` row per new auth user and decides nothing else — [Identity](../content/membership.md#one-row-per-google-account) |
 | `check_wish_group_owner` | `before insert` on `wish_groups` (`wish_groups_check_owner`) | Refuses a group tag the wish's owner does not belong to |
+| `wish_shares_group` | `stable` sql | Do these two people share a group *this wish* is tagged with? The wish-scoped successor to 0008's `shares_group`, asked by both functions below so the insert guard and the release sweep cannot drift apart |
 | `peer_user_ids` | `stable` sql, `setof uuid` | Every account a viewer may see. Self-membership comes from the join, so it returns **nothing** for an account in no group — `seedPeers` adds the viewer's own id whatever the query said |
 | `check_claim_peer` | `before insert or update` on `wishes` (`wishes_check_claim_peer`) | Refuses a claim unless claimer **and** owner both belong to a group *this wish* is tagged with. The write-side backstop the read side cannot have |
 | `release_orphaned_claims` | `after delete` on `memberships` (`memberships_release_claims`) | Releases a claim once claimer and owner no longer both belong to a group the wish is tagged with — either one leaving is enough — [Removing somebody](../content/groups.md#removing-somebody) |
@@ -198,7 +199,8 @@ Functions are the exception, and the only place a migration issues a `GRANT`.
 Postgres grants `EXECUTE` on a new function to `PUBLIC` by default, which would
 let the anon key call it straight past the zero-policy wall — a function is not a
 table, so `auto_expose_new_tables` does nothing for it either way. So
-`fulfil_wish`, `update_wish` and `peer_user_ids` are each revoked from
+`fulfil_wish`, `update_wish`, `wish_shares_group` and `peer_user_ids` are each
+revoked from
 `public, anon, authenticated` and granted back to `service_role` alone, because
 `PUBLIC` includes `service_role` and the revoke would otherwise take that with
 it. Add a function and you owe it the same pair.
@@ -215,7 +217,7 @@ it. Add a function and you owe it the same pair.
 | `0006_wish_photo.sql` | Adds the nullable `photo_path` column | no |
 | `0007_fulfilled_wishes.sql` | The `fulfilled_wishes` table and the `fulfil_wish` function | no |
 | `0008_multi_tenant.sql` | Many groups, one account: the four identity tables, the peer functions and triggers, the renamed wish columns | **reshapes every table — take a snapshot first** |
-| `0009_wish_groups.sql` | Per-wish group visibility: the `wish_groups` table, its ownership guard, the two sharpened claim triggers, `update_wish`, and dropping `shares_group` | no |
+| `0009_wish_groups.sql` | Per-wish group visibility: the `wish_groups` table, its ownership guard, `wish_shares_group` and the two claim triggers sharpened onto it, `update_wish`, and dropping `shares_group` | no |
 
 `0003_auth.sql` deletes every member and every wish. Identity moved from "a name
 you picked" to "a Google account", and there is no way to tell which account an
