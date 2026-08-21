@@ -26,14 +26,14 @@ export function DeleteGroupButton({
       trigger={
         <Button variant="destructive" className="w-full sm:w-auto">
           <Trash2Icon />
-          Vymazať skupinu
+          Vymazať
         </Button>
       }
       question={`Vymazať skupinu „${groupName}“?`}
       /* The count sits in brackets on purpose: the noun and its verb decline
          differently at 1 / 2–4 / 5+, and a bracket needs neither. */
-      description={`Prístup k nej stratia všetci jej členovia (${memberCount}) a pozvánky prestanú platiť. Rezervácie, ktoré existovali len vďaka tejto skupine, sa uvoľnia. Želania a história o darovaní zostávajú — patria ľuďom, nie skupine. Vrátiť sa to nedá.`}
-      confirmLabel="Vymazať skupinu"
+      description={`Prístup k nej stratia všetci jej členovia (${memberCount}) a pozvánky prestanú platiť. Rezervácie, ktoré existovali len vďaka tejto skupine, sa uvoľnia. Vrátiť sa to nedá.`}
+      confirmLabel="Vymazať"
       cancelLabel="Nechať"
       confirmVariant="destructive"
       refusedTitle="Skupinu sa nedá vymazať"

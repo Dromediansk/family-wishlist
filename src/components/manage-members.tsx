@@ -166,9 +166,9 @@ function MemberAdminRow({
         <div className="bg-muted flex flex-col gap-3 rounded-md p-4">
           <p>
             Odstrániť <strong>{member.name}</strong> zo skupiny? Ich zoznam (
-            {wishCount(member.wishCount)}) im zostane — želania patria im, nie
-            tejto skupine. Rezervácie, ktoré existovali len vďaka členstvu tu,
-            sa uvoľnia. Vrátiť sa môžu len cez novú pozvánku.
+            {wishCount(member.wishCount)}) im zostane. Rezervácie, ktoré
+            existovali len vďaka členstvu v tejto skupine sa uvoľnia. Vrátiť sa
+            môžu len cez novú pozvánku.
           </p>
           <div className="flex gap-2">
             <Button
