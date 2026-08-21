@@ -99,13 +99,8 @@ export async function createGroup(
 }
 
 /**
- * End a group. Every membership and every invite into it goes with it — both
- * cascade in the database — and `memberships_release_claims` fires on each
- * cascaded membership, so the reservations that only existed because two people
- * shared *this* group are released in both directions.
- *
- * Nothing else moves: a wish list belongs to a person and a history row is a
- * copied snapshot, which is why neither table has a group to cascade from.
+ * End a group. Memberships and invites cascade in the database, and
+ * `memberships_release_claims` fires on each cascaded membership.
  * docs/content/groups.md#deleting-a-group
  */
 export async function deleteGroup(groupId: string): Promise<ActionResult> {
@@ -115,10 +110,8 @@ export async function deleteGroup(groupId: string): Promise<ActionResult> {
   );
   if (!permitted.ok) return permitted;
 
-  // No Zod: `groupId` is the only input, and `enterGroup` already refused a
-  // malformed uuid before this line. Scope lives in the WHERE clause, and
-  // `ctx.groupId` is the membership row that just proved the caller is an
-  // admin here — never the id the client sent.
+  // Scoped by `ctx.groupId` — the id the membership row proved, not the one the
+  // client sent.
   const { data, error } = await getSupabase()
     .from("groups")
     .delete()
@@ -131,17 +124,11 @@ export async function deleteGroup(groupId: string): Promise<ActionResult> {
   }
 
   revalidatePath("/", "layout");
-  // The channel is named by the id rather than by the row, so the ping still
-  // reaches the tabs that were watching this group after it has gone.
-  // docs/content/live-updates.md
+  // The channel is named by the id, not the row, so the ping still reaches the
+  // tabs that were watching this group. docs/content/live-updates.md
   await notifyChanged([permitted.ctx.groupId]);
 
-  /*
-   * Outside every try, because `redirect` throws. `/` owns no screen of its
-   * own: it lands on the first remaining group by join date, or on `/start`
-   * when this was the last one. `replace` rather than the Server Action default
-   * `push` — the URL being left is a group that no longer exists, so Back must
-   * not offer it again.
-   */
+  // `/` re-lands on the first remaining group, or `/start` when this was the
+  // last. `replace`, not the action default `push` — the URL being left is gone.
   redirect("/", RedirectType.replace);
 }

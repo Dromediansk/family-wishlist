@@ -69,14 +69,13 @@ export default async function FamilyPage({
         <InviteList groupId={ctx.groupId} invites={invites} />
       </div>
 
-      {/* Behind a rule, so the one irreversible control on the page is not
-          sitting next to the everyday ones. */}
+      {/* Behind a rule, so the one irreversible control is not sitting next to
+          the everyday ones. The dialog owns the consequences. */}
       <div className="space-y-4 border-t pt-6">
         <div className="space-y-2">
           <h2 className="text-xl font-semibold text-balance">Vymazať skupinu</h2>
           <p className="text-muted-foreground max-w-[62ch]">
-            Skupina zmizne pre všetkých jej členov. Želania a história o darovaní
-            zostávajú ľuďom — patria im, nie skupine.
+            Skupina zmizne pre všetkých jej členov.
           </p>
         </div>
         <DeleteGroupButton

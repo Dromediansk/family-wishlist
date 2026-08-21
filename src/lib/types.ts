@@ -115,6 +115,13 @@ export type ActionResult =
 /** The failed half, for components that hold on to one to render it. */
 export type ActionFailure = Extract<ActionResult, { ok: false }>;
 
+/**
+ * What a control actually gets back. An action that navigates away resolves
+ * with nothing, so the result has to be checked before it is read.
+ * docs/content/ui-patterns.md#an-action-that-navigates-away-resolves-with-nothing
+ */
+export type ActionOutcome = ActionResult | undefined;
+
 /** One of the viewer's groups, as the switcher and `preferredName` see it. */
 export type GroupRef = {
   id: GroupId;

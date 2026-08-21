@@ -14,7 +14,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import type { ActionFailure, ActionResult } from "@/lib/types";
+import type { ActionFailure, ActionOutcome } from "@/lib/types";
 
 type Props = {
   /** The control that opens the question. Rendered `asChild`. */
@@ -23,11 +23,11 @@ type Props = {
   description: React.ReactNode;
   confirmLabel: string;
   cancelLabel: string;
-  /** The confirm button's colour. Red belongs on what cannot be undone. */
-  confirmVariant?: React.ComponentProps<typeof AlertDialogAction>["variant"];
+  /** Red belongs on what ends something for other people, not on every bin. */
+  confirmVariant?: "default" | "destructive";
   /** Replaces `question` once the action has refused for good. */
   refusedTitle: string;
-  action: () => Promise<ActionResult>;
+  action: () => Promise<ActionOutcome>;
 };
 
 /**
@@ -88,13 +88,7 @@ export function ConfirmActionDialog({
                 event.preventDefault(); // keeps the dialog open on failure
                 setFailure(null);
                 startTransition(async () => {
-                  /*
-                   * An action that navigates away resolves with nothing —
-                   * Next's action reducer drops the return value when the
-                   * response carries a redirect — so only a real refusal is
-                   * left to render.
-                   */
-                  const result: ActionResult | undefined = await action();
+                  const result = await action();
                   if (result && !result.ok) setFailure(result);
                 });
               }}
