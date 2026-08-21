@@ -1,4 +1,4 @@
-import type { UserId } from "@/lib/ids";
+import type { GroupId, UserId } from "@/lib/ids";
 import { photoVersion } from "@/lib/images";
 import type { ClaimedWish, OwnerWish, ViewerWish } from "@/lib/types";
 import { revealClaimer } from "@/lib/visibility";
@@ -19,6 +19,7 @@ export type OwnerWishRow = {
   url: string | null;
   photo_path: string | null;
   created_at: string;
+  group_ids: GroupId[];
 };
 
 /** Columns selected when reading someone else's list. */
@@ -50,6 +51,7 @@ export function toOwnerWish(row: OwnerWishRow): OwnerWish {
     url: row.url,
     photo: row.photo_path,
     createdAt: row.created_at,
+    groupIds: row.group_ids,
   };
 }
 

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { asUserId, type UserId } from "@/lib/ids";
+import { asGroupId, asUserId, type UserId } from "@/lib/ids";
 import {
   OWNER_WISH_COLUMNS,
   refusalFor,
@@ -17,6 +17,8 @@ import {
  * reserved; these tests pin down both halves.
  */
 
+const GROUP = asGroupId("aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa");
+
 const claimedRow: ViewerWishRow = {
   id: "11111111-1111-4111-8111-111111111111",
   title: "Wool socks",
@@ -24,6 +26,7 @@ const claimedRow: ViewerWishRow = {
   url: "https://example.com/socks",
   photo_path: "11111111-1111-4111-8111-111111111111/abc123.webp",
   created_at: "2026-01-01T00:00:00.000Z",
+  group_ids: [GROUP],
   claimed_at: "2026-01-02T00:00:00.000Z",
   claimed_by_user_id: asUserId("22222222-2222-4222-8222-222222222222"),
 };
@@ -37,6 +40,7 @@ describe("toOwnerWish", () => {
       url: "https://example.com/socks",
       photo: claimedRow.photo_path,
       createdAt: claimedRow.created_at,
+      groupIds: [GROUP],
     });
   });
 
@@ -78,6 +82,7 @@ describe("toViewerWish", () => {
       url: null,
       photo_path: null,
       created_at: "2026-01-01T00:00:00.000Z",
+      group_ids: [],
       claimed_at: claimedBy ? "2026-02-01T00:00:00.000Z" : null,
       claimed_by_user_id: claimedBy,
     };
