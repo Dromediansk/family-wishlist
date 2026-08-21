@@ -10,7 +10,7 @@ other.
 
 | Document | Covers |
 |---|---|
-| [The privacy rule](content/privacy-rule.md) | The rule the whole app is built around, why it cannot be an RLS policy, where it is enforced, and the four accepted holes in it |
+| [The privacy rule](content/privacy-rule.md) | The rule the whole app is built around, why it cannot be an RLS policy, where it is enforced, and the three accepted holes in it |
 | [Wishes](content/wishes.md) | What a wish is, who may change one, and what happens when an owner is refused |
 | [Claiming](content/claiming.md) | Reserving and releasing items on other people's lists |
 | [History](content/history.md) | Marking a gift handed over, and the two pages that remember it |
