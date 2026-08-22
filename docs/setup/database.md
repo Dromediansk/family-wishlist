@@ -138,6 +138,7 @@ Primary key is `(wish_id, group_id)` — one tag per wish per group, at most.
 | `giver_id` | → `app_users(id)` `ON DELETE SET NULL`, indexed with `fulfilled_at` |
 | `giver_name` | copied, not joined — see below |
 | `title`, `description`, `url` | a snapshot of the wish at the moment it is handed over — see below |
+| `group_names` | `text[]`, defaults to `'{}'` — copied, not joined, and narrowed to the groups both parties were in |
 | `fulfilled_at` | defaults to `now()` |
 
 Names are copied rather than joined, and copied from `app_users` rather than
@@ -155,24 +156,34 @@ editing their old wish would rewrite the giver's history, while an account
 deletion would cascade the title away. The three columns are the price of
 history that nobody can edit and that outlives its people.
 
+`group_names` is the same bargain once more. Names and not ids, because
+`wish_groups` cascades away with the wish in that very statement and the groups
+themselves can be deleted afterwards. It holds only the tags naming a group the
+owner **and** the giver both belonged to at handover — `fulfil_wish` reads
+`shared_wish_groups`, the same join `wish_shares_group` asks its yes/no of — so a
+record never names a
+group the giver was not in. An empty array is legal and means exactly one thing:
+a gift handed over before `0010`.
+
 What this table is for and the two pages that read it:
 [History](../content/history.md).
 
 ## Functions and triggers
 
-Eight, plus `clear_claim_timestamp` above. Every one of them is in the database
+Nine, plus `clear_claim_timestamp` above. Every one of them is in the database
 rather than in application code because it has to be unavoidable.
 
 | Name | Kind | Does |
 |---|---|---|
 | `handle_new_auth_user` | trigger on `auth.users` | Writes one `app_users` row per new auth user and decides nothing else — [Identity](../content/membership.md#one-row-per-google-account) |
 | `check_wish_group_owner` | `before insert` on `wish_groups` (`wish_groups_check_owner`) | Refuses a group tag the wish's owner does not belong to |
-| `wish_shares_group` | `stable` sql | Do these two people share a group *this wish* is tagged with? The wish-scoped successor to 0008's `shares_group`, asked by both functions below so the insert guard and the release sweep cannot drift apart |
+| `shared_wish_groups` | `stable` sql, `setof uuid` | *Which* groups a wish reaches that both of these two people stand in. One join for a rule three callers need in two shapes — added in `0010` once history needed the set and not just the yes/no |
+| `wish_shares_group` | `stable` sql | That same question as a yes/no: the wish-scoped successor to 0008's `shares_group`, asked by both functions below so the insert guard and the release sweep cannot drift apart. Since `0010` it is `exists` over `shared_wish_groups` |
 | `peer_user_ids` | `stable` sql, `setof uuid` | Every account a viewer may see. Self-membership comes from the join, so it returns **nothing** for an account in no group — `seedPeers` adds the viewer's own id whatever the query said |
 | `check_claim_peer` | `before insert or update` on `wishes` (`wishes_check_claim_peer`) | Refuses a claim unless claimer **and** owner both belong to a group *this wish* is tagged with. The write-side backstop the read side cannot have |
 | `release_orphaned_claims` | `after delete` on `memberships` (`memberships_release_claims`) | Releases a claim once claimer and owner no longer both belong to a group the wish is tagged with — either one leaving is enough — [Removing somebody](../content/groups.md#removing-somebody) |
 | `update_wish` | plpgsql | Rewrites a wish's text and its group tags in one guarded statement, so a claim landing mid-edit can't split the two |
-| `fulfil_wish` | sql | Deletes a claimed wish and writes its history row in one statement — [History](../content/history.md) |
+| `fulfil_wish` | sql | Deletes a claimed wish and writes its history row — title, both names and the group names both parties shared — in one statement — [History](../content/history.md) |
 
 A trigger is not a policy, so the three on `wishes`, `memberships` and
 `wish_groups` (`wish_groups_check_owner`) leave the zero-policy wall exactly
@@ -199,8 +210,8 @@ Functions are the exception, and the only place a migration issues a `GRANT`.
 Postgres grants `EXECUTE` on a new function to `PUBLIC` by default, which would
 let the anon key call it straight past the zero-policy wall — a function is not a
 table, so `auto_expose_new_tables` does nothing for it either way. So
-`fulfil_wish`, `update_wish`, `wish_shares_group` and `peer_user_ids` are each
-revoked from
+`fulfil_wish`, `update_wish`, `wish_shares_group`, `shared_wish_groups` and
+`peer_user_ids` are each revoked from
 `public, anon, authenticated` and granted back to `service_role` alone, because
 `PUBLIC` includes `service_role` and the revoke would otherwise take that with
 it. Add a function and you owe it the same pair.
@@ -218,6 +229,7 @@ it. Add a function and you owe it the same pair.
 | `0007_fulfilled_wishes.sql` | The `fulfilled_wishes` table and the `fulfil_wish` function | no |
 | `0008_multi_tenant.sql` | Many groups, one account: the four identity tables, the peer functions and triggers, the renamed wish columns | **reshapes every table — take a snapshot first** |
 | `0009_wish_groups.sql` | Per-wish group visibility: the `wish_groups` table, its ownership guard, `wish_shares_group` and the two claim triggers sharpened onto it, `update_wish`, and dropping `shares_group` | no |
+| `0010_fulfilled_wish_groups.sql` | `fulfilled_wishes.group_names`, `shared_wish_groups` with `wish_shares_group` redefined onto it, and `fulfil_wish` rewritten to snapshot the tags both parties shared | no |
 
 `0003_auth.sql` deletes every member and every wish. Identity moved from "a name
 you picked" to "a Google account", and there is no way to tell which account an
@@ -241,7 +253,7 @@ back from that without a snapshot. **Take one.**
 **In production: by hand**, pasted into the Supabase SQL editor, in order,
 skipping `0002`.
 
-**Locally**: `npm run db:reset` applies all eight. It runs `0002` too, which is
+**Locally**: `npm run db:reset` applies all ten. It runs `0002` too, which is
 harmless — that file is entirely comments with no DDL. The CLI accepts the
 `0001_`-style names; they need no timestamp prefix.
 

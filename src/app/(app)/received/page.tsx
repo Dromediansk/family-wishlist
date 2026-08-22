@@ -39,6 +39,7 @@ export default async function ReceivedPage() {
       items={received}
       personLabel="od:"
       personName={(wish) => wish.giverName}
+      groups={viewer.groups}
     />
   );
 }

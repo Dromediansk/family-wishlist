@@ -7,7 +7,7 @@ import type { FulfilledWish } from "@/lib/types";
 
 /** Columns selected by both history queries. The ids are used only in WHERE. */
 export const FULFILLED_WISH_COLUMNS =
-  "id, title, description, url, owner_name, giver_name, fulfilled_at";
+  "id, title, description, url, owner_name, giver_name, group_names, fulfilled_at";
 
 export type FulfilledWishRow = {
   id: string;
@@ -16,6 +16,7 @@ export type FulfilledWishRow = {
   url: string | null;
   owner_name: string;
   giver_name: string;
+  group_names: string[] | null;
   fulfilled_at: string;
 };
 
@@ -32,6 +33,9 @@ export function toFulfilledWish(row: FulfilledWishRow): FulfilledWish {
     photo: null,
     ownerName: row.owner_name,
     giverName: row.giver_name,
+    // `?? []` is for the records written before 0010 added the column, not for
+    // its default: nothing can be recovered for those, so they carry no tag.
+    groupNames: row.group_names ?? [],
     fulfilledAt: row.fulfilled_at,
   };
 }

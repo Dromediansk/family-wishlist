@@ -238,9 +238,17 @@ label beside it. `outline` and not `secondary`: this is metadata repeated on
 every row, and the filled badge is already spoken for by *správca* on the family
 grid, which is a role claim and should stay the louder of the two.
 
-It appears on the two lists that span more than one group — the owner's own list
-and [`/buying`](claiming.md#what-im-buying) — and nowhere else. Every other list
+It appears on the four lists that span more than one group — the owner's own
+list, [`/buying`](claiming.md#what-im-buying), and the two
+[history](history.md#the-two-pages) pages — and nowhere else. Every other list
 is scoped to one group in its query, so the tag would only repeat the URL.
+
+A history row is served by `ArchivedGroupTags`, the same badges read off the
+record's own snapshot of names. There is no id there to resolve and no live
+group to resolve it against — that is what lets the record outlive the group it
+names — so `fulfil_wish` did the narrowing at handover instead. Whose groups
+decide the rule below stays the *viewer's*, and current: somebody in a single
+group should not meet their first badge in their history.
 
 It renders **nothing** for somebody in a single group: every wish they can see
 is there through it, so the badge would say the same thing on every row. That is

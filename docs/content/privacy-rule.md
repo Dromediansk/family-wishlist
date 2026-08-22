@@ -82,7 +82,7 @@ inline in an action is caught by neither.
 
 ## Where the rule is enforced
 
-Twelve places, in four groups. Change one and the rest need checking.
+Thirteen places, in four groups. Change one and the rest need checking.
 
 ### Reading a list
 
@@ -170,6 +170,16 @@ must be invisible to another.
     trusted. `ClaimedWish` ([`src/lib/types.ts`](../../src/lib/types.ts)) is
     where that narrower meaning is defined, and
     [`src/lib/wishes.test.ts`](../../src/lib/wishes.test.ts) pins it down.
+13. `fulfil_wish` (`0010_fulfilled_wish_groups.sql`) does item 12's narrowing
+    once more, at the moment the claim ends, because the two
+    [history](history.md) pages span every group as `/buying` does and the wish
+    those tags hung off is deleted in that very statement. It records only the
+    group names `shared_wish_groups` returns — the same set-valued primitive
+    `wish_shares_group` (item 11) is now the yes/no of, so the rule is one join
+    and not three — and the record is a snapshot afterwards, unreachable by any
+    later read. `ArchivedGroupTags`
+    ([`src/components/group-tags.tsx`](../../src/components/group-tags.tsx))
+    renders it without narrowing, having nothing left to narrow.
 
 Live updates are the last surface the rule reaches — see
 [Live updates](live-updates.md).

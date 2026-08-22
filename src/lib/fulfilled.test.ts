@@ -20,6 +20,7 @@ const row: FulfilledWishRow = {
   url: "https://example.com/socks",
   owner_name: "Anna",
   giver_name: "Boris",
+  group_names: ["Rodina"],
   fulfilled_at: "2025-12-12T12:00:00.000Z",
 };
 
@@ -33,6 +34,7 @@ describe("toFulfilledWish", () => {
       photo: null,
       ownerName: "Anna",
       giverName: "Boris",
+      groupNames: ["Rodina"],
       fulfilledAt: row.fulfilled_at,
     });
   });
@@ -50,6 +52,22 @@ describe("toFulfilledWish", () => {
 
     expect(bare.description).toBeNull();
     expect(bare.url).toBeNull();
+  });
+
+  it("carries the group names the record was handed over with", () => {
+    expect(
+      toFulfilledWish({ ...row, group_names: ["Rodina", "Kamoši"] }).groupNames,
+    ).toEqual(["Rodina", "Kamoši"]);
+  });
+
+  it("reads a record older than the column as untagged, not as broken", () => {
+    expect(toFulfilledWish({ ...row, group_names: null }).groupNames).toEqual(
+      [],
+    );
+  });
+
+  it("selects the group names — nothing else can recover them", () => {
+    expect(FULFILLED_WISH_COLUMNS).toMatch(/\bgroup_names\b/);
   });
 
   it("selects no claim columns — this table has none to select", () => {
