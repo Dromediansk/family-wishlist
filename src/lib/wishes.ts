@@ -24,6 +24,21 @@ export type OwnerWishRow = {
 /** Columns selected when reading someone else's list. */
 export const VIEWER_WISH_COLUMNS = `${OWNER_WISH_COLUMNS}, claimed_at, claimed_by_user_id`;
 
+/**
+ * The `wish_groups` embed, projected. Only the owner's own list asks for it —
+ * the tags are theirs to choose, and nobody else's view carries them.
+ */
+export const WISH_GROUPS_EMBED = "wish_groups(group_id)";
+
+/**
+ * The same embed as a *filter*. `!inner` is the whole difference: it makes an
+ * `.eq("wish_groups.group_id", …)` beside it drop the wish, where a plain embed
+ * would hand back the wish with an empty one. That is how per-group visibility
+ * is spelled on every read that is scoped to a group, and nothing here reads
+ * the embedded rows themselves. docs/content/wishes.md#reading-a-list
+ */
+export const WISH_GROUPS_SCOPE = "wish_groups!inner(group_id)";
+
 /*
  * The two id columns arrive branded: `src/lib/data/wishes.ts` reads them from
  * columns that reference app_users, and vouches for them in the one cast at

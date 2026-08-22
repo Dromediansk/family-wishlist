@@ -5,10 +5,12 @@ item on somebody else's list; everyone except its owner can see that you did.
 
 ## The rules
 
-- **You can only claim from somebody you share a group with.** The action asks
-  `getWishOwner` first, which answers null for a wish whose owner is nobody's
-  peer, and `wishes_check_claim_peer` refuses such a row in the database outright
-  — a claim between strangers is unstorable, not merely unbuilt.
+- **You can only claim a wish tagged with a group you're in.** The action asks
+  `getWishOwner` first, which answers null for a wish that isn't tagged with any
+  group the caller belongs to, and `wishes_check_claim_peer` refuses such a row
+  in the database outright — unstorable, not merely unbuilt. Sharing some other
+  group with the owner is not enough on its own if the wish itself isn't tagged
+  for it.
 - **You cannot claim off your own list.** Enforced in the action
   (`.neq("owner_user_id", viewer.userId)`) and again by the `no_self_claim` check
   constraint in the schema.

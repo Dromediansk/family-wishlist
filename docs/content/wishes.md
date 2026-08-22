@@ -32,20 +32,40 @@ Empty optional fields arrive from a form as `""`; they are stored as `NULL`.
 The owner is never taken from anything the browser sends. Every action
 re-derives the caller from their session and puts `owner_user_id` in the `WHERE`
 clause, so someone else's wish simply does not match. A wish hangs off an
-account, not a group, so nothing about ownership needs a group id at all —
-[Groups](groups.md).
+account, not a group — ownership needs no group id at all — but a separate
+`wish_groups` table decides *who else* can see it: the owner picks which of
+their own groups a wish is tagged visible in, at least one, and can change it
+any time it is not reserved — [Groups](groups.md).
 
 ## Editing and deleting
 
-Both actions carry two conditions in the same `WHERE` clause:
+Both actions carry the same three conditions:
 
 ```
-.eq("id", …).eq("owner_user_id", viewer.userId).is("claimed_by_user_id", null)
+id = … and owner_user_id = viewer.userId and claimed_by_user_id is null
 ```
 
 Ownership and reservation are checked the same way — by not matching — rather
 than by a separate read beforehand. That is what makes the reserved case
 race-free.
+
+`deleteWish` spells them straight into its `WHERE` clause:
+
+```
+.eq("id", …).eq("owner_user_id", viewer.userId).is("claimed_by_user_id", null)
+```
+
+`updateWish` cannot, because an edit now writes two tables: the wish's text and
+its `wish_groups` tags. So it calls one Postgres function instead —
+`update_wish(p_wish_id, p_owner_id, p_title, p_description, p_url,
+p_group_ids)`, which carries those same three conditions on its own `UPDATE`,
+and only if that matched replaces the wish's tags. Both halves land together or
+neither does, so a claim arriving mid-edit cannot leave the text rewritten and
+the tags stale — [Database](../setup/database.md#functions-and-triggers).
+
+The function returns the wish id, or `NULL` when the guard did not match, which
+is the same "no rows" signal a `.update()` gave and routes to the same
+`lookUpRefusal`.
 
 Refusing a reserved wish is the app's one deliberate exception to the privacy
 rule, and it is documented in full at
@@ -76,14 +96,24 @@ group takes nothing but the membership —
 
 Two shapes come back, decided by who is looking:
 
-- **The owner** gets `OwnerWish[]` — no claim fields exist on the type.
+- **The owner** gets `TaggedWish[]` — `OwnerWish`, on which no claim field
+  exists, plus the wish's `groupIds`. Only the owner's view carries those,
+  because only the owner chooses them, and `getWishListFor` drops any that name
+  a group they have since left, so the picker never has to repair the list.
 - **Everyone else** gets `ViewerWish[]` — claim status included, so the row can
-  show *Toto kupuje Zuzana* and dim itself.
+  show *Toto kupuje Zuzana* and dim itself. No tag list: their query is already
+  scoped to one group, so it would tell them nothing.
 
 `WishListView` is a discriminated union, so a component cannot render the wrong
 view by accident. `WishRow` itself is handed only `Displayable` (id, title,
 description, url, photo) and cannot reach claim state at all; the caller decides
 what, if anything, goes in the row's action slot.
+
+For everyone but the owner, the list is also scoped to the group they're
+viewing it from: a wish tagged for a different one of the owner's groups does
+not appear, even to someone who is a peer of the owner through that other
+group. The owner's own view is unscoped — they see and can retag every wish
+they own, regardless of which groups it currently reaches.
 
 Wishes are ordered oldest first, on every list.
 
@@ -145,11 +175,11 @@ already saved and pressing the button again would add a second one.
 `GET /wish-photo/{wish id}?v={token}`
 ([`src/app/wish-photo/[wishId]/route.ts`](../../src/app/wish-photo/%5BwishId%5D/route.ts)).
 It re-derives the caller exactly as a Server Action does, and `getWishPhotoPath`
-reads the photo's path together with its owner so that a wish whose owner shares
-no group with the caller is refused. Every refusal is the same 404 — a missing
-photo, a stranger's wish and a malformed id are indistinguishable — and
-`Content-Type` comes from a whitelist rather than from anything stored. It is one
-of the places the privacy rule is enforced —
+reads the photo's path together with its tagged groups so that a wish not
+tagged with any group the caller belongs to is refused. Every refusal is the
+same 404 — a missing photo, a stranger's wish and a malformed id are
+indistinguishable — and `Content-Type` comes from a whitelist rather than from
+anything stored. It is one of the places the privacy rule is enforced —
 [Serving a photo](privacy-rule.md#serving-a-photo).
 
 Addressed by wish id, never by object key, so no key from a URL is ever trusted.

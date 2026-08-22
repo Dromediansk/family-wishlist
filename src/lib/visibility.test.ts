@@ -6,7 +6,9 @@ import {
   canRevokeInvite,
   claimedByOther,
   preferredName,
+  liveWishGroups,
   revealClaimer,
+  wishVisibleTo,
 } from "@/lib/visibility";
 import type { ClaimView, GroupRef } from "@/lib/types";
 
@@ -150,5 +152,77 @@ describe("canRevokeInvite", () => {
         { groupId: WORK, createdBy: admin },
       ),
     ).toBe(false);
+  });
+});
+
+describe("wishVisibleTo", () => {
+  it("is visible when the wish, the viewer and the owner all share a tagged group", () => {
+    expect(
+      wishVisibleTo(
+        new Set([FAMILY]),
+        new Set([FAMILY, WORK]),
+        new Set([FAMILY]),
+      ),
+    ).toBe(true);
+  });
+
+  it("is invisible when the viewer shares no tagged group", () => {
+    expect(
+      wishVisibleTo(new Set([FAMILY]), new Set([WORK]), new Set([FAMILY])),
+    ).toBe(false);
+  });
+
+  it("is invisible when the wish has no groups at all", () => {
+    expect(
+      wishVisibleTo(new Set(), new Set([FAMILY]), new Set([FAMILY])),
+    ).toBe(false);
+  });
+
+  it("is invisible when the viewer has no groups at all", () => {
+    expect(
+      wishVisibleTo(new Set([FAMILY]), new Set(), new Set([FAMILY])),
+    ).toBe(false);
+  });
+
+  it("is invisible when the tag is stale — the owner has since left that group", () => {
+    // The wish is still tagged FAMILY and the viewer is still in FAMILY, but
+    // the owner left FAMILY and nothing pruned the tag behind them.
+    expect(
+      wishVisibleTo(new Set([FAMILY]), new Set([FAMILY]), new Set([WORK])),
+    ).toBe(false);
+  });
+
+  it("survives a stale tag on one group when another tagged group still holds", () => {
+    // Tagged FAMILY and WORK; the owner left FAMILY but is still in WORK,
+    // and the viewer is in WORK too.
+    expect(
+      wishVisibleTo(new Set([FAMILY, WORK]), new Set([WORK]), new Set([WORK])),
+    ).toBe(true);
+  });
+});
+
+describe("liveWishGroups", () => {
+  it("keeps the tags naming a group the owner is still in", () => {
+    expect(liveWishGroups([FAMILY, WORK], new Set([FAMILY, WORK]))).toEqual([
+      FAMILY,
+      WORK,
+    ]);
+  });
+
+  it("drops a tag the owner's membership no longer backs", () => {
+    // Tagged FAMILY and WORK; the owner has since left FAMILY, and nothing
+    // pruned the tag behind them.
+    expect(liveWishGroups([FAMILY, WORK], new Set([WORK]))).toEqual([WORK]);
+  });
+
+  it("can empty the list, which is what the picker falls back from", () => {
+    expect(liveWishGroups([FAMILY], new Set([WORK]))).toEqual([]);
+  });
+
+  it("keeps the tags in tag order, not the owner's join order", () => {
+    expect(liveWishGroups([WORK, FAMILY], new Set([FAMILY, WORK]))).toEqual([
+      WORK,
+      FAMILY,
+    ]);
   });
 });

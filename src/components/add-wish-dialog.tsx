@@ -14,8 +14,12 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { WishForm } from "@/components/wish-form";
+import type { GroupId } from "@/lib/ids";
+import type { GroupRef } from "@/lib/types";
 
 type Props = {
+  groups: readonly GroupRef[];
+  currentGroupId: GroupId;
   variant?: "default" | "outline" | "secondary";
   size?: "default" | "sm";
   className?: string;
@@ -26,6 +30,8 @@ type Props = {
  * from the cookie, never from anything this component sends.
  */
 export function AddWishDialog({
+  groups,
+  currentGroupId,
   variant = "default",
   size = "default",
   className,
@@ -49,6 +55,8 @@ export function AddWishDialog({
           </DialogDescription>
         </DialogHeader>
         <WishForm
+          groups={groups}
+          defaultGroupIds={[currentGroupId]}
           submitLabel="Pridať želanie"
           onSubmit={(values) => addWish(values)}
           onDone={() => setOpen(false)}

@@ -15,12 +15,27 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { WishForm } from "@/components/wish-form";
-import type { OwnerWish } from "@/lib/types";
+import type { GroupRef, OwnerWish, TaggedWish } from "@/lib/types";
 import { wishPhotoUrl } from "@/lib/wishes";
 
 /** Edit and delete controls, shown only on your own list. */
-export function EditWishDialog({ wish }: { wish: OwnerWish }) {
+export function EditWishDialog({
+  wish,
+  groups,
+}: {
+  wish: TaggedWish;
+  groups: readonly GroupRef[];
+}) {
   const [open, setOpen] = useState(false);
+
+  /*
+   * `getWishListFor` has already dropped tags naming a group the owner has
+   * since left, which can leave none at all — and the picker only draws a
+   * checkbox per current group, so an empty selection would be unsaveable with
+   * nothing to un-tick. Every current group is a better default than none.
+   */
+  const initialGroupIds =
+    wish.groupIds.length > 0 ? wish.groupIds : groups.map((group) => group.id);
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -40,9 +55,11 @@ export function EditWishDialog({ wish }: { wish: OwnerWish }) {
             title: wish.title,
             description: wish.description ?? "",
             url: wish.url ?? "",
+            groupIds: initialGroupIds,
             photo: { kind: "unchanged" },
           }}
           initialPhotoUrl={wishPhotoUrl(wish)}
+          groups={groups}
           submitLabel="Uložiť zmeny"
           onSubmit={(values) => updateWish(wish.id, values)}
           onDone={() => setOpen(false)}

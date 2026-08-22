@@ -23,6 +23,40 @@ export function canReadList(
 }
 
 /**
+ * Is this wish, right now, tagged with a group the viewer AND the owner both
+ * belong to? The read-side counterpart to check_claim_peer, and for the same
+ * reason it needs all three sets: nothing prunes `wish_groups` when its owner
+ * leaves the group behind, so a tag the viewer still reaches is not enough on
+ * its own — the owner has to still be standing in that same group too, or the
+ * tag is stale and must not outlive the membership that justified it.
+ */
+export function wishVisibleTo(
+  wishGroupIds: ReadonlySet<GroupId>,
+  viewerGroupIds: ReadonlySet<GroupId>,
+  ownerGroupIds: ReadonlySet<GroupId>,
+): boolean {
+  for (const id of viewerGroupIds) {
+    if (wishGroupIds.has(id) && ownerGroupIds.has(id)) return true;
+  }
+  return false;
+}
+
+/**
+ * Which of a wish's tags still name a group its owner is in, in tag order.
+ *
+ * The same staleness `wishVisibleTo` guards against, answered as a list rather
+ * than a yes: nothing prunes `wish_groups` when a membership goes, so dropping
+ * the dead tags here is what lets `TaggedWish.groupIds` mean what it says, and
+ * spares every reader of it the repair.
+ */
+export function liveWishGroups(
+  wishGroupIds: readonly GroupId[],
+  ownerGroupIds: ReadonlySet<GroupId>,
+): GroupId[] {
+  return wishGroupIds.filter((id) => ownerGroupIds.has(id));
+}
+
+/**
  * May the viewer be told *who* reserved something? Only when they share a group
  * with that person — otherwise a claim made in one group would name a stranger
  * to another, along with the fact that the two are in a group together.
