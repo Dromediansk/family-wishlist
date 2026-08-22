@@ -97,23 +97,32 @@ group takes nothing but the membership —
 Two shapes come back, decided by who is looking:
 
 - **The owner** gets `TaggedWish[]` — `OwnerWish`, on which no claim field
-  exists, plus the wish's `groupIds`. Only the owner's view carries those,
-  because only the owner chooses them, and `getWishListFor` drops any that name
-  a group they have since left, so the picker never has to repair the list.
+  exists, plus the wish's `groupIds`. Only the owner chooses those, and
+  `getWishListFor` drops any that name a group they have since left, so the
+  picker never has to repair the list. Their list is unscoped, so the tags are
+  also *rendered* on it, as a badge under each title —
+  [A group tag](ui-patterns.md#a-group-tag).
 - **Everyone else** gets `ViewerWish[]` — claim status included, so the row can
   show *Toto kupuje Zuzana* and dim itself. No tag list: their query is already
   scoped to one group, so it would tell them nothing.
+- **Whoever claimed it** gets `ClaimedWish[]`, on
+  [`/buying`](claiming.md#what-im-buying) — no claim field either, because they
+  hold the claim and there is nothing to be told, plus a *narrower* `groupIds`:
+  only the tags naming a group the viewer and the owner both stand in right now.
+  That page carries no group in its URL, so the tag is the only thing saying
+  which one a row came from.
 
 `WishListView` is a discriminated union, so a component cannot render the wrong
 view by accident. `WishRow` itself is handed only `Displayable` (id, title,
 description, url, photo) and cannot reach claim state at all; the caller decides
-what, if anything, goes in the row's action slot.
+what, if anything, goes in the row's `action` and `tags` slots.
 
 For everyone but the owner, the list is also scoped to the group they're
 viewing it from: a wish tagged for a different one of the owner's groups does
 not appear, even to someone who is a peer of the owner through that other
 group. The owner's own view is unscoped — they see and can retag every wish
-they own, regardless of which groups it currently reaches.
+they own, regardless of which groups it currently reaches, which is why it is
+one of the two lists that carries a visible group tag.
 
 Wishes are ordered oldest first, on every list.
 

@@ -83,6 +83,14 @@ group you are in, newest reservation first, with whose list each came from. It
 carries no group in its URL, because a claim is not a group's business — it is
 between two people.
 
+Because it spans every group, each row also carries the groups the wish reaches,
+as badges — but only the ones **you and its owner are both in right now**. A tag
+naming a group only one of you reaches is dropped before the page ever sees it:
+`liveWishGroups` against the memberships `getPeerGroups` read, not against the
+tag list. At least one always survives, since sharing a group is what let you
+claim the wish in the first place. The badges are hidden entirely if you belong
+to a single group — every row would carry the same one.
+
 An owner cannot edit or delete a reserved wish, so nothing on this page changes
 underneath you. Two things take an item off it: releasing it yourself, and
 pressing **Darované** once you have handed the gift over — which moves it to

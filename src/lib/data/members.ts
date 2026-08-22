@@ -202,6 +202,38 @@ export async function getMembershipRole(
   return row ? toRole(row.role) : null;
 }
 
+type PeerMembershipRow = {
+  user_id: string;
+  group_id: string;
+  name: string;
+};
+
+/**
+ * Every membership row in any of the viewer's groups — who they can see, what
+ * each of them is called there, and which of the viewer's groups it is. Split
+ * out from `getPeerNames` so the two readers below share one trip, the same
+ * reason `groupMemberships` above exists.
+ *
+ * Scoped to the viewer's own groups, which is what makes everything read off it
+ * already narrowed to what they may be told.
+ */
+const peerMemberships = cache(
+  async (viewer: Viewer): Promise<PeerMembershipRow[]> => {
+    if (viewer.groups.length === 0) return [];
+
+    const { data, error } = await getSupabase()
+      .from("memberships")
+      .select("user_id, group_id, name")
+      .in(
+        "group_id",
+        viewer.groups.map((group) => group.id),
+      );
+
+    if (error) throw error;
+    return (data ?? []) as PeerMembershipRow[];
+  },
+);
+
 /**
  * What to call each person the viewer can see, one name apiece.
  *
@@ -214,24 +246,8 @@ export const getPeerNames = cache(
     viewer: Viewer,
     currentGroupId?: GroupId,
   ): Promise<ReadonlyMap<UserId, string>> => {
-    if (viewer.groups.length === 0) return new Map();
-
-    const { data, error } = await getSupabase()
-      .from("memberships")
-      .select("user_id, group_id, name")
-      .in(
-        "group_id",
-        viewer.groups.map((group) => group.id),
-      );
-
-    if (error) throw error;
-
     const namesByUser = new Map<UserId, Map<GroupId, string>>();
-    for (const row of (data ?? []) as {
-      user_id: string;
-      group_id: string;
-      name: string;
-    }[]) {
+    for (const row of await peerMemberships(viewer)) {
       const user = asUserId(row.user_id);
       let byGroup = namesByUser.get(user);
       if (!byGroup) {
@@ -246,6 +262,32 @@ export const getPeerNames = cache(
       resolved.set(user, preferredName(byGroup, viewer.groups, currentGroupId));
     }
     return resolved;
+  },
+);
+
+/**
+ * Which of the *viewer's* groups each person they can see is standing in right
+ * now — so what comes back is the groups the two of them share, and nothing
+ * read off it can name a group the viewer is not in.
+ *
+ * Read from `memberships`, which is what a `wish_groups` tag has to be checked
+ * against: nothing prunes a tag when its owner leaves, and this is the set that
+ * says the membership behind it is still there. The impure half of
+ * `wishVisibleTo`, as one map rather than a question per wish.
+ */
+export const getPeerGroups = cache(
+  async (viewer: Viewer): Promise<ReadonlyMap<UserId, ReadonlySet<GroupId>>> => {
+    const byUser = new Map<UserId, Set<GroupId>>();
+    for (const row of await peerMemberships(viewer)) {
+      const user = asUserId(row.user_id);
+      let groups = byUser.get(user);
+      if (!groups) {
+        groups = new Set();
+        byUser.set(user, groups);
+      }
+      groups.add(asGroupId(row.group_id));
+    }
+    return byUser;
   },
 );
 

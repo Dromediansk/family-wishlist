@@ -1,4 +1,4 @@
-import type { UserId } from "@/lib/ids";
+import type { GroupId, UserId } from "@/lib/ids";
 import { photoVersion } from "@/lib/images";
 import type { ClaimedWish, OwnerWish, ViewerWish } from "@/lib/types";
 import { revealClaimer } from "@/lib/visibility";
@@ -25,8 +25,10 @@ export type OwnerWishRow = {
 export const VIEWER_WISH_COLUMNS = `${OWNER_WISH_COLUMNS}, claimed_at, claimed_by_user_id`;
 
 /**
- * The `wish_groups` embed, projected. Only the owner's own list asks for it —
- * the tags are theirs to choose, and nobody else's view carries them.
+ * The `wish_groups` embed, projected. Only the two unscoped reads ask for it —
+ * the owner's own list, whose tags are theirs to choose, and `/buying`, which
+ * carries no group in its URL either. Every group-scoped read wants the filter
+ * below instead.
  */
 export const WISH_GROUPS_EMBED = "wish_groups(group_id)";
 
@@ -103,15 +105,23 @@ export function toViewerWish(
   };
 }
 
-/** The "things I'm buying" view. */
+/**
+ * The "things I'm buying" view.
+ *
+ * `groupIds` is resolved by the caller and handed in, the same way the claimer's
+ * name is: which of the wish's tags this reader may be told about is a question
+ * about two people's live memberships, which no row carries.
+ */
 export function toClaimedWish(
   row: ClaimedWishRow,
   names: ReadonlyMap<UserId, string>,
+  groupIds: GroupId[],
 ): ClaimedWish {
   const owner = row.owner_user_id;
   return {
     ...toOwnerWish(row),
     owner: { id: owner, name: names.get(owner) ?? "?" },
+    groupIds,
   };
 }
 

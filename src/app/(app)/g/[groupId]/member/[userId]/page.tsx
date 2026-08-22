@@ -8,6 +8,7 @@ import {
   DeleteWishButton,
   EditWishDialog,
 } from "@/components/edit-wish-dialog";
+import { GroupTags } from "@/components/group-tags";
 import { SetupRequired } from "@/components/setup-required";
 import { WishRow } from "@/components/wish-row";
 import { Button } from "@/components/ui/button";
@@ -93,6 +94,15 @@ export default async function MemberPage({
                   <WishRow
                     key={wish.id}
                     wish={wish}
+                    // This list is unscoped — every wish the owner has, in
+                    // whichever of their groups. The tag is the only thing
+                    // that says which. docs/content/wishes.md#reading-a-list
+                    tags={
+                      <GroupTags
+                        groupIds={wish.groupIds}
+                        groups={ctx.groups}
+                      />
+                    }
                     action={
                       // A gap between two 44px targets, one of which deletes.
                       <div className="flex items-center gap-1">

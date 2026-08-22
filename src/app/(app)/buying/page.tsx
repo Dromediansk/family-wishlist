@@ -4,6 +4,7 @@ import { ArrowLeftIcon, HistoryIcon } from "lucide-react";
 
 import { ReleaseClaimButton } from "@/components/claim-button";
 import { FulfilWishButton } from "@/components/fulfil-wish-button";
+import { GroupTags } from "@/components/group-tags";
 import { SetupRequired } from "@/components/setup-required";
 import { WishRow } from "@/components/wish-row";
 import { Button } from "@/components/ui/button";
@@ -63,6 +64,13 @@ export default async function BuyingPage() {
               <WishRow
                 key={wish.id}
                 wish={wish}
+                // This page carries no group in its URL, so the tag is what
+                // says which one a row came from — already narrowed to the
+                // groups the owner is in too.
+                // docs/content/claiming.md#what-im-buying
+                tags={
+                  <GroupTags groupIds={wish.groupIds} groups={viewer.groups} />
+                }
                 action={
                   <div className="flex flex-col gap-2 sm:items-end">
                     <span className="text-muted-foreground text-sm">

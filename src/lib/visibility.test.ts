@@ -8,6 +8,7 @@ import {
   preferredName,
   liveWishGroups,
   revealClaimer,
+  wishGroupTags,
   wishVisibleTo,
 } from "@/lib/visibility";
 import type { ClaimView, GroupRef } from "@/lib/types";
@@ -18,6 +19,7 @@ const STRANGER = asUserId("33333333-3333-4333-8333-333333333333");
 
 const FAMILY = asGroupId("aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa");
 const WORK = asGroupId("bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb");
+const FRIENDS = asGroupId("cccccccc-cccc-4ccc-8ccc-cccccccccccc");
 
 const peers = new Set([ME, PEER]);
 
@@ -224,5 +226,36 @@ describe("liveWishGroups", () => {
       WORK,
       FAMILY,
     ]);
+  });
+});
+
+describe("wishGroupTags", () => {
+  const groups: GroupRef[] = [
+    { id: FAMILY, name: "Rodina", role: "member" },
+    { id: WORK, name: "Kolegovia", role: "member" },
+  ];
+
+  it("names the tags in the viewer's group order, not tag order", () => {
+    expect(wishGroupTags([WORK, FAMILY], groups)).toEqual(groups);
+  });
+
+  it("never names a group the viewer is not in", () => {
+    expect(wishGroupTags([FRIENDS, FAMILY], groups)).toEqual([groups[0]]);
+  });
+
+  it("names the one group a lone reaching tag points at", () => {
+    expect(wishGroupTags([WORK], groups)).toEqual([groups[1]]);
+  });
+
+  it("names nothing when no tag reaches the viewer", () => {
+    expect(wishGroupTags([FRIENDS], groups)).toEqual([]);
+  });
+
+  it("names nothing for a wish with no tags left", () => {
+    expect(wishGroupTags([], groups)).toEqual([]);
+  });
+
+  it("does not itself suppress a lone group — GroupTags decides that", () => {
+    expect(wishGroupTags([FAMILY], [groups[0]])).toEqual([groups[0]]);
   });
 });

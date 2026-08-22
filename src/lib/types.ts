@@ -51,11 +51,12 @@ export type OwnerWish = {
 /**
  * An owner's own wish, plus which of their groups it is tagged visible in.
  *
- * Only this view carries the tags, because only the owner ever chooses them:
- * every other reader's query is already scoped to one group, so a tag list
- * would tell them nothing they did not already know. `getWishListFor` drops
- * tags naming a group the owner has since left, so these are always live.
- * docs/content/wishes.md#reading-a-list
+ * The full tag list, because only the owner ever chooses them and their own
+ * list is unscoped. Every other reader whose query is scoped to one group gets
+ * no tags at all — they would say nothing that reader did not already know;
+ * `ClaimedWish` is the one exception, and carries a narrower set.
+ * `getWishListFor` drops tags naming a group the owner has since left, so these
+ * are always live. docs/content/wishes.md#reading-a-list
  */
 export type TaggedWish = OwnerWish & { groupIds: GroupId[] };
 
@@ -81,9 +82,20 @@ export type PeerUser = {
   name: string;
 };
 
-/** A wish the current member has claimed, with whose list it came from. */
+/**
+ * A wish the current member has claimed, with whose list it came from and which
+ * groups it reaches.
+ *
+ * `groupIds` is narrower than `TaggedWish`'s: only the tags naming a group the
+ * viewer AND the owner both stand in right now. `/buying` spans every group, so
+ * unlike every other non-owner view the tags do tell the reader something — but
+ * a tag only one of the two reaches is not theirs to be shown, and
+ * `getClaimedBy` never puts it here.
+ * docs/content/claiming.md#what-im-buying
+ */
 export type ClaimedWish = OwnerWish & {
   owner: PeerUser;
+  groupIds: GroupId[];
 };
 
 /**
