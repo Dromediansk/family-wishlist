@@ -8,16 +8,23 @@ import { wishPhotoUrl } from "@/lib/wishes";
 /**
  * The wish itself — optional photo, title, optional description, optional link.
  * Claim status is never rendered here; the caller decides what, if anything, to
- * put in `action`.
+ * put in `action` and `tags`.
  */
 export function WishRow({
   wish,
   action,
+  tags,
   actionBeside = false,
   dimmed = false,
 }: {
   wish: Displayable;
   action?: React.ReactNode;
+  /**
+   * Group tags, under the title — docs/content/ui-patterns.md#a-group-tag. A
+   * slot rather than a field on `wish`, so `Displayable` stays as narrow as it
+   * is on purpose and the row still cannot reach claim state.
+   */
+  tags?: React.ReactNode;
   /**
    * Keep `action` beside the wish on a phone too. Two lines of small text fit
    * there; buttons do not, so they keep the default full-width row of their own.
@@ -53,6 +60,9 @@ export function WishRow({
             <p className="text-lg leading-snug font-semibold break-words">
               {wish.title}
             </p>
+            {/* Bare: `GroupTags` can render nothing, and a wrapper would
+                still take a row of `space-y-1.5`. */}
+            {tags}
             {wish.description ? (
               <p className="text-muted-foreground max-w-[62ch] break-words whitespace-pre-line">
                 {wish.description}

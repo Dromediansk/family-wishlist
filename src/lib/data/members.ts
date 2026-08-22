@@ -203,18 +203,19 @@ export async function getMembershipRole(
 }
 
 /**
- * What to call each person the viewer can see, one name apiece.
+ * Everyone the viewer can see, and what each of them is called in each of the
+ * viewer's groups. The one fold both readers below start from, the same reason
+ * `groupMemberships` above exists — `cache` makes them share one trip.
  *
- * A name is a per-group label, so somebody in two of the viewer's groups has
- * two; `preferredName` picks which one this screen uses, and the whole map is
- * resolved through the same group so one screen stays self-consistent.
+ * Scoped to the viewer's own groups, so nothing read off it can name a group
+ * they are not in.
  */
-export const getPeerNames = cache(
+const peerNamesByGroup = cache(
   async (
     viewer: Viewer,
-    currentGroupId?: GroupId,
-  ): Promise<ReadonlyMap<UserId, string>> => {
-    if (viewer.groups.length === 0) return new Map();
+  ): Promise<ReadonlyMap<UserId, Map<GroupId, string>>> => {
+    const namesByUser = new Map<UserId, Map<GroupId, string>>();
+    if (viewer.groups.length === 0) return namesByUser;
 
     const { data, error } = await getSupabase()
       .from("memberships")
@@ -226,7 +227,6 @@ export const getPeerNames = cache(
 
     if (error) throw error;
 
-    const namesByUser = new Map<UserId, Map<GroupId, string>>();
     for (const row of (data ?? []) as {
       user_id: string;
       group_id: string;
@@ -241,11 +241,48 @@ export const getPeerNames = cache(
       byGroup.set(asGroupId(row.group_id), row.name);
     }
 
+    return namesByUser;
+  },
+);
+
+/**
+ * What to call each person the viewer can see, one name apiece.
+ *
+ * A name is a per-group label, so somebody in two of the viewer's groups has
+ * two; `preferredName` picks which one this screen uses, and the whole map is
+ * resolved through the same group so one screen stays self-consistent.
+ */
+export const getPeerNames = cache(
+  async (
+    viewer: Viewer,
+    currentGroupId?: GroupId,
+  ): Promise<ReadonlyMap<UserId, string>> => {
     const resolved = new Map<UserId, string>();
-    for (const [user, byGroup] of namesByUser) {
+    for (const [user, byGroup] of await peerNamesByGroup(viewer)) {
       resolved.set(user, preferredName(byGroup, viewer.groups, currentGroupId));
     }
     return resolved;
+  },
+);
+
+/**
+ * Which of the *viewer's* groups each person they can see is standing in right
+ * now — the groups the two of them share.
+ *
+ * Read from `memberships`, which is what a `wish_groups` tag has to be checked
+ * against: nothing prunes a tag when its owner leaves, so this is the set that
+ * says the membership behind it is still there.
+ * docs/content/privacy-rule.md#where-two-groups-meet
+ */
+export const getPeerGroups = cache(
+  async (
+    viewer: Viewer,
+  ): Promise<ReadonlyMap<UserId, ReadonlySet<GroupId>>> => {
+    const byUser = new Map<UserId, ReadonlySet<GroupId>>();
+    for (const [user, byGroup] of await peerNamesByGroup(viewer)) {
+      byUser.set(user, new Set(byGroup.keys()));
+    }
+    return byUser;
   },
 );
 

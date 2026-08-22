@@ -1,6 +1,6 @@
 import "server-only";
 
-import { getPeerNames, groupIdsOf } from "@/lib/data/members";
+import { getPeerGroups, getPeerNames, groupIdsOf } from "@/lib/data/members";
 import { asGroupId, asUserId, type GroupId, type UserId } from "@/lib/ids";
 import { getSupabase } from "@/lib/supabase";
 import type { ClaimedWish, GroupContext, Viewer, WishListView } from "@/lib/types";
@@ -133,23 +133,32 @@ export async function getWishListFor(
  * `memberships_release_claims` fires on membership deletion, and clears one out
  * the moment the shared group behind it is gone — so this needs no peer filter
  * of its own.
+ *
+ * The tags come back too, narrowed by `toClaimedWish` to the groups the viewer
+ * and the owner both stand in. docs/content/claiming.md#what-im-buying
  */
 export async function getClaimedBy(viewer: Viewer): Promise<ClaimedWish[]> {
-  const [result, names] = await Promise.all([
+  const [result, names, peerGroups] = await Promise.all([
     getSupabase()
       .from("wishes")
-      .select(`${OWNER_WISH_COLUMNS}, owner_user_id`)
+      // A plain embed, not WISH_GROUPS_SCOPE: here the rows are read rather
+      // than used as a filter, and the claim is already proof of reachability.
+      .select(`${OWNER_WISH_COLUMNS}, owner_user_id, ${WISH_GROUPS_EMBED}`)
       .eq("claimed_by_user_id", viewer.userId)
       // Newest first. Ordering needs no projection, and no date is displayed.
       .order("claimed_at", { ascending: false }),
     getPeerNames(viewer),
+    getPeerGroups(viewer),
   ]);
 
   if (result.error) throw result.error;
 
-  const rows = (result.data ?? []) as unknown as ClaimedWishRow[];
+  const rows = (result.data ?? []) as unknown as (ClaimedWishRow &
+    WishGroupsEmbed)[];
 
-  return rows.map((row) => toClaimedWish(row, names));
+  return rows.map(({ wish_groups, ...row }) =>
+    toClaimedWish(row, names, embeddedGroupIds(wish_groups), peerGroups),
+  );
 }
 
 /**

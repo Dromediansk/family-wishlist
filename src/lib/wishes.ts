@@ -1,7 +1,7 @@
-import type { UserId } from "@/lib/ids";
+import type { GroupId, UserId } from "@/lib/ids";
 import { photoVersion } from "@/lib/images";
 import type { ClaimedWish, OwnerWish, ViewerWish } from "@/lib/types";
-import { revealClaimer } from "@/lib/visibility";
+import { liveWishGroups, revealClaimer } from "@/lib/visibility";
 
 /**
  * Pure row -> view mappers, free of Supabase and Next.js imports so the privacy
@@ -25,8 +25,10 @@ export type OwnerWishRow = {
 export const VIEWER_WISH_COLUMNS = `${OWNER_WISH_COLUMNS}, claimed_at, claimed_by_user_id`;
 
 /**
- * The `wish_groups` embed, projected. Only the owner's own list asks for it —
- * the tags are theirs to choose, and nobody else's view carries them.
+ * The `wish_groups` embed, projected. Only the two unscoped reads ask for it —
+ * the owner's own list, whose tags are theirs to choose, and `/buying`, which
+ * carries no group in its URL either. Every group-scoped read wants the filter
+ * below instead.
  */
 export const WISH_GROUPS_EMBED = "wish_groups(group_id)";
 
@@ -103,15 +105,28 @@ export function toViewerWish(
   };
 }
 
-/** The "things I'm buying" view. */
+/** Somebody with no membership left in any of the viewer's groups. */
+const NO_GROUPS: ReadonlySet<GroupId> = new Set();
+
+/**
+ * The "things I'm buying" view.
+ *
+ * Takes the wish's raw tags and the shared-group map, and narrows them here
+ * rather than upstream — the same shape as `toViewerWish` above taking `peers`
+ * and asking `revealClaimer` itself, so the rule that decides what this reader
+ * is told sits in the tested half. docs/content/claiming.md#what-im-buying
+ */
 export function toClaimedWish(
   row: ClaimedWishRow,
   names: ReadonlyMap<UserId, string>,
+  wishGroupIds: readonly GroupId[],
+  peerGroups: ReadonlyMap<UserId, ReadonlySet<GroupId>>,
 ): ClaimedWish {
   const owner = row.owner_user_id;
   return {
     ...toOwnerWish(row),
     owner: { id: owner, name: names.get(owner) ?? "?" },
+    groupIds: liveWishGroups(wishGroupIds, peerGroups.get(owner) ?? NO_GROUPS),
   };
 }
 

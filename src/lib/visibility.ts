@@ -48,12 +48,34 @@ export function wishVisibleTo(
  * than a yes: nothing prunes `wish_groups` when a membership goes, so dropping
  * the dead tags here is what lets `TaggedWish.groupIds` mean what it says, and
  * spares every reader of it the repair.
+ *
+ * A reader who is not the owner passes the groups they *share* with them
+ * instead — the same filter with a narrower set, which is what keeps a tag
+ * naming only one of the two off their screen.
  */
 export function liveWishGroups(
   wishGroupIds: readonly GroupId[],
   ownerGroupIds: ReadonlySet<GroupId>,
 ): GroupId[] {
   return wishGroupIds.filter((id) => ownerGroupIds.has(id));
+}
+
+/**
+ * Which of the viewer's groups a wish's tags name, in the viewer's own group
+ * order — the order the switcher and `preferredName` both use, so one screen
+ * lists them the same way twice.
+ *
+ * Filtering the viewer's groups rather than the tags is what makes a group the
+ * viewer is not in unnameable here, whatever the tag list happens to hold. It
+ * hands back the `GroupRef` rather than the name, because two groups may share
+ * a name and a row of badges needs a stable key.
+ */
+export function wishGroupTags(
+  wishGroupIds: readonly GroupId[],
+  viewerGroups: readonly GroupRef[],
+): GroupRef[] {
+  const tagged = new Set(wishGroupIds);
+  return viewerGroups.filter((group) => tagged.has(group.id));
 }
 
 /**

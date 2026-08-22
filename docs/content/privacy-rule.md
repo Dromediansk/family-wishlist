@@ -82,7 +82,7 @@ inline in an action is caught by neither.
 
 ## Where the rule is enforced
 
-Eleven places, in four groups. Change one and the rest need checking.
+Twelve places, in four groups. Change one and the rest need checking.
 
 ### Reading a list
 
@@ -159,6 +159,17 @@ must be invisible to another.
     **unstorable**, whatever the app code forgot; `memberships_release_claims`
     releases the claims a departure orphans by re-checking, per wish, whether
     the claimer is still in any of its tagged groups.
+12. `toClaimedWish` ([`src/lib/wishes.ts`](../../src/lib/wishes.ts)) narrows a
+    claimed wish's group tags to the groups the viewer and its owner *both*
+    stand in, from the memberships `getPeerGroups`
+    ([`src/lib/data/members.ts`](../../src/lib/data/members.ts)) read — so
+    [`/buying`](claiming.md#what-im-buying), which carries no group in its URL,
+    cannot name one of the owner's other circles to a giver who is not in it.
+    Same staleness reasoning as item 9: nothing prunes `wish_groups` when its
+    owner leaves, so a tag is checked against a live membership rather than
+    trusted. `ClaimedWish` ([`src/lib/types.ts`](../../src/lib/types.ts)) is
+    where that narrower meaning is defined, and
+    [`src/lib/wishes.test.ts`](../../src/lib/wishes.test.ts) pins it down.
 
 Live updates are the last surface the rule reaches — see
 [Live updates](live-updates.md).

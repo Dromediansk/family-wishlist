@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   groupIdFromPath,
   groupInPath,
+  groupsWorthNaming,
   MAX_GROUPS_PER_ACCOUNT,
 } from "@/lib/groups";
 import { asGroupId } from "@/lib/ids";
@@ -68,5 +69,19 @@ describe("groupInPath", () => {
 describe("MAX_GROUPS_PER_ACCOUNT", () => {
   it("pins the advertised cap, so raising it is a decision and not an accident", () => {
     expect(MAX_GROUPS_PER_ACCOUNT).toBe(5);
+  });
+});
+
+describe("groupsWorthNaming", () => {
+  it("says nothing to distinguish when the viewer is in one group", () => {
+    expect(groupsWorthNaming([{ id: FAMILY }])).toBe(false);
+  });
+
+  it("says nothing to distinguish for a groupless account either", () => {
+    expect(groupsWorthNaming([])).toBe(false);
+  });
+
+  it("says a name distinguishes something from two groups up", () => {
+    expect(groupsWorthNaming(groups)).toBe(true);
   });
 });

@@ -8,6 +8,7 @@ import {
   DeleteWishButton,
   EditWishDialog,
 } from "@/components/edit-wish-dialog";
+import { GroupTags } from "@/components/group-tags";
 import { SetupRequired } from "@/components/setup-required";
 import { WishRow } from "@/components/wish-row";
 import { Button } from "@/components/ui/button";
@@ -93,6 +94,9 @@ export default async function MemberPage({
                   <WishRow
                     key={wish.id}
                     wish={wish}
+                    tags={
+                      <GroupTags groupIds={wish.groupIds} groups={ctx.groups} />
+                    }
                     action={
                       // A gap between two 44px targets, one of which deletes.
                       <div className="flex items-center gap-1">

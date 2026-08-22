@@ -32,7 +32,7 @@ Setup: [`docs/setup/local-development.md`](docs/setup/local-development.md).
 never be shown claims while reading their own list. The secret ends only when
 the giver ends it, by marking the gift handed over — and never any other way.**
 
-Enforced in eleven places, listed in
+Enforced in twelve places, listed in
 [`docs/content/privacy-rule.md`](docs/content/privacy-rule.md#where-the-rule-is-enforced).
 Change one and check the rest.
 

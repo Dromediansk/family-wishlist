@@ -11,6 +11,20 @@ import type { GroupId } from "@/lib/ids";
 export const MAX_GROUPS_PER_ACCOUNT = 5;
 
 /**
+ * Does naming a group tell the reader anything? Only when they are in more than
+ * one: with a single group, every wish they can see is there through it, so a
+ * picker has nothing to offer and a tag has nothing to distinguish.
+ *
+ * One spelling for both places that ask — `WishForm`'s picker and `GroupTags` —
+ * because it is one rule, and two length comparisons in opposite polarities
+ * would let them drift apart. Only the length is read.
+ * docs/content/ui-patterns.md#a-group-tag
+ */
+export function groupsWorthNaming(groups: readonly unknown[]): boolean {
+  return groups.length > 1;
+}
+
+/**
  * The group segment of a path, as it was typed, or null when the path is not
  * under `/g/`. A bare id and nothing more: it has proved nothing yet.
  */

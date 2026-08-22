@@ -11,6 +11,7 @@ import {
   WishPhotoField,
   type WishPhotoChoice,
 } from "@/components/wish-photo-field";
+import { groupsWorthNaming } from "@/lib/groups";
 import type { GroupId } from "@/lib/ids";
 import type { ActionFailure, ActionResult, GroupRef } from "@/lib/types";
 
@@ -141,18 +142,24 @@ export function WishForm({
           />
         </div>
 
-        {groups.length > 1 ? (
+        {groupsWorthNaming(groups) ? (
           <div className="flex flex-col gap-2">
             <Label>Viditeľné v skupinách</Label>
-            <div className="flex flex-col gap-2">
+            {/*
+             * Two columns at every width. Half a full-screen phone dialog is
+             * about eleven characters at 17px, so a long name wraps rather than
+             * clipping — a picker you cannot read is worse than a tall one —
+             * and `items-start` keeps the box on its first line when it does.
+             */}
+            <div className="grid grid-cols-2 gap-x-4 gap-y-2">
               {groups.map((group) => (
                 <label
                   key={group.id}
-                  className="flex items-center gap-2 text-base"
+                  className="flex items-start gap-2 text-base"
                 >
                   <input
                     type="checkbox"
-                    className="h-5 w-5 accent-primary"
+                    className="mt-0.5 size-5 shrink-0 accent-primary"
                     checked={values.groupIds.includes(group.id)}
                     onChange={(event) =>
                       update(
@@ -163,7 +170,7 @@ export function WishForm({
                       )
                     }
                   />
-                  {group.name}
+                  <span className="min-w-0 break-words">{group.name}</span>
                 </label>
               ))}
             </div>

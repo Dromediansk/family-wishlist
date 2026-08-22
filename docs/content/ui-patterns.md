@@ -229,6 +229,35 @@ the body. Fitting it to the panel instead would undo the reason the thumbnail
 opens at all: what people attach is usually a screenshot of a shop's page, and a
 screenshot scaled to fit a phone-tall panel is back to being unreadable.
 
+## A group tag
+
+[`GroupTags`](../../src/components/group-tags.tsx) is an outline `Badge` per
+group, carrying the same `UsersRoundIcon` the group switcher uses — one glyph
+means "group" everywhere, which is what lets the badge show a bare name with no
+label beside it. `outline` and not `secondary`: this is metadata repeated on
+every row, and the filled badge is already spoken for by *správca* on the family
+grid, which is a role claim and should stay the louder of the two.
+
+It appears on the two lists that span more than one group — the owner's own list
+and [`/buying`](claiming.md#what-im-buying) — and nowhere else. Every other list
+is scoped to one group in its query, so the tag would only repeat the URL.
+
+It renders **nothing** for somebody in a single group: every wish they can see
+is there through it, so the badge would say the same thing on every row. That is
+the same rule that hides the group picker in `WishForm`, so both ask
+`groupsWorthNaming` ([`src/lib/groups.ts`](../../src/lib/groups.ts)) rather than
+comparing lengths — two spellings in opposite polarities would drift.
+
+The tag sits directly under the wish's title, not below its content. A
+description runs to 62ch over any number of lines and the link below it is a
+44px target, so a tag after them lands at an unpredictable height and stops
+being scannable down a list. `WishRow` renders the slot **bare** — no wrapper —
+because a wrapper around something that renders `null` still takes a row of
+`space-y-1.5`.
+
+Names truncate at `max-w-40`, like the switcher's, and the full one is in
+`title`.
+
 ## Layout contract
 
 The root layout deliberately has **no `<main>`**. Each child supplies its own
