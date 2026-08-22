@@ -81,20 +81,20 @@ const main = async () => {
   const groupId = await insertGroup(me);
   const [zuzana, marek, elena] = await insertRelatives(groupId);
 
-  const mine = await insertWishes(me.id, MY_WISHES);
+  const mine = await insertWishes(groupId, me.id, MY_WISHES);
 
-  const hers = await insertWishes(zuzana.id, [
+  const hers = await insertWishes(groupId, zuzana.id, [
     { title: "Keramická váza", description: "Vysoká, matná, ideálne zelená." },
     { title: "Poukaz do kníhkupectva", url: "https://example.com/poukaz" },
     { title: "Vlnená deka" },
   ]);
 
-  const his = await insertWishes(marek.id, [
+  const his = await insertWishes(groupId, marek.id, [
     { title: "Sada skrutkovačov", url: "https://example.com/skrutkovace" },
     { title: "Termoska" },
   ]);
 
-  await insertWishes(elena.id, [
+  await insertWishes(groupId, elena.id, [
     { title: "Akvarelové farby", description: "24 odtieňov stačí." },
     { title: "Stojan na maľovanie" },
   ]);
@@ -266,13 +266,26 @@ const insertRelatives = async (groupId) => {
   return relatives;
 };
 
-const insertWishes = async (ownerId, wishes) => {
+/**
+ * A wish reaches other people only through its group tags: an untagged wish is invisible
+ * on every list, and unclaimable too, since a claim needs the claimer and the owner to
+ * share a group the wish is tagged with (wish_shares_group, 0009_wish_groups.sql).
+ * Everything this script makes lives in the one seed group, so that is the tag.
+ */
+const insertWishes = async (groupId, ownerId, wishes) => {
   const { data, error } = await db
     .from("wishes")
     .insert(wishes.map((w) => ({ owner_user_id: ownerId, ...w })))
     .select("id, title");
 
   if (error) throw error;
+
+  const { error: tagError } = await db
+    .from("wish_groups")
+    .insert(data.map((w) => ({ wish_id: w.id, group_id: groupId })));
+
+  if (tagError) throw tagError;
+
   return inAskedOrder(
     data,
     wishes.map((w) => w.title),
@@ -292,7 +305,7 @@ const claim = async (wishId, claimerId) => {
 
 const report = async (me, groupId) => {
   const counts = await Promise.all(
-    ["app_users", "groups", "memberships", "wishes"].map(async (table) => {
+    ["app_users", "groups", "memberships", "wishes", "wish_groups"].map(async (table) => {
       const { count, error } = await db.from(table).select("*", { count: "exact", head: true });
       if (error) throw error;
       return `${count} ${table}`;
