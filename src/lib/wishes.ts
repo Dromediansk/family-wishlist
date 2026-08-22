@@ -1,7 +1,7 @@
 import type { GroupId, UserId } from "@/lib/ids";
 import { photoVersion } from "@/lib/images";
 import type { ClaimedWish, OwnerWish, ViewerWish } from "@/lib/types";
-import { revealClaimer } from "@/lib/visibility";
+import { liveWishGroups, revealClaimer } from "@/lib/visibility";
 
 /**
  * Pure row -> view mappers, free of Supabase and Next.js imports so the privacy
@@ -105,23 +105,28 @@ export function toViewerWish(
   };
 }
 
+/** Somebody with no membership left in any of the viewer's groups. */
+const NO_GROUPS: ReadonlySet<GroupId> = new Set();
+
 /**
  * The "things I'm buying" view.
  *
- * `groupIds` is resolved by the caller and handed in, the same way the claimer's
- * name is: which of the wish's tags this reader may be told about is a question
- * about two people's live memberships, which no row carries.
+ * Takes the wish's raw tags and the shared-group map, and narrows them here
+ * rather than upstream — the same shape as `toViewerWish` above taking `peers`
+ * and asking `revealClaimer` itself, so the rule that decides what this reader
+ * is told sits in the tested half. docs/content/claiming.md#what-im-buying
  */
 export function toClaimedWish(
   row: ClaimedWishRow,
   names: ReadonlyMap<UserId, string>,
-  groupIds: GroupId[],
+  wishGroupIds: readonly GroupId[],
+  peerGroups: ReadonlyMap<UserId, ReadonlySet<GroupId>>,
 ): ClaimedWish {
   const owner = row.owner_user_id;
   return {
     ...toOwnerWish(row),
     owner: { id: owner, name: names.get(owner) ?? "?" },
-    groupIds,
+    groupIds: liveWishGroups(wishGroupIds, peerGroups.get(owner) ?? NO_GROUPS),
   };
 }
 

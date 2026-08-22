@@ -11,6 +11,7 @@ import {
   WishPhotoField,
   type WishPhotoChoice,
 } from "@/components/wish-photo-field";
+import { groupsWorthNaming } from "@/lib/groups";
 import type { GroupId } from "@/lib/ids";
 import type { ActionFailure, ActionResult, GroupRef } from "@/lib/types";
 
@@ -141,7 +142,7 @@ export function WishForm({
           />
         </div>
 
-        {groups.length > 1 ? (
+        {groupsWorthNaming(groups) ? (
           <div className="flex flex-col gap-2">
             <Label>Viditeľné v skupinách</Label>
             {/*
@@ -158,7 +159,7 @@ export function WishForm({
                 >
                   <input
                     type="checkbox"
-                    className="mt-0.5 h-5 w-5 shrink-0 accent-primary"
+                    className="mt-0.5 size-5 shrink-0 accent-primary"
                     checked={values.groupIds.includes(group.id)}
                     onChange={(event) =>
                       update(

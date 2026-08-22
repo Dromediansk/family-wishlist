@@ -9,11 +9,6 @@ import { wishPhotoUrl } from "@/lib/wishes";
  * The wish itself — optional photo, title, optional description, optional link.
  * Claim status is never rendered here; the caller decides what, if anything, to
  * put in `action` and `tags`.
- *
- * Group tags sit under the title rather than below the content: a description
- * runs to 62ch over any number of lines and the link is a 44px target, so a tag
- * after them lands at an unpredictable height and stops being scannable down a
- * list. docs/content/ui-patterns.md#a-group-tag
  */
 export function WishRow({
   wish,
@@ -25,9 +20,9 @@ export function WishRow({
   wish: Displayable;
   action?: React.ReactNode;
   /**
-   * Group tags, on the two lists that span more than one group. A slot rather
-   * than a field on `wish`, so `Displayable` stays as narrow as it is on
-   * purpose — the row still cannot reach claim state.
+   * Group tags, under the title — docs/content/ui-patterns.md#a-group-tag. A
+   * slot rather than a field on `wish`, so `Displayable` stays as narrow as it
+   * is on purpose and the row still cannot reach claim state.
    */
   tags?: React.ReactNode;
   /**
@@ -65,9 +60,8 @@ export function WishRow({
             <p className="text-lg leading-snug font-semibold break-words">
               {wish.title}
             </p>
-            {/* Bare, no wrapper: `GroupTags` renders nothing for a viewer with
-                one group, and a wrapper would leave that nothing a row of
-                `space-y-1.5` above the description. */}
+            {/* Bare: `GroupTags` can render nothing, and a wrapper would
+                still take a row of `space-y-1.5`. */}
             {tags}
             {wish.description ? (
               <p className="text-muted-foreground max-w-[62ch] break-words whitespace-pre-line">

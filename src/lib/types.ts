@@ -86,11 +86,10 @@ export type PeerUser = {
  * A wish the current member has claimed, with whose list it came from and which
  * groups it reaches.
  *
- * `groupIds` is narrower than `TaggedWish`'s: only the tags naming a group the
- * viewer AND the owner both stand in right now. `/buying` spans every group, so
- * unlike every other non-owner view the tags do tell the reader something — but
- * a tag only one of the two reaches is not theirs to be shown, and
- * `getClaimedBy` never puts it here.
+ * `groupIds` is narrower than `TaggedWish`'s and this is its definition: only
+ * the tags naming a group the viewer AND the owner both stand in right now. A
+ * tag only one of the two reaches is not this reader's to be shown, and
+ * `toClaimedWish` never puts it here.
  * docs/content/claiming.md#what-im-buying
  */
 export type ClaimedWish = OwnerWish & {

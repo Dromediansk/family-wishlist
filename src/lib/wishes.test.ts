@@ -1,12 +1,14 @@
 import { describe, expect, it } from "vitest";
 
-import { asUserId, type UserId } from "@/lib/ids";
+import { asGroupId, asUserId, type GroupId, type UserId } from "@/lib/ids";
 import {
   OWNER_WISH_COLUMNS,
   refusalFor,
+  toClaimedWish,
   toOwnerWish,
   toViewerWish,
   wishPhotoUrl,
+  type ClaimedWishRow,
   type ViewerWishRow,
 } from "@/lib/wishes";
 
@@ -118,6 +120,67 @@ describe("toViewerWish", () => {
   it("treats a claim with no timestamp as free", () => {
     const broken = { ...row(PEER), claimed_at: null };
     expect(toViewerWish(broken, peers, names).claim).toEqual({ kind: "free" });
+  });
+});
+
+describe("toClaimedWish", () => {
+  const OWNER = asUserId("33333333-3333-4333-8333-333333333333");
+  const FAMILY = asGroupId("aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa");
+  const WORK = asGroupId("bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb");
+
+  const row: ClaimedWishRow = {
+    id: "44444444-4444-4444-8444-444444444444",
+    title: "Wool socks",
+    description: null,
+    url: null,
+    photo_path: null,
+    created_at: "2026-01-01T00:00:00.000Z",
+    owner_user_id: OWNER,
+  };
+
+  const names = new Map<UserId, string>([[OWNER, "Zuzana"]]);
+  const shared = (...groups: GroupId[]) =>
+    new Map<UserId, ReadonlySet<GroupId>>([[OWNER, new Set(groups)]]);
+
+  it("names the owner and keeps the tags they share with the viewer", () => {
+    const wish = toClaimedWish(
+      row,
+      names,
+      [FAMILY, WORK],
+      shared(FAMILY, WORK),
+    );
+    expect(wish.owner).toEqual({ id: OWNER, name: "Zuzana" });
+    expect(wish.groupIds).toEqual([FAMILY, WORK]);
+  });
+
+  it("drops a tag naming a group the two no longer share", () => {
+    // Tagged for both; the owner has since left WORK, and nothing pruned the
+    // tag behind them. Saying "Kolegovia" here would assert a dead membership.
+    expect(
+      toClaimedWish(row, names, [FAMILY, WORK], shared(FAMILY)).groupIds,
+    ).toEqual([FAMILY]);
+  });
+
+  it("names nothing when no tag survives the narrowing", () => {
+    expect(toClaimedWish(row, names, [WORK], shared(FAMILY)).groupIds).toEqual(
+      [],
+    );
+  });
+
+  it("names nothing for an owner the viewer shares no group with", () => {
+    expect(toClaimedWish(row, names, [FAMILY], new Map()).groupIds).toEqual([]);
+  });
+
+  it("carries no claim field to leak", () => {
+    expect(
+      toClaimedWish(row, names, [FAMILY], shared(FAMILY)),
+    ).not.toHaveProperty("claim");
+  });
+
+  it("falls back to ? for an owner with no name in any shared group", () => {
+    expect(
+      toClaimedWish(row, new Map(), [FAMILY], shared(FAMILY)).owner.name,
+    ).toBe("?");
   });
 });
 

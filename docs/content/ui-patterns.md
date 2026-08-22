@@ -244,7 +244,9 @@ is scoped to one group in its query, so the tag would only repeat the URL.
 
 It renders **nothing** for somebody in a single group: every wish they can see
 is there through it, so the badge would say the same thing on every row. That is
-the rule that also hides the group picker in `WishForm`.
+the same rule that hides the group picker in `WishForm`, so both ask
+`groupsWorthNaming` ([`src/lib/groups.ts`](../../src/lib/groups.ts)) rather than
+comparing lengths — two spellings in opposite polarities would drift.
 
 The tag sits directly under the wish's title, not below its content. A
 description runs to 62ch over any number of lines and the link below it is a

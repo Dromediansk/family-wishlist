@@ -202,24 +202,20 @@ export async function getMembershipRole(
   return row ? toRole(row.role) : null;
 }
 
-type PeerMembershipRow = {
-  user_id: string;
-  group_id: string;
-  name: string;
-};
-
 /**
- * Every membership row in any of the viewer's groups — who they can see, what
- * each of them is called there, and which of the viewer's groups it is. Split
- * out from `getPeerNames` so the two readers below share one trip, the same
- * reason `groupMemberships` above exists.
+ * Everyone the viewer can see, and what each of them is called in each of the
+ * viewer's groups. The one fold both readers below start from, the same reason
+ * `groupMemberships` above exists — `cache` makes them share one trip.
  *
- * Scoped to the viewer's own groups, which is what makes everything read off it
- * already narrowed to what they may be told.
+ * Scoped to the viewer's own groups, so nothing read off it can name a group
+ * they are not in.
  */
-const peerMemberships = cache(
-  async (viewer: Viewer): Promise<PeerMembershipRow[]> => {
-    if (viewer.groups.length === 0) return [];
+const peerNamesByGroup = cache(
+  async (
+    viewer: Viewer,
+  ): Promise<ReadonlyMap<UserId, Map<GroupId, string>>> => {
+    const namesByUser = new Map<UserId, Map<GroupId, string>>();
+    if (viewer.groups.length === 0) return namesByUser;
 
     const { data, error } = await getSupabase()
       .from("memberships")
@@ -230,7 +226,22 @@ const peerMemberships = cache(
       );
 
     if (error) throw error;
-    return (data ?? []) as PeerMembershipRow[];
+
+    for (const row of (data ?? []) as {
+      user_id: string;
+      group_id: string;
+      name: string;
+    }[]) {
+      const user = asUserId(row.user_id);
+      let byGroup = namesByUser.get(user);
+      if (!byGroup) {
+        byGroup = new Map();
+        namesByUser.set(user, byGroup);
+      }
+      byGroup.set(asGroupId(row.group_id), row.name);
+    }
+
+    return namesByUser;
   },
 );
 
@@ -246,19 +257,8 @@ export const getPeerNames = cache(
     viewer: Viewer,
     currentGroupId?: GroupId,
   ): Promise<ReadonlyMap<UserId, string>> => {
-    const namesByUser = new Map<UserId, Map<GroupId, string>>();
-    for (const row of await peerMemberships(viewer)) {
-      const user = asUserId(row.user_id);
-      let byGroup = namesByUser.get(user);
-      if (!byGroup) {
-        byGroup = new Map();
-        namesByUser.set(user, byGroup);
-      }
-      byGroup.set(asGroupId(row.group_id), row.name);
-    }
-
     const resolved = new Map<UserId, string>();
-    for (const [user, byGroup] of namesByUser) {
+    for (const [user, byGroup] of await peerNamesByGroup(viewer)) {
       resolved.set(user, preferredName(byGroup, viewer.groups, currentGroupId));
     }
     return resolved;
@@ -267,25 +267,20 @@ export const getPeerNames = cache(
 
 /**
  * Which of the *viewer's* groups each person they can see is standing in right
- * now — so what comes back is the groups the two of them share, and nothing
- * read off it can name a group the viewer is not in.
+ * now — the groups the two of them share.
  *
  * Read from `memberships`, which is what a `wish_groups` tag has to be checked
- * against: nothing prunes a tag when its owner leaves, and this is the set that
- * says the membership behind it is still there. The impure half of
- * `wishVisibleTo`, as one map rather than a question per wish.
+ * against: nothing prunes a tag when its owner leaves, so this is the set that
+ * says the membership behind it is still there.
+ * docs/content/privacy-rule.md#where-two-groups-meet
  */
 export const getPeerGroups = cache(
-  async (viewer: Viewer): Promise<ReadonlyMap<UserId, ReadonlySet<GroupId>>> => {
-    const byUser = new Map<UserId, Set<GroupId>>();
-    for (const row of await peerMemberships(viewer)) {
-      const user = asUserId(row.user_id);
-      let groups = byUser.get(user);
-      if (!groups) {
-        groups = new Set();
-        byUser.set(user, groups);
-      }
-      groups.add(asGroupId(row.group_id));
+  async (
+    viewer: Viewer,
+  ): Promise<ReadonlyMap<UserId, ReadonlySet<GroupId>>> => {
+    const byUser = new Map<UserId, ReadonlySet<GroupId>>();
+    for (const [user, byGroup] of await peerNamesByGroup(viewer)) {
+      byUser.set(user, new Set(byGroup.keys()));
     }
     return byUser;
   },

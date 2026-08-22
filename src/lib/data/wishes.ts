@@ -134,11 +134,8 @@ export async function getWishListFor(
  * the moment the shared group behind it is gone — so this needs no peer filter
  * of its own.
  *
- * The tags come back too, narrowed to the groups the viewer and the owner both
- * stand in: `getPeerGroups` is already scoped to the viewer's groups, so the
- * same `liveWishGroups` the owner branch uses does both halves at once. A group
- * only one of the two reaches never reaches the page.
- * docs/content/claiming.md#what-im-buying
+ * The tags come back too, narrowed by `toClaimedWish` to the groups the viewer
+ * and the owner both stand in. docs/content/claiming.md#what-im-buying
  */
 export async function getClaimedBy(viewer: Viewer): Promise<ClaimedWish[]> {
   const [result, names, peerGroups] = await Promise.all([
@@ -160,16 +157,7 @@ export async function getClaimedBy(viewer: Viewer): Promise<ClaimedWish[]> {
     WishGroupsEmbed)[];
 
   return rows.map(({ wish_groups, ...row }) =>
-    toClaimedWish(
-      row,
-      names,
-      liveWishGroups(
-        embeddedGroupIds(wish_groups),
-        // Explicitly typed: a bare `new Set()` infers Set<never> and only
-        // slips past on TypeScript's bivariant method parameters.
-        peerGroups.get(row.owner_user_id) ?? new Set<GroupId>(),
-      ),
-    ),
+    toClaimedWish(row, names, embeddedGroupIds(wish_groups), peerGroups),
   );
 }
 

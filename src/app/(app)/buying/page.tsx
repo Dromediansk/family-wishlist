@@ -64,10 +64,6 @@ export default async function BuyingPage() {
               <WishRow
                 key={wish.id}
                 wish={wish}
-                // This page carries no group in its URL, so the tag is what
-                // says which one a row came from — already narrowed to the
-                // groups the owner is in too.
-                // docs/content/claiming.md#what-im-buying
                 tags={
                   <GroupTags groupIds={wish.groupIds} groups={viewer.groups} />
                 }
