@@ -29,6 +29,13 @@ renders, so the tags shown right before **Darované** are the tags frozen into
 history. At least one always survives, since sharing a tagged group is what
 allowed the claim, and no row can ever name a group the giver was not in.
 
+That narrowing is not spelled here twice. `0010` factors the join out as
+`shared_wish_groups` and redefines `wish_shares_group` — the claim guard's
+yes/no, from `0009` — as `exists` over it, so the write side and the record ask
+one question in two shapes.
+[The privacy rule](privacy-rule.md#where-the-rule-is-enforced) lists it as the
+thirteenth place the rule is held.
+
 Reading `wish_groups` in the statement that deletes the wish is safe: Postgres
 data-modifying CTEs share one snapshot and do not see each other's writes, so the
 subquery sees the tags as they stood before the cascade. Unlike a missing name,
