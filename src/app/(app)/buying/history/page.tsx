@@ -26,6 +26,7 @@ export default async function GivenPage() {
       items={given}
       personLabel="pre:"
       personName={(wish) => wish.ownerName}
+      groups={access.viewer.groups}
     />
   );
 }

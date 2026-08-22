@@ -1,11 +1,12 @@
 import Link from "next/link";
 import { ArrowLeftIcon } from "lucide-react";
 
+import { ArchivedGroupTags } from "@/components/group-tags";
 import { WishRow } from "@/components/wish-row";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { formatDate } from "@/lib/utils";
-import type { FulfilledWish } from "@/lib/types";
+import type { FulfilledWish, GroupRef } from "@/lib/types";
 
 type Props = {
   backHref: string;
@@ -17,6 +18,8 @@ type Props = {
   /** "pre:" on what you gave, "od:" on what you were given. */
   personLabel: string;
   personName: (wish: FulfilledWish) => string;
+  /** The viewer's own groups, for the badge rule. Not the record's. */
+  groups: readonly GroupRef[];
 };
 
 /**
@@ -33,6 +36,7 @@ export function HistoryPage({
   items,
   personLabel,
   personName,
+  groups,
 }: Props) {
   return (
     <div className="space-y-6">
@@ -61,6 +65,12 @@ export function HistoryPage({
               <WishRow
                 key={wish.id}
                 wish={wish}
+                tags={
+                  <ArchivedGroupTags
+                    names={wish.groupNames}
+                    groups={groups}
+                  />
+                }
                 actionBeside
                 action={
                   <div className="text-muted-foreground flex flex-col items-end gap-1 text-right text-sm">

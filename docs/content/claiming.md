@@ -91,6 +91,10 @@ tag list. At least one always survives, since sharing a group is what let you
 claim the wish in the first place. The badges are hidden entirely if you belong
 to a single group — every row would carry the same one.
 
+Those same badges are what **Darované** freezes: `fulfil_wish` copies the names
+of exactly this set into the history row, so the two history pages go on showing
+them after the wish itself is gone — [History](history.md#what-happens).
+
 An owner cannot edit or delete a reserved wish, so nothing on this page changes
 underneath you. Two things take an item off it: releasing it yourself, and
 pressing **Darované** once you have handed the gift over — which moves it to

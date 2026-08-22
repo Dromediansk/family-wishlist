@@ -106,6 +106,13 @@ export type ClaimedWish = OwnerWish & {
 export type FulfilledWish = Displayable & {
   ownerName: string;
   giverName: string;
+  /**
+   * Group names, not ids, and a snapshot like the two above: what the wish's
+   * tags were called at handover, narrowed to the groups both parties stood in
+   * then — the same set `ClaimedWish.groupIds` carries live. Empty on a record
+   * written before 0010. docs/content/history.md
+   */
+  groupNames: string[];
   fulfilledAt: string;
 };
 
