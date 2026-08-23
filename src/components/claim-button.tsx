@@ -3,6 +3,7 @@
 import { GiftIcon, UndoIcon } from "lucide-react";
 
 import { claimWish, unclaimWish } from "@/app/actions/wishes";
+import { FulfilWishButton } from "@/components/fulfil-wish-button";
 import { Button } from "@/components/ui/button";
 import { useAction } from "@/components/use-action";
 import type { UserId } from "@/lib/ids";
@@ -13,6 +14,9 @@ type Props = {
   wishId: string;
   claim: ClaimView;
   viewerId: UserId;
+  /** Both reach `ClaimEndings`; the other two branches never read them. */
+  title: string;
+  ownerName: string;
 };
 
 /**
@@ -20,7 +24,7 @@ type Props = {
  * has already established that this claim is the viewer's own, so there is no
  * claim state here to render and no name to get wrong.
  */
-export function ReleaseClaimButton({ wishId }: { wishId: string }) {
+function ReleaseClaimButton({ wishId }: { wishId: string }) {
   const { pending, error, run } = useAction();
 
   return (
@@ -42,8 +46,40 @@ export function ReleaseClaimButton({ wishId }: { wishId: string }) {
   );
 }
 
-/** Claim or release an item on someone else's list. Never rendered on your own. */
-export function ClaimButton({ wishId, claim, viewerId }: Props) {
+/**
+ * The two ways out of a claim you hold, together. Every page that offers one
+ * offers both, by rendering this and not the pair.
+ * docs/content/claiming.md
+ */
+export function ClaimEndings({
+  wishId,
+  title,
+  ownerName,
+}: {
+  wishId: string;
+  /** For the hand-over question, which names both the wish and its owner. */
+  title: string;
+  ownerName: string;
+}) {
+  return (
+    <div className="flex flex-wrap items-start gap-2 sm:justify-end">
+      <ReleaseClaimButton wishId={wishId} />
+      <FulfilWishButton wishId={wishId} title={title} ownerName={ownerName} />
+    </div>
+  );
+}
+
+/**
+ * Claim, release, or hand over an item on someone else's list. Never rendered on
+ * your own — the owner branch of the page has no claim state to give it.
+ */
+export function ClaimButton({
+  wishId,
+  claim,
+  viewerId,
+  title,
+  ownerName,
+}: Props) {
   const { pending, error, run } = useAction();
 
   // Held by somebody else — the same predicate the row dims on, so the two can
@@ -62,7 +98,7 @@ export function ClaimButton({ wishId, claim, viewerId }: Props) {
 
   // Whatever is left and not free is the viewer's own.
   if (claim.kind === "taken-by") {
-    return <ReleaseClaimButton wishId={wishId} />;
+    return <ClaimEndings wishId={wishId} title={title} ownerName={ownerName} />;
   }
 
   return (

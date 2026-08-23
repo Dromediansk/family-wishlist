@@ -118,6 +118,8 @@ export default async function MemberPage({
                         wishId={wish.id}
                         claim={wish.claim}
                         viewerId={ctx.userId}
+                        title={wish.title}
+                        ownerName={owner.name}
                       />
                     }
                   />

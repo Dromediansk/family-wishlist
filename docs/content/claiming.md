@@ -45,9 +45,16 @@ For each wish on somebody else's list:
 | State | What is shown |
 |---|---|
 | Free | **Toto kúpim** button |
-| Claimed by you | **Toto nekupujem** button (releases it) |
+| Claimed by you | **Toto nekupujem** (releases it) and **Darované** (ends it) |
 | Claimed by someone you share a group with | *Toto kupuje {name}*, no button, row dimmed |
 | Claimed by someone you do not | *Toto už niekto kupuje*, no button, row dimmed |
+
+Both endings of your own claim are on the second row because a claim ends where
+it began: you reserved the wish on this list, and having to leave for
+[*Čo kupujem*](#what-im-buying) to say you handed it over made the one screen
+that knows about the gift the one screen that could not finish it. Both screens
+render one `ClaimEndings`, which owns the pair and their order, so there is one
+hand-over control in the app and not two — [History](history.md).
 
 The last row is the one a person-level list makes possible: the wish belongs to
 somebody who is in more than one of *their* groups, and the person who reserved

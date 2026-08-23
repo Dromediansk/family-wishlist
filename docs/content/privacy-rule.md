@@ -236,7 +236,14 @@ What the owner sees when refused is covered in
 
 A claim is a secret. A gift that has been handed over is not.
 
-The buyer presses **Darované** on [*Čo kupujem*](claiming.md#what-im-buying).
+The buyer presses **Darované** — either on
+[*Čo kupujem*](claiming.md#what-im-buying) or on the owner's list itself, beside
+the *Toto nekupujem* it sits next to there
+([Claiming](claiming.md#what-a-list-looks-like-to-a-visitor)). Both are the same
+control and neither is available to the owner: the button lives in the visitor's
+branch of that page, which is handed no claim state at all when the reader is
+the owner.
+
 The wish is deleted from its owner's list and a row is written to
 `fulfilled_wishes` that names both people to each other. The owner reads it at
 `/received`; the giver reads their side at `/buying/history`.

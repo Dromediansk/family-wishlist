@@ -2,8 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { ArrowLeftIcon, HistoryIcon } from "lucide-react";
 
-import { ReleaseClaimButton } from "@/components/claim-button";
-import { FulfilWishButton } from "@/components/fulfil-wish-button";
+import { ClaimEndings } from "@/components/claim-button";
 import { GroupTags } from "@/components/group-tags";
 import { SetupRequired } from "@/components/setup-required";
 import { WishRow } from "@/components/wish-row";
@@ -72,14 +71,11 @@ export default async function BuyingPage() {
                     <span className="text-muted-foreground text-sm">
                       praje si: {wish.owner.name}
                     </span>
-                    <div className="flex flex-wrap items-start gap-2 sm:justify-end">
-                      <ReleaseClaimButton wishId={wish.id} />
-                      <FulfilWishButton
-                        wishId={wish.id}
-                        title={wish.title}
-                        ownerName={wish.owner.name}
-                      />
-                    </div>
+                    <ClaimEndings
+                      wishId={wish.id}
+                      title={wish.title}
+                      ownerName={wish.owner.name}
+                    />
                   </div>
                 }
               />
