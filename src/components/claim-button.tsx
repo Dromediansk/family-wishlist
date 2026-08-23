@@ -3,6 +3,7 @@
 import { GiftIcon, UndoIcon } from "lucide-react";
 
 import { claimWish, unclaimWish } from "@/app/actions/wishes";
+import { FulfilWishButton } from "@/components/fulfil-wish-button";
 import { Button } from "@/components/ui/button";
 import { useAction } from "@/components/use-action";
 import type { UserId } from "@/lib/ids";
@@ -13,6 +14,9 @@ type Props = {
   wishId: string;
   claim: ClaimView;
   viewerId: UserId;
+  /** For the hand-over question, which names both the wish and its owner. */
+  title: string;
+  ownerName: string;
 };
 
 /**
@@ -42,8 +46,20 @@ export function ReleaseClaimButton({ wishId }: { wishId: string }) {
   );
 }
 
-/** Claim or release an item on someone else's list. Never rendered on your own. */
-export function ClaimButton({ wishId, claim, viewerId }: Props) {
+/**
+ * Claim, release, or hand over an item on someone else's list. Never rendered on
+ * your own — the owner branch of the page has no claim state to give it.
+ *
+ * A claim ends where it began: both ways out of one you hold sit here, the same
+ * pair `/buying` offers. docs/content/claiming.md
+ */
+export function ClaimButton({
+  wishId,
+  claim,
+  viewerId,
+  title,
+  ownerName,
+}: Props) {
   const { pending, error, run } = useAction();
 
   // Held by somebody else — the same predicate the row dims on, so the two can
@@ -60,9 +76,16 @@ export function ClaimButton({ wishId, claim, viewerId }: Props) {
     );
   }
 
-  // Whatever is left and not free is the viewer's own.
+  // Whatever is left and not free is the viewer's own. Both endings of a claim
+  // sit together, laid out as they are on /buying so the pair wraps the same way
+  // on a phone.
   if (claim.kind === "taken-by") {
-    return <ReleaseClaimButton wishId={wishId} />;
+    return (
+      <div className="flex flex-wrap items-start gap-2 sm:justify-end">
+        <ReleaseClaimButton wishId={wishId} />
+        <FulfilWishButton wishId={wishId} title={title} ownerName={ownerName} />
+      </div>
+    );
   }
 
   return (
