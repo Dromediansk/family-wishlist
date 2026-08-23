@@ -16,7 +16,7 @@ import { createAuthClient } from "@/lib/supabase-auth";
  * Somebody who came in on an invite link goes back to it: `signInWithGoogle`
  * left the path in a cookie, `safeReturnTo` re-checks it here, and the cookie is
  * spent either way. Everyone else lands on `/`.
- * docs/content/groups.md#invites
+ * docs/decisions/groups-and-invites.md#invites
  */
 export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url);

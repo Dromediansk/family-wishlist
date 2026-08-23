@@ -29,7 +29,7 @@ const inviteIdSchema = z.uuid("Neplatná pozvánka.");
  * Only an admin may open the door. The link *is* the permission — an
  * unlimited-use key to every wish in the group, good for 24 hours — so minting
  * one is group management, and group management is the admin's.
- * docs/content/groups.md#invites
+ * docs/decisions/groups-and-invites.md#invites
  */
 export async function createInvite(
   groupId: string,
@@ -52,7 +52,7 @@ export async function createInvite(
  * A group admin may revoke any invite to their group; anybody may revoke one
  * they created themselves — `canRevokeInvite` is the single spelling of that
  * rule, and it is checked here rather than re-derived.
- * docs/content/groups.md#invites
+ * docs/decisions/groups-and-invites.md#invites
  */
 export async function revokeInvite(
   groupId: string,
@@ -100,7 +100,7 @@ export async function revokeInvite(
  * then in. Reachable by direct POST like any Server Action, so it re-checks
  * every one of these for itself — the route handler's own pre-check of the
  * token is only there to pick a redirect target before this runs.
- * docs/content/groups.md#invites
+ * docs/decisions/groups-and-invites.md#invites
  */
 export async function joinWithInvite(token: string): Promise<ActionResult> {
   const invite = await findInviteByToken(token);

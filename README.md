@@ -25,9 +25,11 @@ so. It never says who reserved it.
 - **Roles are per group.** Members add wishes and claim from other lists. An
   admin of a group can also rename, promote, demote and remove its members — and
   is nobody in particular in anybody else's group.
-- **Wishes** have a title, and optionally a description and a link.
+- **Wishes** have a title, and optionally a description, a link and a photo.
 - **Claim quietly.** Reserve something on someone else's list; everyone except
   its owner can see that you did.
+- **Mark it given.** Once the gift is handed over, the buyer ends the secret and
+  both sides keep a permanent record of it.
 - **Everything is live.** Changes appear in every other open tab within about a
   second — without the app ever saying what changed.
 - **Installable.** Add it to a phone's home screen and it opens like any other
@@ -47,27 +49,26 @@ you are its admin. The first run needs a Google OAuth client;
 
 ## Documentation
 
-Everything lives in [`docs/`](docs/README.md).
+Everything lives in [`docs/`](docs/README.md), in three layers:
 
-**How it behaves, and why**
+- [**Project context**](docs/project-context.md) — purpose, domain, goals,
+  entities and the business rules the app must obey.
+- [**Technical context**](docs/technical-context.md) — technologies,
+  architectural patterns, coding standards, development practices and the
+  dependency choices behind them.
+- [**Decisions**](docs/decisions/README.md) — why one thing rather than the
+  obvious alternative: [the privacy rule](docs/decisions/privacy-rule.md),
+  [wishes and history](docs/decisions/wishes-claims-history.md),
+  [groups and invites](docs/decisions/groups-and-invites.md),
+  [identity](docs/decisions/identity-and-sessions.md),
+  [live updates](docs/decisions/live-updates.md),
+  [UI patterns](docs/decisions/ui-patterns.md).
 
-- [The privacy rule](docs/content/privacy-rule.md) — the rule, why it cannot be
-  a database policy, and the four accepted holes in it
-- [Wishes](docs/content/wishes.md) · [Claiming](docs/content/claiming.md) ·
-  [Groups](docs/content/groups.md) · [Identity](docs/content/membership.md)
-- [Live updates](docs/content/live-updates.md) — how every tab stays current
-  without being told what changed
-- [UI patterns](docs/content/ui-patterns.md) — dialogs, language, typography,
-  the installable app
+Running it: [Local development](docs/setup/local-development.md) ·
+[Production](docs/setup/production.md) · [Database](docs/setup/database.md) ·
+[Deployment](docs/setup/deployment.md).
 
-**How to run it**
-
-- [Local development](docs/setup/local-development.md)
-- [Production setup](docs/setup/production.md) ·
-  [Database](docs/setup/database.md) · [Deployment](docs/setup/deployment.md)
-
-Working on the code? [`CLAUDE.md`](CLAUDE.md) has the commands, rules and
-patterns.
+Working on the code? [`CLAUDE.md`](CLAUDE.md) is the short version.
 
 ## Stack
 
@@ -77,4 +78,4 @@ primitives · Supabase Postgres · Supabase Auth (Google)
 Every read and write happens on the server with the `service_role` key. Row level
 security is on for every table with no policies at all, because the one rule
 above cannot be expressed as one — [the reasoning is
-here](docs/content/privacy-rule.md#why-it-cannot-be-a-database-policy).
+here](docs/decisions/privacy-rule.md#why-it-cannot-be-a-database-policy).

@@ -30,6 +30,7 @@ const claimedRow: ViewerWishRow = {
   claimed_by_user_id: asUserId("22222222-2222-4222-8222-222222222222"),
 };
 
+// PRIVACY-RULE: pins the owner view, the claimer-name rule and the refusal.
 describe("toOwnerWish", () => {
   it("keeps title, description, link and photo", () => {
     expect(toOwnerWish(claimedRow)).toEqual({

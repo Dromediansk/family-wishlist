@@ -42,7 +42,7 @@ const buttonVariants = cva(
 
 /**
  * `loading` is the app's only busy affordance —
- * docs/content/ui-patterns.md#a-busy-button-keeps-its-label. The prop type
+ * docs/decisions/ui-patterns.md#a-busy-button-keeps-its-label. The prop type
  * forbids combining it with `asChild`: `Slot` would clone the spinner fragment
  * instead of an element and drop every class, silently rendering an unstyled,
  * still-clickable control rather than failing.

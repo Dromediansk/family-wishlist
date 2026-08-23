@@ -2,7 +2,7 @@
  * Is this invite still a door? Pure, and `now` is an argument rather than a
  * call to `Date.now()`, so every branch is testable without mocking a clock.
  *
- * docs/content/groups.md#invites
+ * docs/decisions/groups-and-invites.md#invites
  */
 
 export type InviteState = {
@@ -30,7 +30,7 @@ export function inviteUsable(invite: InviteState, now: Date): boolean {
 /**
  * The one refusal shown for a revoked, expired, or exhausted invite — a shared
  * constant so the join route and `joinWithInvite` cannot drift onto two
- * different sentences. docs/content/groups.md#invites
+ * different sentences. docs/decisions/groups-and-invites.md#invites
  */
 export const INVITE_EXPIRED_MESSAGE = "Táto pozvánka už neplatí.";
 
@@ -49,7 +49,7 @@ export const INVITE_EXPIRED_MESSAGE = "Táto pozvánka už neplatí.";
  * The token itself never leaves this origin: it rides in an httpOnly cookie
  * rather than in the OAuth `redirect_to`, because an invite token *is*
  * permission to join a group and has no business in Google's URL bar, logs or
- * the browser's history. docs/content/groups.md#invites
+ * the browser's history. docs/decisions/groups-and-invites.md#invites
  */
 export const RETURN_TO_COOKIE = "wishlist-return-to";
 

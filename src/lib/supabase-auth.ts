@@ -10,7 +10,7 @@ import { cookies } from "next/headers";
  *
  * Ask this client who you are; ask `getSupabase()` for the data. Calling
  * `.from()` here is always a bug — it returns empty, which reads as "no rows"
- * rather than "no access". docs/content/privacy-rule.md
+ * rather than "no access". docs/decisions/privacy-rule.md
  */
 export async function createAuthClient() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;

@@ -13,7 +13,7 @@ import {
  * The 404, and there is only one of it — it catches both `notFound()` from
  * anywhere under /g/[groupId] and any unmatched URL. A typed-in wrong address
  * arrives with no header above it, hence its own `<main>` and its own way back.
- * Keeping one file is deliberate; see docs/content/ui-patterns.md#the-404.
+ * Keeping one file is deliberate; see docs/decisions/ui-patterns.md#the-404.
  *
  * Nothing is fetched and nobody is redirected: bouncing a signed-out visitor
  * would hide the fact that the address is simply wrong.

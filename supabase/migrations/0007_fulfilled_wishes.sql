@@ -10,7 +10,7 @@
 -- It is also where the app's one rule stops applying. A claim is a secret; a
 -- gift that has been handed over is not, so this table names the giver to the
 -- person they gave to. The secret ends here and nowhere else — no cron, no
--- admin override, no date. docs/content/privacy-rule.md#when-the-secret-ends
+-- admin override, no date. docs/decisions/privacy-rule.md#when-the-secret-ends
 
 begin;
 
@@ -27,7 +27,7 @@ create table if not exists fulfilled_wishes (
 
   -- The wish itself, copied: the same statement that writes this row deletes the
   -- row it describes. A snapshot, not a duplicate — why a wish_id reference is
-  -- the wrong shape here is in docs/setup/database.md#fulfilled_wishes.
+  -- the wrong shape here is in docs/setup/database.md#fulfilled_wishes-copies-instead-of-joining.
   title        text not null,
   description  text,
   url          text,

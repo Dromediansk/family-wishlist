@@ -60,7 +60,7 @@ gitignored; on a host, set it as a secret.
 
 The **anon** key is the opposite: it is *meant* to reach the browser. It opens no
 table, because every table has RLS on with zero policies — see
-[The privacy rule](../content/privacy-rule.md#why-it-cannot-be-a-database-policy).
+[The privacy rule](../decisions/privacy-rule.md#why-it-cannot-be-a-database-policy).
 Its two jobs are carrying the session and joining the live-update channel.
 
 The file name matters. These values are read by a local `npm run build && npm
@@ -80,4 +80,4 @@ private, because the link *is* the permission. Only an admin can mint one, and a
 admin can revoke any of them.
 
 The whole model — per-group names and roles, the creation cap, what removing
-somebody does — is [Groups](../content/groups.md).
+somebody does — is [Groups](../decisions/groups-and-invites.md).

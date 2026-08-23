@@ -14,7 +14,7 @@ import type { GroupRef, MemberSummary } from "@/lib/types";
  * card; the bottom row ignores pointer events so it punches no dead hole in it.
  *
  * `viewerIsOwner` adds "Pridať želanie" and drops the count's second number —
- * docs/content/privacy-rule.md#counting-on-the-family-grid.
+ * docs/decisions/privacy-rule.md#counting-on-the-family-grid.
  *
  * The link addresses `member.userId` (the account) inside `groupId` (the grid it
  * was tapped on). `member.id` is the membership and belongs to admin controls.

@@ -195,7 +195,7 @@ const clearPreviousSeed = async (me) => {
 /**
  * The group everything else lives in, with you as its admin. `created_by` is an
  * app_users id — never a membership id, the other column with this name.
- * docs/content/groups.md#the-creation-cap
+ * docs/decisions/groups-and-invites.md#the-creation-cap
  */
 const insertGroup = async (me) => {
   const { data, error } = await db

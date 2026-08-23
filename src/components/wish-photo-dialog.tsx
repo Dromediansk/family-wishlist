@@ -21,7 +21,7 @@ import { Button } from "@/components/ui/button";
  * whatever chrome happens to be on screen. A dialog closes with the X, the
  * button, Escape or a click outside, and leaves the list exactly where it was.
  *
- * docs/content/ui-patterns.md#looking-at-a-photo
+ * docs/decisions/ui-patterns.md#looking-at-a-photo
  */
 export function WishPhotoDialog({
   src,

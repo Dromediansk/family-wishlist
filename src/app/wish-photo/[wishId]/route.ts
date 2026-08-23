@@ -6,13 +6,16 @@ import { contentTypeFor } from "@/lib/images";
 import { downloadWishPhoto } from "@/lib/photos";
 
 /**
+ * PRIVACY-RULE: an owner fetches their own photos here, so this route is an
+ * owner-serving path and every refusal is an indistinguishable 404.
+ *
  * A wish's photo. The bucket is private, so this is the only way to see one.
  *
  * Every answer is 404 — not 403 — because the alternative tells a stranger
  * which wish ids exist. `src/proxy.ts` already turns a signed-out visitor away
  * before they arrive; that is the shortcut, and this is the defence.
  *
- * docs/content/wishes.md#photos
+ * docs/decisions/wishes-claims-history.md#photos
  */
 
 const idSchema = z.uuid();
@@ -31,7 +34,7 @@ export async function GET(
   /*
    * `getWishPhotoPath` refuses a wish that isn't tagged with any group the
    * caller belongs to, and every refusal here is the same 404 as a missing
-   * photo. docs/content/privacy-rule.md#serving-a-photo
+   * photo. docs/decisions/privacy-rule.md#serving-a-photo
    */
   const path = await getWishPhotoPath(viewer, id.data);
   if (!path) return notFound();

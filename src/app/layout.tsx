@@ -15,7 +15,7 @@ import "./globals.css";
  * Atkinson Hyperlegible Next, self-hosted rather than fetched through
  * `next/font/google`: the uncut file carries the Slovak carons Google's `latin`
  * slice stops short of, and local metrics restore the size-adjusted fallback
- * face. docs/content/ui-patterns.md#typography
+ * face. docs/decisions/ui-patterns.md#typography
  */
 const atkinson = localFont({
   src: "./fonts/AtkinsonHyperlegibleNext.woff2",
@@ -42,7 +42,7 @@ export const metadata: Metadata = {
  *
  * `interactiveWidget: "resizes-content"` is here for the dialogs — it keeps a
  * pinned submit button above the on-screen keyboard. **Chromium only**; iOS is
- * not solved. docs/content/ui-patterns.md#the-keyboard
+ * not solved. docs/decisions/ui-patterns.md#the-keyboard
  *
  * Both live here because a viewport can only be declared document-wide.
  */
@@ -77,7 +77,7 @@ export const dynamic = "force-dynamic";
  *
  * **There is deliberately no `<main>` here.** Every child owes its own
  * `<main className="flex-1">`, and both the element and the class are
- * load-bearing. docs/content/ui-patterns.md#layout-contract
+ * load-bearing. docs/decisions/ui-patterns.md#layout-contract
  */
 export default function RootLayout({
   children,

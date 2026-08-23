@@ -66,7 +66,7 @@ const groupMemberships = cache(
  * tallies below start from, so the group scope and the claim-free projection
  * are spelled once. `owner_user_id` is all it selects, and the `!inner` embed
  * is what makes the `.eq` drop a wish tagged only for one of the owner's other
- * groups. docs/content/privacy-rule.md#counting-on-the-family-grid
+ * groups. docs/decisions/privacy-rule.md#counting-on-the-family-grid
  */
 function taggedWishesOf(ctx: GroupContext, userIds: string[]) {
   return getSupabase()
@@ -124,6 +124,8 @@ export const getGroupMembers = cache(
 );
 
 /**
+ * PRIVACY-RULE: the viewer's own free count is never computed.
+ *
  * The family grid: every member's total, plus — for everyone but the viewer —
  * how many of their wishes are still free.
  *
@@ -131,7 +133,7 @@ export const getGroupMembers = cache(
  * `.in("owner_user_id", …)` and to this group's own wishes with the
  * `wish_groups` join, selects no claim column, and drops the viewer's own
  * rows in the `WHERE` clause, so their number is never computed.
- * docs/content/privacy-rule.md#counting-on-the-family-grid
+ * docs/decisions/privacy-rule.md#counting-on-the-family-grid
  *
  * The two tallies share one `.in(…)` list and depend on nothing but the
  * memberships, so they go out together.
@@ -272,7 +274,7 @@ export const getPeerNames = cache(
  * Read from `memberships`, which is what a `wish_groups` tag has to be checked
  * against: nothing prunes a tag when its owner leaves, so this is the set that
  * says the membership behind it is still there.
- * docs/content/privacy-rule.md#where-two-groups-meet
+ * docs/decisions/privacy-rule.md#where-two-groups-meet
  */
 export const getPeerGroups = cache(
   async (

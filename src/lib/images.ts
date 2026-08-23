@@ -6,7 +6,7 @@
  * route handler all read the same rules from here, and the rules are unit
  * tested without a canvas, a bucket or a database (images.test.ts).
  *
- * docs/content/wishes.md#photos
+ * docs/decisions/wishes-claims-history.md#photos
  */
 
 /**

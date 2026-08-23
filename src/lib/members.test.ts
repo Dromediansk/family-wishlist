@@ -5,6 +5,8 @@ import { sortMemberSummaries, toMemberSummary } from "@/lib/members";
 import type { MemberSummary, MemberWithCount } from "@/lib/types";
 
 /**
+ * PRIVACY-RULE: pins the missing free count on the viewer's own card.
+ *
  * The grid leads with how many wishes are still free — for everyone but you.
  * On your own card that number would betray the one rule this app has, so the
  * row comes back without it. These tests pin that down, and the order the

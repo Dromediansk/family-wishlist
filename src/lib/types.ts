@@ -26,17 +26,21 @@ export type MemberWithCount = Member & {
 };
 
 /**
+ * PRIVACY-RULE: the owner half of the union has no `availableCount` to render.
+ *
  * A card on the family grid. On your own card `availableCount` is *absent*, not
  * null — a free count beside your total would say in arithmetic that the rest
  * are taken. Splitting the union makes reaching for it a type error.
- * docs/content/privacy-rule.md#counting-on-the-family-grid
+ * docs/decisions/privacy-rule.md#counting-on-the-family-grid
  */
 export type MemberSummary = MemberWithCount &
   ({ viewerIsOwner: true } | { viewerIsOwner: false; availableCount: number });
 
 /**
+ * PRIVACY-RULE: no claim field exists on this type.
+ *
  * A wish as shown to the person whose list it is. Deliberately NO claim fields,
- * so a leak is a type error. docs/content/privacy-rule.md
+ * so a leak is a type error. docs/decisions/privacy-rule.md
  */
 export type OwnerWish = {
   id: string;
@@ -56,17 +60,19 @@ export type OwnerWish = {
  * no tags at all — they would say nothing that reader did not already know;
  * `ClaimedWish` is the one exception, and carries a narrower set.
  * `getWishListFor` drops tags naming a group the owner has since left, so these
- * are always live. docs/content/wishes.md#reading-a-list
+ * are always live. docs/decisions/wishes-claims-history.md#reading-a-list
  */
 export type TaggedWish = OwnerWish & { groupIds: GroupId[] };
 
 /**
+ * PRIVACY-RULE: the `taken` variant carries no claimer name.
+ *
  * What a viewer is told about a reservation.
  *
  * `taken` has no name to render, which is the point: a claim made in one group
  * must not name a stranger to another. The union is the enforcement — a
  * component handed a `taken` claim cannot reach for `by`.
- * docs/content/privacy-rule.md#where-the-rule-is-enforced
+ * docs/decisions/privacy-rule.md#where-the-rule-is-enforced
  */
 export type ClaimView =
   | { kind: "free" }
@@ -90,7 +96,7 @@ export type PeerUser = {
  * the tags naming a group the viewer AND the owner both stand in right now. A
  * tag only one of the two reaches is not this reader's to be shown, and
  * `toClaimedWish` never puts it here.
- * docs/content/claiming.md#what-im-buying
+ * docs/decisions/wishes-claims-history.md#what-im-buying
  */
 export type ClaimedWish = OwnerWish & {
   owner: PeerUser;
@@ -101,7 +107,7 @@ export type ClaimedWish = OwnerWish & {
  * A gift that was handed over. Both names are snapshots taken at that moment,
  * so removing either person leaves the record readable — and the giver's name
  * is here on purpose: the claim it came from is over.
- * docs/content/privacy-rule.md#when-the-secret-ends
+ * docs/decisions/privacy-rule.md#when-the-secret-ends
  */
 export type FulfilledWish = Displayable & {
   ownerName: string;
@@ -110,7 +116,7 @@ export type FulfilledWish = Displayable & {
    * Group names, not ids, and a snapshot like the two above: what the wish's
    * tags were called at handover, narrowed to the groups both parties stood in
    * then — the same set `ClaimedWish.groupIds` carries live. Empty on a record
-   * written before 0010. docs/content/history.md
+   * written before 0010. docs/decisions/wishes-claims-history.md
    */
   groupNames: string[];
   fulfilledAt: string;
@@ -135,7 +141,7 @@ export type Displayable = Pick<
  *
  * `final` means repeating the call cannot change the outcome, so the UI stops
  * offering the button. A validation message is not final; a reserved-wish
- * refusal is. docs/content/ui-patterns.md#a-refusal-ends-the-dialog
+ * refusal is. docs/decisions/ui-patterns.md#a-refusal-ends-the-dialog
  */
 export type ActionResult =
   | { ok: true }
@@ -147,7 +153,7 @@ export type ActionFailure = Extract<ActionResult, { ok: false }>;
 /**
  * What a control actually gets back. An action that navigates away resolves
  * with nothing, so the result has to be checked before it is read.
- * docs/content/ui-patterns.md#an-action-that-navigates-away-resolves-with-nothing
+ * docs/decisions/ui-patterns.md#an-action-that-navigates-away-resolves-with-nothing
  */
 export type ActionOutcome = ActionResult | undefined;
 
@@ -193,7 +199,7 @@ export type GroupContext = Viewer & {
 /**
  * One invite link into a group. `createdBy` is a `MembershipId`, never a
  * `UserId` — the composite foreign key `invites_creator_in_group` enforces the
- * same thing in the database. docs/content/groups.md#invites
+ * same thing in the database. docs/decisions/groups-and-invites.md#invites
  */
 export type Invite = {
   id: string;

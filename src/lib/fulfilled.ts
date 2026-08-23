@@ -29,7 +29,7 @@ export function toFulfilledWish(row: FulfilledWishRow): FulfilledWish {
     url: row.url,
     // A handed-over gift keeps no picture: `fulfil_wish` deletes the wish the
     // photo hung off, and this row's id addresses no wish for the route to
-    // serve. docs/content/history.md
+    // serve. docs/decisions/wishes-claims-history.md
     photo: null,
     ownerName: row.owner_name,
     giverName: row.giver_name,

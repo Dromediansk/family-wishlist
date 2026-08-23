@@ -4,9 +4,16 @@ Next.js 16 (App Router) · React 19 · TypeScript · Tailwind 4 · Radix · Supa
 One account, many groups — a family, a team, a circle of friends — each with its
 own names and roles. UI language is **Slovak**.
 
-Documentation lives in [`docs/`](docs/README.md) — product behaviour under
-`docs/content/`, configuration under `docs/setup/`. **Do not restate it here or
-in code comments; link to it.**
+## Read these
+
+| Before | Read |
+|---|---|
+| Any change | [`docs/project-context.md`](docs/project-context.md) — purpose, entities, business rules |
+| Writing code | [`docs/technical-context.md`](docs/technical-context.md) — patterns, standards, practices |
+| Touching an area | the matching file in [`docs/decisions/`](docs/decisions/README.md) |
+| Running or deploying | [`docs/setup/`](docs/setup/local-development.md) |
+
+**Do not restate those documents here or in code comments — link to them.**
 
 ## Commands
 
@@ -22,9 +29,7 @@ in code comments; link to it.**
 | `npm run db:seed` | Fake family — run it *after* signing in |
 
 Run `npm run typecheck && npm run lint && npm test` before claiming work is done.
-
 Nothing works until `npm run db:start` is running.
-Setup: [`docs/setup/local-development.md`](docs/setup/local-development.md).
 
 ## The one rule
 
@@ -32,46 +37,47 @@ Setup: [`docs/setup/local-development.md`](docs/setup/local-development.md).
 never be shown claims while reading their own list. The secret ends only when
 the giver ends it, by marking the gift handed over — and never any other way.**
 
-Enforced in thirteen places, listed in
-[`docs/content/privacy-rule.md`](docs/content/privacy-rule.md#where-the-rule-is-enforced).
-Change one and check the rest.
+Every enforcement point carries a `PRIVACY-RULE:` tag in its doc comment.
+**`rg 'PRIVACY-RULE:'` is the list** — change one and check the rest. Add a
+site, add a tag; no document needs editing. Three more sites live in the
+database: `wishes_check_claim_peer`, `memberships_release_claims` and
+`fulfil_wish`.
 
-One deliberate exception: an owner cannot edit or delete a **reserved** wish, and
-the refusal says so without saying by whom. Do not hide that refusal, and do not
-extend it by showing claim state on the owner's list.
+One deliberate exception: an owner cannot edit or delete a **reserved** wish,
+and the refusal says so without saying by whom. Do not hide that refusal, and do
+not extend it by showing claim state on the owner's list.
 
-The end of the secret is `fulfilWish` and the two history pages
-([`docs/content/history.md`](docs/content/history.md)). It is the giver's
-decision alone.
+Full reasoning: [`docs/decisions/privacy-rule.md`](docs/decisions/privacy-rule.md).
 
-Never:
+## Never
 
-- Add an RLS policy to any table. RLS is on with **zero policies** on purpose.
-- Enable `postgres_changes`.
-- Put anything in `LIVE_PAYLOAD` (`src/lib/live.ts`).
-- Skip the live ping for the owner's tab.
-- Answer the ping with `router.refresh()` — use `syncFromLive`.
-- Select `claimed_by_user_id` on any owner-serving path — including
-  `src/app/wish-photo/[wishId]/route.ts`, which an owner hits for their own
-  photos. `lookUpRefusal` (`src/app/actions/wishes.ts`) is the single exception
-  and stays in that file.
-- Query a table outside `src/lib/data/`, where a `Viewer` or `GroupContext`
-  scopes it. Two lint rules enforce it; `src/app/actions/**` is exempt for
-  **writes** only, never for a read.
-- Build a `Viewer` anywhere but `src/lib/data/access.ts`.
-- Add a policy to `app_users`, `groups`, `memberships` or `invites` either. Same
-  rule, four more tables.
-- Add a Storage policy either. The `wish-photos` bucket is private and reached
-  only through the `service_role` client.
+- Add an RLS policy to **any** table — `app_users`, `groups`, `memberships` and
+  `invites` included. RLS is on with **zero policies** on purpose.
+- Add a Storage policy. The `wish-photos` bucket is private and reached only
+  through the `service_role` client.
+- Enable `postgres_changes`, or put anything in `LIVE_PAYLOAD`
+  (`src/lib/live.ts`).
+- Skip the live ping for the owner's tab, or answer the ping with
+  `router.refresh()` — use `syncFromLive`.
+- Select `claimed_by_user_id` on any owner-serving path, including
+  `src/app/wish-photo/[wishId]/route.ts`. `lookUpRefusal`
+  (`src/app/actions/wishes.ts`) is the single exception and stays in that file.
+- Query a table outside `src/lib/data/`, or build a `Viewer` outside
+  `src/lib/data/access.ts`. Two lint rules enforce the first;
+  `src/app/actions/**` is exempt for **writes** only, never for a read.
 - Write `fulfilled_wishes` from anywhere but `fulfil_wish`, or call
   `fulfil_wish` for anybody but the holder of the claim.
 - End the secret on the giver's behalf — no cron, no admin override, no date.
+- Add a service worker.
+- Run `supabase link`, `db push`, `db pull` or `db reset --linked`. Migrations
+  reach production **by hand**; the CLI would replay `0003_auth.sql` and its
+  `truncate`.
 
 ## Two Supabase clients — never mix them
 
 - `src/lib/supabase-auth.ts` → the visitor's session. Answers *who is this*.
-  Reads no table. Calling `.from()` on it returns empty, which reads as "no rows"
-  rather than "no access" — always a bug.
+  Reads no table. Calling `.from()` on it returns empty, which reads as "no
+  rows" rather than "no access" — always a bug.
 - `src/lib/supabase.ts` → `service_role`, bypasses RLS, does all data work.
   `import "server-only"` keeps it out of client bundles.
 
@@ -79,75 +85,48 @@ Never:
 
 Reachable by direct POST, so each one must, in order:
 
-1. Re-derive the caller; never trust a client-supplied id. `const viewer = await
-   getViewer()` for person-level work, `const ctx = await enterGroup(groupId)` for
-   anything group-scoped — a group id from the client is a claim, the membership
-   row it returns is the proof.
-2. Admin-only work: `await requireGroupAdmin(groupId)`. An admin is an admin *of
-   one group*. An admin-only **page** re-checks with `isGroupAdmin(ctx)` in its
-   own body and redirects. A hidden menu item is not a guard.
+1. Re-derive the caller — `getViewer()`, or `enterGroup(groupId)` for anything
+   group-scoped. A group id from the client is a claim; the membership row it
+   returns is the proof.
+2. `await requireGroupAdmin(groupId)` for admin-only work. An admin-only **page**
+   re-checks with `isGroupAdmin(ctx)` in its own body and redirects. A hidden
+   menu item is not a guard.
 3. Validate input with Zod. **Error messages are Slovak.**
-4. Put ownership in the `WHERE` clause (`.eq("owner_user_id", viewer.userId)`) and
-   check `data.length === 0`. Never pre-check with a separate read. Anything else
-   that must hold at write time goes in the same predicate — group scope
-   (`.eq("group_id", ctx.groupId)`) and `.is("claimed_by_user_id", null)` both
-   live there.
+4. Put every precondition in the `WHERE` clause — ownership, `.eq("group_id",
+   ctx.groupId)`, `.is("claimed_by_user_id", null)` — and check
+   `data.length === 0`. Never pre-check with a separate read.
 5. `revalidatePath("/", "layout")` then `await notifyChanged(groupIds)` — or
-   `await notifyOwnerChanged(ownerId)` when a wish or a claim changed, since the
-   owner is who every interested viewer has in common.
+   `await notifyOwnerChanged(ownerId)` when a wish or a claim changed.
 
 Return `ActionResult`, never throw for expected failures. Set `final: true` only
 when repeating the call cannot change the outcome.
 
-`syncFromLive` (`src/app/actions/live.ts`) is the one exception to all five — it
-takes no input, reads no table and writes no row. Anything that touches data
-follows all five.
-
-## Dialogs
-
-- **`Dialog`** fills the screen below `sm:`, centred card above. Forms go here.
-- **`AlertDialog`** is a centred card at every size. Questions go here.
-
-Shared values live in `src/components/ui/dialog-styles.ts` — put them there, not
-in one of the two forks.
-
-- Every child of a `*Content` must be a `*Header`, `*Body` or `*Footer`, or it
-  renders flush against the edge. A wrapper that passes the regions through needs
-  `flex min-h-0 flex-1 flex-col`.
-- Seams are 12 + 4. Change one side and you owe the other its complement.
-- A `max-w-*` on `DialogContent` **must** be `sm:`-qualified.
-
-Details: [`docs/content/ui-patterns.md`](docs/content/ui-patterns.md#dialogs).
+`syncFromLive` (`src/app/actions/live.ts`) is the one exception to all five.
 
 ## Conventions
 
 - **All user-facing strings are Slovak**, including validation messages.
   `wishCount()` (`src/lib/utils.ts`) handles 1 / 2–4 / 5+ plural forms.
 - Path alias `@/*` → `./src/*`.
-- Tests cover **pure functions only** (`access`, `visibility`, `groups`,
-  `invites`, `wishes`, `members`, `fulfilled`, `images`, `live`, `manifest`,
-  `utils`) — no mocks, no DB. Keep new logic pure enough to test that way.
-- Comments explain what the code cannot say for itself, in a line or two. Longer
-  reasoning belongs in `docs/`.
+- Tests cover **pure functions only** — no mocks, no DB. Keep new logic pure
+  enough to test that way.
+- Comments explain what the code cannot say for itself, in a line or two.
+  Longer reasoning belongs in `docs/decisions/`, linked from the comment.
+- Dialogs: `Dialog` for forms, `AlertDialog` for questions. Every child of a
+  `*Content` must be a `*Header`, `*Body` or `*Footer`. Shared values go in
+  `src/components/ui/dialog-styles.ts`. A `max-w-*` on `DialogContent` **must**
+  be `sm:`-qualified. Seams are 12 + 4.
 - `src/proxy.ts`, not `middleware.ts` — Next 16 renamed the convention.
-- Root layout is `export const dynamic = "force-dynamic"`. Metadata routes that
-  never vary (`icon`, `apple-icon`, `manifest`) pin themselves back to
-  `force-static`.
-- Each child of the root layout supplies its own `<main className="flex-1">`.
-- No service worker, ever.
+- Root layout is `export const dynamic = "force-dynamic"`; metadata routes that
+  never vary pin themselves back to `force-static`. Each child of the root
+  layout supplies its own `<main className="flex-1">`.
 - `AGENTS.md` is written by `next dev`, not by you. Commit it with your work.
 
-## Database
+## Documentation
 
-- **Migrations reach production by hand.** Never run `supabase link`,
-  `supabase db push`, `supabase db pull`, or `supabase db reset --linked` — the
-  CLI would replay `0003_auth.sql` and its `truncate`.
-- The Supabase CLI is **not** a dependency; `npm run supabase` is a pinned `npx`.
-- `0002_realtime.sql` is a comment file — do not run it in production.
-- Every table read goes through `src/lib/data/*`, which takes a `Viewer` or a
-  `GroupContext` first. Branded ids (`src/lib/ids.ts`) are minted only there.
-
-Full notes: [`docs/setup/database.md`](docs/setup/database.md).
+Adding a feature usually needs **no documentation change**. Update a doc only
+when a rule or a decision changed — not to describe new code. See
+[`docs/README.md`](docs/README.md#what-goes-where).
 
 <!-- BEGIN:nextjs-agent-rules -->
 

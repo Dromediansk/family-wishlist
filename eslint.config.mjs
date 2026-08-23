@@ -18,7 +18,7 @@ const eslintConfig = defineConfig([
    * bypasses RLS, and the privacy rule forbids policies. The whole guarantee is
    * that every query goes through src/lib/data/, where it is handed a Viewer or
    * a GroupContext. These two rules are what keeps that true.
-   * docs/content/privacy-rule.md#where-the-rule-is-enforced
+   * docs/decisions/privacy-rule.md#where-the-rule-is-enforced
    *
    * src/app/actions/** is exempt for writes only: Server Actions are the
    * sanctioned write surface and already carry ownership/group scope in their

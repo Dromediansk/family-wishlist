@@ -23,7 +23,7 @@ export default async function BuyingPage() {
   const viewer = access.viewer;
 
   // Nothing here can change or vanish underneath you — an owner cannot touch a
-  // reserved wish. docs/content/claiming.md#what-im-buying
+  // reserved wish. docs/decisions/wishes-claims-history.md#what-im-buying
   const claimed = await getClaimedBy(viewer);
 
   return (

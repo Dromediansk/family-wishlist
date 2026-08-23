@@ -11,7 +11,7 @@ export const dynamic = "force-static";
 /**
  * The installed app's icon and the browser tab icon. There is deliberately no
  * `favicon.ico` — it would win the tab and this drawing would only ever be seen
- * on a home screen. docs/content/ui-patterns.md#icons
+ * on a home screen. docs/decisions/ui-patterns.md#icons
  */
 export default function Icon() {
   return new ImageResponse(<IconArtwork size={size.width} />, { ...size });

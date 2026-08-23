@@ -8,7 +8,7 @@ import { wishGroupTags } from "@/lib/visibility";
 
 /**
  * Which of the viewer's groups a wish reaches, as badges.
- * docs/content/ui-patterns.md#a-group-tag
+ * docs/decisions/ui-patterns.md#a-group-tag
  *
  * `groupIds` is expected to be narrowed already — `src/lib/data/wishes.ts`
  * drops the tags naming a group their owner has left. Filtering `groups` here
@@ -35,7 +35,7 @@ export function GroupTags({
  * A history row holds names and no ids, deliberately — the record must outlive
  * the groups it names — so there is nothing for `wishGroupTags` to resolve
  * against. `fulfil_wish` narrowed the set at handover instead, to the groups
- * both parties stood in then. docs/content/history.md
+ * both parties stood in then. docs/decisions/wishes-claims-history.md
  *
  * `groups` is read for its length alone, and it is the viewer's groups *now*:
  * somebody who is in one group should not meet their first badge here.

@@ -18,7 +18,7 @@ import {
  * Browsers apply `image-orientation: from-image` when drawing an `<img>`, so a
  * photo taken sideways is stored the way it was seen.
  *
- * docs/content/wishes.md#photos
+ * docs/decisions/wishes-claims-history.md#photos
  */
 
 /** Enough for a wish, small enough to send on a phone's connection. */

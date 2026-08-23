@@ -20,7 +20,7 @@ import type { InviteWithCreator } from "@/lib/types";
 /**
  * The **Vytvoriť pozvánku** button on `/family`. Admin-only, like everything on
  * that page — and it is the page's own `isGroupAdmin` redirect that says so, not
- * this component. docs/content/groups.md#invites
+ * this component. docs/decisions/groups-and-invites.md#invites
  */
 export function CreateInviteButton({ groupId }: { groupId: GroupId }) {
   const { pending, error, run } = useAction();

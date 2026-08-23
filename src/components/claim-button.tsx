@@ -49,7 +49,7 @@ function ReleaseClaimButton({ wishId }: { wishId: string }) {
 /**
  * The two ways out of a claim you hold, together. Every page that offers one
  * offers both, by rendering this and not the pair.
- * docs/content/claiming.md
+ * docs/decisions/wishes-claims-history.md
  */
 export function ClaimEndings({
   wishId,

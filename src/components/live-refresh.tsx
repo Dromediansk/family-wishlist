@@ -11,7 +11,7 @@ import { channelFor, LIVE_EVENT } from "@/lib/live";
  * Keeps every open tab in step: listens for the content-free ping on each of
  * the viewer's groups and answers it with `syncFromLive`. Never
  * `router.refresh()`, which reaches the current route only.
- * docs/content/live-updates.md
+ * docs/decisions/live-updates.md
  */
 
 /** A burst of writes should cost one re-render, not one each. */

@@ -7,10 +7,12 @@ import type { MemberSummary, MemberWithCount } from "@/lib/types";
  */
 
 /**
+ * PRIVACY-RULE: returns the owner half of the union for the viewer.
+ *
  * One card on the family grid. The viewer's own row comes back with no
  * `availableCount` at all — the second lock on the same door as the query's
  * `.neq("owner_user_id", viewerId)`.
- * docs/content/privacy-rule.md#counting-on-the-family-grid
+ * docs/decisions/privacy-rule.md#counting-on-the-family-grid
  *
  * Keyed off `userId`, never `id`: wishes hang off the account, while `id` is
  * this person's membership in one group.

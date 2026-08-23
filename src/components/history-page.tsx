@@ -25,7 +25,7 @@ type Props = {
 /**
  * The shell both history pages wear — the two sides of the same record, so the
  * only differences are the words and which name is read off it.
- * docs/content/history.md#the-two-pages
+ * docs/decisions/wishes-claims-history.md#the-two-pages
  */
 export function HistoryPage({
   backHref,

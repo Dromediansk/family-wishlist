@@ -121,7 +121,7 @@ export async function removeMember(
   // and other groups may still be reading them — so nothing cascades and no
   // photo is pruned. memberships_release_claims releases the claims that this
   // group made possible, in both directions.
-  // docs/content/groups.md#removing-somebody
+  // docs/decisions/groups-and-invites.md#removing-somebody
   const { data, error } = await supabase
     .from("memberships")
     .delete()

@@ -9,7 +9,7 @@ import { getSupabase } from "@/lib/supabase";
  * Broadcasts the content-free "something changed" ping to every group the
  * change is visible in. No wish row may ever be pushed to a browser, which is
  * why `postgres_changes` is unusable here.
- * docs/content/live-updates.md
+ * docs/decisions/live-updates.md
  */
 export async function notifyChanged(groupIds: readonly GroupId[]): Promise<void> {
   try {
@@ -26,7 +26,7 @@ export async function notifyChanged(groupIds: readonly GroupId[]): Promise<void>
     // Cosmetic — other tabs catch up on focus or on the fallback poll — so
     // never fail a write that already succeeded. Logged rather than swallowed:
     // a permanently broken ping is indistinguishable from a healthy one
-    // otherwise. docs/content/live-updates.md#keeping-the-socket-alive
+    // otherwise. docs/decisions/live-updates.md#keeping-the-socket-alive
     console.warn("Live update ping failed:", error);
   }
 }

@@ -1,34 +1,34 @@
 # Documentation
 
-Two halves. Product docs explain **what the app does and why**; setup docs
-explain **how to run it**.
+Three layers, read in this order.
 
-Nothing is repeated between files — where two topics touch, one links to the
-other.
-
-## Product — `content/`
-
-| Document | Covers |
+| | |
 |---|---|
-| [The privacy rule](content/privacy-rule.md) | The rule the whole app is built around, why it cannot be an RLS policy, where it is enforced, and the three accepted holes in it |
-| [Wishes](content/wishes.md) | What a wish is, who may change one, and what happens when an owner is refused |
-| [Claiming](content/claiming.md) | Reserving and releasing items on other people's lists |
-| [History](content/history.md) | Marking a gift handed over, and the two pages that remember it |
-| [Groups](content/groups.md) | Groups, per-group names and roles, invites, and what removing somebody does |
-| [Identity](content/membership.md) | Sign-in, the identity table, and sessions |
-| [Live updates](content/live-updates.md) | How every tab stays current without being told what changed |
-| [UI patterns](content/ui-patterns.md) | Dialogs, refusals, language, typography and the installable app |
+| [**Project context**](project-context.md) | Purpose, domain, goals, entities and business rules. What the app is for. |
+| [**Technical context**](technical-context.md) | Technologies, architectural patterns, coding standards, development practices and dependency choices. How it is built. |
+| [**Decisions**](decisions/) | Why one thing rather than the obvious alternative. Read the one that covers what you are touching. |
+| [**Setup**](setup/) | Runbooks: local development, production, database, deployment. |
 
-## Setup — `setup/`
+## What goes where
 
-| Document | Covers |
-|---|---|
-| [Local development](setup/local-development.md) | The Docker database, environment files, and the day-to-day loop |
-| [Production](setup/production.md) | Creating the Supabase project and the Google OAuth client |
-| [Database](setup/database.md) | Schema, migrations, and the CLI commands that must never be run |
-| [Deployment](setup/deployment.md) | Hosting the Next.js app |
+The two context documents hold **rules and reasons**. `decisions/` holds
+**rationale for a choice already made**. Neither describes code.
+
+A statement that would go stale when a function is renamed does not belong in
+any of them — it belongs in a comment next to that function. This is why adding
+a feature usually needs **no documentation change at all**: write the code, and
+touch a doc only when a rule or a decision actually changed.
+
+Two things are deliberately not written down here:
+
+- **Where the privacy rule is enforced.** Every site carries a `PRIVACY-RULE:`
+  tag in its doc comment; `rg 'PRIVACY-RULE:'` is the list. A hand-maintained
+  copy would drift, and did.
+- **The schema, column by column.** `supabase/migrations/` is the schema.
+  [Database](setup/database.md) covers only what the DDL cannot say for itself.
 
 ## Elsewhere
 
-- [`../README.md`](../README.md) — what the app is, for someone who has just found it.
-- [`../CLAUDE.md`](../CLAUDE.md) — commands, rules and patterns for working on the code.
+- [`../README.md`](../README.md) — what the app is, for someone who has just
+  found it.
+- [`../CLAUDE.md`](../CLAUDE.md) — the short version, for working on the code.

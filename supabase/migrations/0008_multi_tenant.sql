@@ -13,7 +13,7 @@
 -- The security model does not change. RLS stays on with zero policies on all
 -- four new tables, service_role still does every read and write, and the two
 -- new functions are revoked from PUBLIC exactly as fulfil_wish is.
--- docs/content/privacy-rule.md
+-- docs/decisions/privacy-rule.md
 --
 -- The trick that makes this cheap: app_users.id inherits family_members.id, so
 -- every existing wishes.member_id and fulfilled_wishes.owner_id/giver_id value
