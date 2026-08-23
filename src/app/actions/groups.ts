@@ -24,7 +24,7 @@ const nameSchema = z
 
 /**
  * Start a group. Whoever creates it is its admin — the only way to become one
- * without being promoted. docs/content/groups.md
+ * without being promoted. docs/decisions/groups-and-invites.md
  *
  * `groupId` comes back on success so the caller can land in the group it just
  * made rather than in whichever one it joined first.
@@ -39,7 +39,7 @@ export async function createGroup(
   if (!name.success) return { ok: false, error: name.error.issues[0].message };
 
   // Counted on groups.created_by, so leaving a group does not give the budget
-  // back. docs/content/groups.md#the-creation-cap
+  // back. docs/decisions/groups-and-invites.md#the-creation-cap
   if ((await countGroupsCreatedBy(viewer)) >= MAX_GROUPS_PER_ACCOUNT) {
     return {
       ok: false,
@@ -92,7 +92,7 @@ export async function createGroup(
   revalidatePath("/", "layout");
   // Reads the fresh membership back rather than branding `groupId` here —
   // that stays a job for src/lib/data/, where a value read from the database
-  // is known to be what it claims. docs/content/live-updates.md
+  // is known to be what it claims. docs/decisions/live-updates.md
   const ctx = await enterGroup(groupId);
   if (ctx) await notifyChanged([ctx.groupId]);
   return { ok: true, groupId };
@@ -101,7 +101,7 @@ export async function createGroup(
 /**
  * End a group. Memberships and invites cascade in the database, and
  * `memberships_release_claims` fires on each cascaded membership.
- * docs/content/groups.md#deleting-a-group
+ * docs/decisions/groups-and-invites.md#deleting-a-group
  */
 export async function deleteGroup(groupId: string): Promise<ActionResult> {
   const permitted = await requireGroupAdmin(
@@ -125,7 +125,7 @@ export async function deleteGroup(groupId: string): Promise<ActionResult> {
 
   revalidatePath("/", "layout");
   // The channel is named by the id, not the row, so the ping still reaches the
-  // tabs that were watching this group. docs/content/live-updates.md
+  // tabs that were watching this group. docs/decisions/live-updates.md
   await notifyChanged([permitted.ctx.groupId]);
 
   // `/` re-lands on the first remaining group, or `/start` when this was the

@@ -12,7 +12,7 @@
 -- The security model does NOT change, and matters more now, not less: browsers
 -- now carry a real authenticated session, so a policy added to `wishes` would
 -- leak further than it would have before. Supabase Auth answers "who is this
--- person" and never touches a table. docs/content/privacy-rule.md
+-- person" and never touches a table. docs/decisions/privacy-rule.md
 
 begin;
 
@@ -39,7 +39,7 @@ commit;
 -- Provisioning: one family_members row per auth user, created by the database
 -- rather than by /auth/callback. A trigger leaves no window in which a signed-in
 -- user has no member row, and its row lock settles the first-admin race.
--- docs/content/membership.md#one-row-per-google-account
+-- docs/decisions/identity-and-sessions.md#one-row-per-google-account
 create or replace function handle_new_auth_user()
 returns trigger
 language plpgsql

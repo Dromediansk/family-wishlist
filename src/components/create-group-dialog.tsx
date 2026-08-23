@@ -36,7 +36,7 @@ export function CreateGroupDialog() {
 
   /**
    * Retrying cannot help — the creation cap is the only refusal that says so.
-   * docs/content/ui-patterns.md#a-refusal-ends-the-dialog
+   * docs/decisions/ui-patterns.md#a-refusal-ends-the-dialog
    */
   const refused = failure?.final === true;
 

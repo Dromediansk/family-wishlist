@@ -42,7 +42,7 @@ const ONE_DAY_MS = 24 * 60 * 60 * 1000;
  * Mints a fresh invite for `ctx`'s group, credited to `ctx`'s own
  * *membership* — never the account id. `invites_creator_in_group` would refuse
  * the row outright if it were the other one.
- * docs/content/groups.md#invites
+ * docs/decisions/groups-and-invites.md#invites
  */
 export async function insertInvite(ctx: GroupContext): Promise<Invite> {
   const token = crypto.randomBytes(32).toString("base64url");

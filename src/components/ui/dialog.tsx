@@ -42,7 +42,7 @@ function DialogOverlay({
  *
  * A direct child must be a `DialogHeader`, `DialogBody` or `DialogFooter`, or a
  * wrapper that passes those straight through (`WishForm`). The padding lives on
- * the regions. docs/content/ui-patterns.md#three-things-that-will-bite
+ * the regions. docs/decisions/ui-patterns.md#three-things-that-will-bite
  */
 function DialogContent({
   className,

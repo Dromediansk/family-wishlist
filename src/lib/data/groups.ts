@@ -8,7 +8,7 @@ import type { Viewer } from "@/lib/types";
  *
  * Counted on `groups.created_by`, which holds an `app_users.id` — never a
  * membership id. Leaving a group therefore does not give the budget back.
- * docs/content/groups.md#the-creation-cap
+ * docs/decisions/groups-and-invites.md#the-creation-cap
  */
 export async function countGroupsCreatedBy(viewer: Viewer): Promise<number> {
   const { count, error } = await getSupabase()

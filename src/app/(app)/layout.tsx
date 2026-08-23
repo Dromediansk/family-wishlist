@@ -5,7 +5,7 @@ import { SiteHeader } from "@/components/site-header";
  * exists only to keep the header off `/login` and the 404. The line is "has a
  * session", not "belongs to a group": a groupless account wears this chrome
  * too, and each page decides for itself whether to redirect further.
- * docs/content/groups.md
+ * docs/decisions/groups-and-invites.md
  *
  * Deliberately absent: no `dynamic` export (the root layout already governs
  * this, and a different value here would silently override it) and no

@@ -6,7 +6,7 @@ import type { ClaimView, GroupRef, Role } from "@/lib/types";
  * they are tested for real rather than through mocks — the same reason
  * `access.ts` and `members.ts` are shaped this way.
  *
- * docs/content/privacy-rule.md#where-the-rule-is-enforced
+ * docs/decisions/privacy-rule.md#where-the-rule-is-enforced
  */
 
 /**
@@ -79,6 +79,8 @@ export function wishGroupTags(
 }
 
 /**
+ * PRIVACY-RULE: the single answer to "may this viewer be told who claimed it".
+ *
  * May the viewer be told *who* reserved something? Only when they share a group
  * with that person — otherwise a claim made in one group would name a stranger
  * to another, along with the fact that the two are in a group together.

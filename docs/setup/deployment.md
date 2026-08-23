@@ -36,11 +36,11 @@ own value with nothing to configure.
   nothing may be cached between visitors — two people looking at the same list
   must see different things.
 - **No service worker**, deliberately.
-  [Why](../content/ui-patterns.md#the-installable-app).
+  [Why](../decisions/ui-patterns.md#the-installable-app).
 - **Live updates need no special hosting.** The browser holds its socket open to
   Supabase, not to the Next.js server, and the server publishes with a single
   HTTP request — so this works on serverless. It does need Realtime server
   ≥ v2.97.0, and a paused free Supabase project takes Realtime down with it. See
-  [Live updates](../content/live-updates.md#keeping-the-socket-alive).
+  [Live updates](../decisions/live-updates.md#keeping-the-socket-alive).
 - **Migrations do not run on deploy.** They are applied by hand —
   [Database](database.md#applying-them).

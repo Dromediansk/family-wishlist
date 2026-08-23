@@ -10,7 +10,7 @@ import { NextResponse, type NextRequest } from "next/server";
  *
  * The redirect is an optimisation, never the defence: every page resolves access
  * again and every Server Action re-derives its caller. Deleting this file would
- * cost speed, not safety. docs/content/membership.md#sessions
+ * cost speed, not safety. docs/decisions/identity-and-sessions.md#sessions
  */
 
 /**

@@ -23,7 +23,7 @@ export default async function LoginPage({
    * `/join/{token}` sends a signed-out visitor here with the link it could not
    * open yet. The value comes off a query string, so it is checked before it is
    * rendered, let alone redirected to — anything else is dropped and this page
-   * behaves as if it never arrived. docs/content/groups.md#invites
+   * behaves as if it never arrived. docs/decisions/groups-and-invites.md#invites
    */
   const returnTo = safeReturnTo(params.returnTo);
 

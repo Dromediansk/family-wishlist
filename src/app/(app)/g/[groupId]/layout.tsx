@@ -8,7 +8,7 @@ import { isConfigured } from "@/lib/supabase";
  * One membership check for every page under /g/[groupId]. A group id in a URL is
  * a claim; `enterGroup` returns null unless a membership row proves it, and the
  * answer is a 404 rather than a 403 so the URL says nothing about which groups
- * exist. docs/content/groups.md
+ * exist. docs/decisions/groups-and-invites.md
  *
  * `enterGroup` is memoised per render, so each page asking again costs nothing.
  * Every page under here re-checks for itself all the same: a layout and its page

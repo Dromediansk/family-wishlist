@@ -143,7 +143,7 @@ never sign in. That is the point: they exist to be read.
 
 Two of your own four wishes end up reserved — the one state the UI cannot put you
 in. Your list says nothing about either, and trying to delete or edit them is
-what [the refusal](../content/privacy-rule.md#the-deliberate-exception-a-reserved-wish-is-frozen)
+what [the refusal](../decisions/privacy-rule.md#the-deliberate-exception-a-reserved-wish-is-frozen)
 looks like.
 
 The seed script refuses to run unless `NEXT_PUBLIC_SUPABASE_URL` resolves to
@@ -157,7 +157,7 @@ loopback. It writes fabricated data with a key that bypasses RLS, so it has to b
 | `connection refused` on `127.0.0.1:54421` | the stack is not running — `npm run db:start` |
 | The "connect your database" card | the environment values themselves are missing, which now only happens to a production build |
 | Sign-in lands on the wrong port | `next dev` took 3001 and it is not allow-listed — see above |
-| Updates feel a minute late | the live ping is failing; check the server log for `Live update ping failed` ([why](../content/live-updates.md#keeping-the-socket-alive)) |
+| Updates feel a minute late | the live ping is failing; check the server log for `Live update ping failed` ([why](../decisions/live-updates.md#keeping-the-socket-alive)) |
 
 ## Checks
 

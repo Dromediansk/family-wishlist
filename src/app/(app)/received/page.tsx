@@ -13,7 +13,7 @@ import { isConfigured } from "@/lib/supabase";
  * shows, so there is nothing to guess and no ownership guard to get wrong. This
  * is the one screen that names a giver to the person they gave to, and it may
  * only ever render the caller's own rows.
- * docs/content/privacy-rule.md#when-the-secret-ends
+ * docs/decisions/privacy-rule.md#when-the-secret-ends
  */
 export default async function ReceivedPage() {
   if (!isConfigured()) return <SetupRequired />;

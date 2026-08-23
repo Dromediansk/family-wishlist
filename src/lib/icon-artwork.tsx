@@ -3,7 +3,7 @@
  *
  * The glyph is lucide's `gift` geometry inlined by hand: these routes rasterise
  * through Satori, which draws plain SVG but not React components. The 56% ratio
- * is a rule, not a number — docs/content/ui-patterns.md#icons.
+ * is a rule, not a number — docs/decisions/ui-patterns.md#icons.
  */
 
 import { THEME_COLORS } from "@/lib/theme-colors";

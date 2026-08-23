@@ -10,7 +10,7 @@ import { INVITE_EXPIRED_MESSAGE, inviteUsable } from "@/lib/invites";
  * redirect. The read here only decides *where* to send the browser —
  * `joinWithInvite` is the actual guard, and re-derives all of this for itself
  * because it is a Server Action reachable on its own.
- * docs/content/groups.md#invites
+ * docs/decisions/groups-and-invites.md#invites
  */
 export async function GET(
   request: Request,

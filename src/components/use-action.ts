@@ -11,7 +11,7 @@ import type { ActionOutcome } from "@/lib/types";
  *
  * For a dialog that has to tell a *final* refusal from a retryable one, hold on
  * to the whole `ActionFailure` instead — `ConfirmActionDialog` is that shape.
- * docs/content/ui-patterns.md#a-refusal-ends-the-dialog
+ * docs/decisions/ui-patterns.md#a-refusal-ends-the-dialog
  */
 export function useAction(): {
   pending: boolean;

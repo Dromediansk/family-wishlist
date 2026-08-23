@@ -33,7 +33,7 @@ function embeddedGroupIds(embed: { group_id: string }[]): GroupId[] {
  * Is this wish, right now, tagged with a group the viewer *and* its owner both
  * belong to? The impure half of `wishVisibleTo`, in one place because the two
  * id-lookup paths below are both privacy-rule enforcement points and must not
- * be able to drift apart. docs/content/privacy-rule.md#where-the-rule-is-enforced
+ * be able to drift apart. docs/decisions/privacy-rule.md#where-the-rule-is-enforced
  *
  * The owner's current groups are fetched rather than trusted from the tag
  * alone: nothing prunes `wish_groups` when its owner leaves a group, so a stale
@@ -53,9 +53,11 @@ async function wishReachableBy(
 }
 
 /**
+ * PRIVACY-RULE: the owner branch selects no claim column.
+ *
  * One person's wish list, shaped for whoever is looking. The owner branch
  * selects only the non-claim columns, so claim data never leaves the database
- * on that path. docs/content/privacy-rule.md#reading-a-list
+ * on that path. docs/decisions/privacy-rule.md#reading-a-list
  *
  * The non-owner branch is scoped to `ctx.groupId`: a wish tagged for a
  * different one of the owner's groups does not appear here, even when the
@@ -135,7 +137,7 @@ export async function getWishListFor(
  * of its own.
  *
  * The tags come back too, narrowed by `toClaimedWish` to the groups the viewer
- * and the owner both stand in. docs/content/claiming.md#what-im-buying
+ * and the owner both stand in. docs/decisions/wishes-claims-history.md#what-im-buying
  */
 export async function getClaimedBy(viewer: Viewer): Promise<ClaimedWish[]> {
   const [result, names, peerGroups] = await Promise.all([
@@ -190,6 +192,8 @@ export async function getWishOwner(
 }
 
 /**
+ * PRIVACY-RULE: an owner-serving path that never selects a claim column.
+ *
  * The Storage key of one wish's photo, or null when the viewer may not have
  * it.
  *
@@ -203,7 +207,7 @@ export async function getWishOwner(
  *
  * Its checks are what the photo route relies on to answer 404 — not 403 — to
  * everything it declines, so the response says nothing about which wishes
- * exist either. docs/content/privacy-rule.md#serving-a-photo
+ * exist either. docs/decisions/privacy-rule.md#serving-a-photo
  */
 export async function getWishPhotoPath(
   viewer: Viewer,

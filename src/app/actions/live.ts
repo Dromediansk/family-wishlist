@@ -15,7 +15,7 @@ import { revalidatePath } from "next/cache";
  *
  * **Safe only while nothing is cached server-side.** Adopt Cache Components and
  * an unauthenticated call becomes a global cache purge; the caller check goes
- * back in. docs/content/live-updates.md#syncfromlive-is-the-one-unauthorized-action
+ * back in. docs/decisions/live-updates.md#syncfromlive-is-the-one-unauthorized-action
  */
 export async function syncFromLive(): Promise<void> {
   revalidatePath("/", "layout");

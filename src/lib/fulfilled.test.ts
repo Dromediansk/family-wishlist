@@ -10,7 +10,7 @@ import {
  * The inverse pin of wishes.test.ts. There, a claimer's name must never survive
  * the mapping; here the giver's name must, because the claim it came from is
  * over. A later tidy-up that strips it should fail loudly.
- * docs/content/privacy-rule.md#when-the-secret-ends
+ * docs/decisions/privacy-rule.md#when-the-secret-ends
  */
 
 const row: FulfilledWishRow = {

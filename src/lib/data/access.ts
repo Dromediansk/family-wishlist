@@ -31,7 +31,7 @@ function embedded<Row>(value: Embedded<Row>): Row {
  *
  * Two clients on purpose: the session comes from Supabase Auth, the rows from
  * service_role, and the link between them is `auth_user_id`, which the visitor
- * cannot influence. docs/content/privacy-rule.md
+ * cannot influence. docs/decisions/privacy-rule.md
  */
 export const getViewer = cache(async (): Promise<Viewer | null> => {
   const user = await getAuthUser();
@@ -209,7 +209,7 @@ export async function getAccountName(viewer: Viewer): Promise<string> {
  * the same — `authUserId` comes from the verified session, never from anything
  * a caller supplies.
  *
- * docs/content/membership.md#the-repair, and docs/content/groups.md for how the
+ * docs/decisions/identity-and-sessions.md#the-repair, and docs/decisions/groups-and-invites.md for how the
  * app models membership and access.
  */
 export async function ensureAppUser(

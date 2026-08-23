@@ -7,7 +7,7 @@
 -- server-side with the service_role key, which bypasses RLS, and the server
 -- strips claim columns before sending an owner their own list. Never add a
 -- policy, and never expose the service_role key to the browser:
--- docs/content/privacy-rule.md
+-- docs/decisions/privacy-rule.md
 
 create extension if not exists pgcrypto;
 

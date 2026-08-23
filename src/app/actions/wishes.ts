@@ -84,13 +84,16 @@ function ownsEveryGroup(viewer: Viewer, groupIds: string[]): boolean {
 }
 
 /**
+ * PRIVACY-RULE (the one exception): the only owner-serving path that may read
+ * `claimed_by_user_id`, and the value never leaves this function.
+ *
  * What to tell an owner whose delete or edit matched no rows. Runs only *after*
  * the write missed — the conditional WHERE clause is what enforces the refusal,
  * so a claim landing in between can at worst pick the wrong wording.
  *
  * The one owner-serving path allowed to select `claimed_by_user_id`. It stays
  * in this function and never migrates into OWNER_WISH_COLUMNS, getWishListFor
- * or OwnerWish. docs/content/privacy-rule.md#how-the-refusal-works
+ * or OwnerWish. docs/decisions/privacy-rule.md#how-the-refusal-works
  */
 async function lookUpRefusal(
   wishId: string,
@@ -218,7 +221,7 @@ export async function addWish(input: WishInput): Promise<ActionResult> {
   if (!photo.ok) {
     // The wish is already saved — pressing the button again would add a second
     // one, so the dialog stops offering it.
-    // docs/content/ui-patterns.md#a-refusal-ends-the-dialog
+    // docs/decisions/ui-patterns.md#a-refusal-ends-the-dialog
     return {
       ok: false,
       error: `${photo.error} Želanie je uložené bez nej.`,
@@ -310,7 +313,7 @@ export async function deleteWish(wishId: string): Promise<ActionResult> {
 /**
  * Claim someone else's wish. `claimed_by_user_id is null` sits in the WHERE
  * clause, so two people clicking at once cannot both win.
- * docs/content/claiming.md
+ * docs/decisions/wishes-claims-history.md
  */
 export async function claimWish(wishId: string): Promise<ActionResult> {
   const viewer = await getViewer();
@@ -354,7 +357,7 @@ export async function claimWish(wishId: string): Promise<ActionResult> {
   revalidatePath("/", "layout");
   // The owner is the one person every interested viewer has in common — a
   // peer in a different group than the claimer still needs to see this wish
-  // go unavailable. docs/content/live-updates.md
+  // go unavailable. docs/decisions/live-updates.md
   await notifyOwnerChanged(ownerId);
   return { ok: true };
 }
@@ -369,7 +372,7 @@ export async function unclaimWish(wishId: string): Promise<ActionResult> {
 
   // Informational, not a guard — `.eq("claimed_by_user_id", ...)` below is
   // what the write actually checks. The owner, not the (un)claimer, is who
-  // every interested viewer has in common. docs/content/live-updates.md
+  // every interested viewer has in common. docs/decisions/live-updates.md
   const ownerId = await getWishOwner(viewer, id.data);
 
   const supabase = getSupabase();
@@ -397,7 +400,7 @@ export async function unclaimWish(wishId: string): Promise<ActionResult> {
 /**
  * Mark a wish you reserved as handed over. One way: the wish leaves the owner's
  * list for good, and the record — including your name — becomes visible to
- * them. docs/content/privacy-rule.md#when-the-secret-ends
+ * them. docs/decisions/privacy-rule.md#when-the-secret-ends
  *
  * The whole guard is `claimed_by_user_id = p_giver_id` inside `fulfil_wish`,
  * which deletes the wish and writes the record in one statement. No pre-check

@@ -69,7 +69,7 @@ export function WishForm({
   /**
    * Retrying cannot help, so there is nothing left to submit. A validation
    * message leaves this false.
-   * docs/content/ui-patterns.md#a-refusal-ends-the-dialog
+   * docs/decisions/ui-patterns.md#a-refusal-ends-the-dialog
    */
   const refused = failure?.final === true;
 

@@ -7,7 +7,7 @@ import type { Viewer } from "@/lib/types";
  *
  * `groupless` is a signed-in account with no membership anywhere — legal since
  * groups became a thing, and what /start serves.
- * docs/content/groups.md
+ * docs/decisions/groups-and-invites.md
  */
 export type Access =
   | { kind: "anonymous" }
@@ -37,7 +37,7 @@ export function resolveAccess(input: {
  * owner makes `canReadList` false for the one list the viewer certainly owns,
  * which locks a groupless account out of its own wishes — hence the seed, which
  * happens whatever the query returned.
- * docs/content/privacy-rule.md#reading-a-list
+ * docs/decisions/privacy-rule.md#reading-a-list
  */
 export function seedPeers(
   ownerId: UserId,

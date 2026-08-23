@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 /**
  * Hand-over, one way. This is the only control in the app that ends a secret:
  * it deletes the wish from its owner's list and writes a record naming the
- * giver to them. docs/content/privacy-rule.md#when-the-secret-ends
+ * giver to them. docs/decisions/privacy-rule.md#when-the-secret-ends
  *
  * The second sentence of the description is the whole safety mechanism — the
  * only place the buyer is told that pressing this reveals them — so it says so

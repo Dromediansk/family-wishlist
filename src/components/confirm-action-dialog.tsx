@@ -37,7 +37,7 @@ type Props = {
  * forward for the way out: the reason becomes the description and only
  * **Zavrieť** is left. A non-final failure leaves the question standing, with
  * the error above the buttons and the action still pressable.
- * docs/content/ui-patterns.md#a-refusal-ends-the-dialog
+ * docs/decisions/ui-patterns.md#a-refusal-ends-the-dialog
  */
 export function ConfirmActionDialog({
   trigger,

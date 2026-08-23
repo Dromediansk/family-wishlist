@@ -10,7 +10,7 @@ import type { GroupId } from "@/lib/ids";
 /**
  * The end of a group. `deleteGroup` redirects on success, so there is nothing to
  * report back and nothing to close — the dialog goes with the page.
- * docs/content/groups.md#deleting-a-group
+ * docs/decisions/groups-and-invites.md#deleting-a-group
  */
 export function DeleteGroupButton({
   groupId,

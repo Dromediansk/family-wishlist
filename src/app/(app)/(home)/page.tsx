@@ -9,7 +9,7 @@ import { isConfigured } from "@/lib/supabase";
  *
  * proxy.ts already bounced signed-out visitors, but that is an optimisation:
  * this is the check that decides, and the groupless case needs the database.
- * docs/content/groups.md
+ * docs/decisions/groups-and-invites.md
  */
 export default async function HomePage() {
   if (!isConfigured()) return <SetupRequired />;

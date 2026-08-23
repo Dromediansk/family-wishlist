@@ -37,7 +37,7 @@ export const WISH_GROUPS_EMBED = "wish_groups(group_id)";
  * `.eq("wish_groups.group_id", …)` beside it drop the wish, where a plain embed
  * would hand back the wish with an empty one. That is how per-group visibility
  * is spelled on every read that is scoped to a group, and nothing here reads
- * the embedded rows themselves. docs/content/wishes.md#reading-a-list
+ * the embedded rows themselves. docs/decisions/wishes-claims-history.md#reading-a-list
  */
 export const WISH_GROUPS_SCOPE = "wish_groups!inner(group_id)";
 
@@ -56,6 +56,8 @@ export type ClaimedWishRow = OwnerWishRow & {
 };
 
 /**
+ * PRIVACY-RULE: builds the owner's view field by field.
+ *
  * The owner's view. Explicit field list rather than a spread, so a claim column
  * cannot ride along if the query is later widened.
  */
@@ -109,12 +111,14 @@ export function toViewerWish(
 const NO_GROUPS: ReadonlySet<GroupId> = new Set();
 
 /**
+ * PRIVACY-RULE: narrows a claimed wish's group tags to shared groups.
+ *
  * The "things I'm buying" view.
  *
  * Takes the wish's raw tags and the shared-group map, and narrows them here
  * rather than upstream — the same shape as `toViewerWish` above taking `peers`
  * and asking `revealClaimer` itself, so the rule that decides what this reader
- * is told sits in the tested half. docs/content/claiming.md#what-im-buying
+ * is told sits in the tested half. docs/decisions/wishes-claims-history.md#what-im-buying
  */
 export function toClaimedWish(
   row: ClaimedWishRow,
@@ -136,7 +140,7 @@ export function toClaimedWish(
  * The route is addressed by wish id rather than by object key, so the key never
  * has to be trusted from a URL. The `?v=` token is the file name, which is fresh
  * on every upload — that is what lets the route cache for a year and still never
- * hand back last week's picture. docs/content/wishes.md#photos
+ * hand back last week's picture. docs/decisions/wishes-claims-history.md#photos
  */
 export function wishPhotoUrl(wish: {
   id: string;
@@ -164,7 +168,7 @@ const REFUSALS = {
  * means nothing matched on id and owner at all.
  *
  * Always `final` — only the holder can release it.
- * docs/content/privacy-rule.md#the-deliberate-exception-a-reserved-wish-is-frozen
+ * docs/decisions/privacy-rule.md#the-deliberate-exception-a-reserved-wish-is-frozen
  */
 export function refusalFor(
   row: { claimed_by_user_id: string | null } | null,

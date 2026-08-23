@@ -6,7 +6,7 @@ import { getSupabase } from "@/lib/supabase";
 /**
  * The `wish-photos` bucket, reached only through the service_role client. The
  * bucket is private and carries no policy, exactly like every table.
- * docs/content/wishes.md#photos
+ * docs/decisions/wishes-claims-history.md#photos
  */
 
 const PHOTO_BUCKET = "wish-photos";

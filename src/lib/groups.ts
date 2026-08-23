@@ -6,7 +6,7 @@ import type { GroupId } from "@/lib/ids";
  *
  * Insurance against an abuse vector the invite-only plan does not have yet,
  * which is why it is a constant rather than a setting.
- * docs/content/groups.md#the-creation-cap
+ * docs/decisions/groups-and-invites.md#the-creation-cap
  */
 export const MAX_GROUPS_PER_ACCOUNT = 5;
 
@@ -18,7 +18,7 @@ export const MAX_GROUPS_PER_ACCOUNT = 5;
  * One spelling for both places that ask — `WishForm`'s picker and `GroupTags` —
  * because it is one rule, and two length comparisons in opposite polarities
  * would let them drift apart. Only the length is read.
- * docs/content/ui-patterns.md#a-group-tag
+ * docs/decisions/ui-patterns.md#a-group-tag
  */
 export function groupsWorthNaming(groups: readonly unknown[]): boolean {
   return groups.length > 1;

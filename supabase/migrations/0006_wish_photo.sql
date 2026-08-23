@@ -17,7 +17,7 @@
 -- The CHECK guards the shape itself. Unlike the other wish fields there is no
 -- Zod rule to mirror: the key is built by uploadWishPhoto (src/lib/photos.ts)
 -- and never arrives from a form, so the constraint is what keeps a hand-written
--- SQL insert from putting something unservable here. docs/content/wishes.md
+-- SQL insert from putting something unservable here. docs/decisions/wishes-claims-history.md
 
 begin;
 

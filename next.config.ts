@@ -5,7 +5,7 @@ const nextConfig: NextConfig = {
     /**
      * Holds failed navigations, prefetches and Server Actions and retries them
      * on reconnect. Stands in for the service worker this app deliberately does
-     * not have. docs/content/ui-patterns.md#the-installable-app
+     * not have. docs/decisions/ui-patterns.md#the-installable-app
      */
     useOffline: true,
 
@@ -16,7 +16,7 @@ const nextConfig: NextConfig = {
      * write pings and every ping purges the whole cache.
      *
      * `static` stays at Next's default — nothing here is static.
-     * docs/content/live-updates.md#why-going-back-doesnt-reload
+     * docs/decisions/live-updates.md#why-going-back-doesnt-reload
      */
     staleTimes: { dynamic: 60 },
 

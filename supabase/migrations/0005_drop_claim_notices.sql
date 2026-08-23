@@ -7,7 +7,7 @@
 -- rewrite a reserved wish. They are now refused outright, so both triggers have
 -- nothing left to report. Removing a member was never a third case: the
 -- trigger's lookup in family_members finds no row by then.
--- docs/content/privacy-rule.md#this-is-a-known-accepted-hole
+-- docs/decisions/privacy-rule.md#this-is-a-known-accepted-hole
 --
 -- Dropping the triggers before the table is not required — `drop table` takes
 -- them with it — but it is spelled out so the order reads as deliberate.

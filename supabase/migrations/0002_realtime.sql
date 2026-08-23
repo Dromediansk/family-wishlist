@@ -13,4 +13,4 @@
 -- own claimed_by values, which is the one thing this app exists to prevent.
 --
 -- Why, in full, including the private-channel option that was considered and
--- rejected: docs/content/live-updates.md
+-- rejected: docs/decisions/live-updates.md

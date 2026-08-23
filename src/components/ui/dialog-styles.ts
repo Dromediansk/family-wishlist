@@ -11,7 +11,7 @@
  * only pieces to concatenate. Each is a literal so Tailwind's scanner can see
  * the class names, which is also why the `sm:` twins are spelled out.
  *
- * docs/content/ui-patterns.md#dialogs
+ * docs/decisions/ui-patterns.md#dialogs
  */
 
 export const ANIMATION_FADE =
@@ -44,7 +44,7 @@ export const PANEL_CARD =
  * The full-screen panel's sizing: the whole screen, still centred.
  *
  * A percentage height, not a dynamic-viewport one — see
- * docs/content/ui-patterns.md#the-keyboard.
+ * docs/decisions/ui-patterns.md#the-keyboard.
  */
 export const PANEL_FULLSCREEN = "h-full w-full";
 
@@ -77,7 +77,7 @@ export const ANIMATION_CARD_SM =
  * The regions. Padding sits on these rather than on the panel, and the seams are
  * 12 + 4 — adjust one side and you owe the other its complement. The body's
  * `py-1` is load bearing: it keeps `:focus-visible` from being clipped by
- * `overflow-y-auto`. docs/content/ui-patterns.md#three-things-that-will-bite
+ * `overflow-y-auto`. docs/decisions/ui-patterns.md#three-things-that-will-bite
  */
 
 export const HEADER =

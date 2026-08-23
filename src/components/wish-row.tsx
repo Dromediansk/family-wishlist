@@ -20,7 +20,7 @@ export function WishRow({
   wish: Displayable;
   action?: React.ReactNode;
   /**
-   * Group tags, under the title — docs/content/ui-patterns.md#a-group-tag. A
+   * Group tags, under the title — docs/decisions/ui-patterns.md#a-group-tag. A
    * slot rather than a field on `wish`, so `Displayable` stays as narrow as it
    * is on purpose and the row still cannot reach claim state.
    */

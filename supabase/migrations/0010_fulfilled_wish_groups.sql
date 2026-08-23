@@ -9,14 +9,14 @@
 -- with it. So the tags have to be captured at handover, in the record itself.
 --
 -- Non-destructive: one new column with a default, one new function, and two
--- function bodies. docs/content/history.md
+-- function bodies. docs/decisions/wishes-claims-history.md
 
 begin;
 
 -- Names, not ids, and copied rather than joined — the same reason owner_name
 -- and giver_name are. A record of something that really happened must not
 -- depend on a group either party may since have left, or that may since be
--- deleted. docs/setup/database.md#fulfilled_wishes
+-- deleted. docs/setup/database.md#fulfilled_wishes-copies-instead-of-joining
 alter table fulfilled_wishes
   add column if not exists group_names text[] not null default '{}';
 
