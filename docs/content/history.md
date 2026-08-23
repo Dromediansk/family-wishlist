@@ -28,9 +28,9 @@ in at that moment, the same narrowing [`/buying`](claiming.md#what-im-buying)
 renders — so the badges on that page are the tags frozen into history. The
 statement does the narrowing itself rather than taking the page's word for it,
 which is what lets **Darované** be pressed from the owner's list too, where the
-list is scoped to one group and draws no badges at all.
-At least one always survives, since sharing a tagged group is what
-allowed the claim, and no row can ever name a group the giver was not in.
+list is scoped to one group and draws no badges at all. At least one always
+survives, since sharing a tagged group is what allowed the claim, and no row can
+ever name a group the giver was not in.
 
 That narrowing is not spelled here twice. `0010` factors the join out as
 `shared_wish_groups` and redefines `wish_shares_group` — the claim guard's

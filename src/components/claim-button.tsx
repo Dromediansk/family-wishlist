@@ -14,7 +14,7 @@ type Props = {
   wishId: string;
   claim: ClaimView;
   viewerId: UserId;
-  /** For the hand-over question, which names both the wish and its owner. */
+  /** Both reach `ClaimEndings`; the other two branches never read them. */
   title: string;
   ownerName: string;
 };
@@ -24,7 +24,7 @@ type Props = {
  * has already established that this claim is the viewer's own, so there is no
  * claim state here to render and no name to get wrong.
  */
-export function ReleaseClaimButton({ wishId }: { wishId: string }) {
+function ReleaseClaimButton({ wishId }: { wishId: string }) {
   const { pending, error, run } = useAction();
 
   return (
@@ -47,11 +47,31 @@ export function ReleaseClaimButton({ wishId }: { wishId: string }) {
 }
 
 /**
+ * The two ways out of a claim you hold, together. Every page that offers one
+ * offers both, by rendering this and not the pair.
+ * docs/content/claiming.md
+ */
+export function ClaimEndings({
+  wishId,
+  title,
+  ownerName,
+}: {
+  wishId: string;
+  /** For the hand-over question, which names both the wish and its owner. */
+  title: string;
+  ownerName: string;
+}) {
+  return (
+    <div className="flex flex-wrap items-start gap-2 sm:justify-end">
+      <ReleaseClaimButton wishId={wishId} />
+      <FulfilWishButton wishId={wishId} title={title} ownerName={ownerName} />
+    </div>
+  );
+}
+
+/**
  * Claim, release, or hand over an item on someone else's list. Never rendered on
  * your own — the owner branch of the page has no claim state to give it.
- *
- * A claim ends where it began: both ways out of one you hold sit here, the same
- * pair `/buying` offers. docs/content/claiming.md
  */
 export function ClaimButton({
   wishId,
@@ -76,16 +96,9 @@ export function ClaimButton({
     );
   }
 
-  // Whatever is left and not free is the viewer's own. Both endings of a claim
-  // sit together, laid out as they are on /buying so the pair wraps the same way
-  // on a phone.
+  // Whatever is left and not free is the viewer's own.
   if (claim.kind === "taken-by") {
-    return (
-      <div className="flex flex-wrap items-start gap-2 sm:justify-end">
-        <ReleaseClaimButton wishId={wishId} />
-        <FulfilWishButton wishId={wishId} title={title} ownerName={ownerName} />
-      </div>
-    );
+    return <ClaimEndings wishId={wishId} title={title} ownerName={ownerName} />;
   }
 
   return (

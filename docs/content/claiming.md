@@ -52,10 +52,9 @@ For each wish on somebody else's list:
 Both endings of your own claim are on the second row because a claim ends where
 it began: you reserved the wish on this list, and having to leave for
 [*Čo kupujem*](#what-im-buying) to say you handed it over made the one screen
-that knows about the gift the one screen that could not finish it. The pair is
-the same `ReleaseClaimButton` and `FulfilWishButton` that page renders, in the
-same order, so there is one hand-over control in the app and not two —
-[History](history.md).
+that knows about the gift the one screen that could not finish it. Both screens
+render one `ClaimEndings`, which owns the pair and their order, so there is one
+hand-over control in the app and not two — [History](history.md).
 
 The last row is the one a person-level list makes possible: the wish belongs to
 somebody who is in more than one of *their* groups, and the person who reserved
