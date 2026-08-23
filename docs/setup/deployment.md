@@ -1,6 +1,7 @@
 # Deployment
 
-Any host that runs Next.js works. Nothing here needs a long-running process.
+Deployed on **Vercel**. Nothing here needs a long-running process, so any host
+that runs Next.js would work.
 
 ## Before you deploy
 

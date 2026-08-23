@@ -19,7 +19,7 @@ For what the app is for, see [Project context](project-context.md).
 | Live updates | Supabase Realtime broadcast |
 | Validation | Zod 4 |
 | Tests | Vitest, node environment |
-| Hosting | Any Next.js host; no long-running process required |
+| Hosting | Vercel. Nothing needs a long-running process, so any Next.js host would do |
 
 Next.js 16 has breaking changes from earlier versions. Read the relevant guide
 under `node_modules/next/dist/docs/` before writing framework code.
