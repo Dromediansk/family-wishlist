@@ -22,6 +22,12 @@ export const metadata: Metadata = {
  * ways the surprise can be spoiled. Naming them is deliberate: a promise this
  * app cannot keep would be worse than the admission.
  * docs/decisions/privacy-rule.md
+ *
+ * The section on illegal content is what the DSA (Reg. 2022/2065, arts. 14, 16
+ * and 17) asks of a hosting service: state the restrictions, name a route for
+ * reporting, and promise a reason when something is taken down. The contact
+ * e-mail is that route — deliberately the same one, so there is no second
+ * channel to keep alive.
  */
 export default function TermsPage() {
   return (
@@ -80,6 +86,25 @@ export default function TermsPage() {
         <p>
           Nepridávaj nič nezákonné, urážlivé ani nič, čo zasahuje do práv iných.
           Obsah, ktorý toto poruší, môžeme odstrániť.
+        </p>
+      </LegalSection>
+
+      <LegalSection title="Nezákonný obsah a moderovanie">
+        <p>
+          Ak v appke uvidíš obsah, ktorý je podľa teba nezákonný, napíš na{" "}
+          <Detail of={LEGAL_DETAILS.contactEmail} /> — v ktorej skupine je, čie
+          želanie to je a čo mu vytýkaš. Každé takéto oznámenie prevádzkovateľ
+          posúdi a odpíše na adresu, z ktorej prišlo.
+        </p>
+        <p>
+          Moderuje jeden človek a ručne. Nič tu obsah automaticky neprehľadáva,
+          o odstránení nerozhoduje algoritmus a nefunguje tu žiadne odvolacie
+          konanie — je len ten istý e-mail.
+        </p>
+        <p>
+          Keď prevádzkovateľ obsah odstráni alebo zruší účet, povie o tom tomu,
+          koho sa to týka, aj dôvod. Ohradiť sa dá odpoveďou na ten istý e-mail
+          a cesta na súd zostáva otvorená vždy.
         </p>
       </LegalSection>
 

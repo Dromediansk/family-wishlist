@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 
 import {
+  Code,
   Detail,
-  Kod,
   LegalList,
   LegalPage,
   LegalSection,
@@ -45,7 +45,7 @@ export default function PrivacyPage() {
           <li>
             <strong>Účet</strong> — e-mailová adresa a meno z tvojho Google
             účtu. Pri prihlásení žiadame od Googlu len rozsah{" "}
-            <Kod>openid email profile</Kod>. Profilovú fotku z Googlu nečítame
+            <Code>openid email profile</Code>. Profilovú fotku z Googlu nečítame
             ani neukladáme.
           </li>
           <li>
@@ -147,18 +147,18 @@ export default function PrivacyPage() {
         </p>
         <LegalList>
           <li>
-            <Kod>sb-*-auth-token*</Kod> a <Kod>sb-*-code-verifier</Kod> — tvoje
-            prihlásenie a bezpečné dokončenie prihlasovania cez Google.
+            <Code>sb-*-auth-token*</Code> a <Code>sb-*-code-verifier</Code> —
+            tvoje prihlásenie a bezpečné dokončenie prihlasovania cez Google.
             Prístupový token platí hodinu a obnovuje sa počas používania.
           </li>
           <li>
-            <Kod>wishlist-return-to</Kod> — desať minút, neprístupné
+            <Code>wishlist-return-to</Code> — desať minút, neprístupné
             JavaScriptu. Prenesie otvorenú pozvánku cez prihlásenie a hneď po
             použití sa maže. Pozvánka takto neprechádza Googlom.
           </li>
           <li>
-            <Kod>install_prompt_dismissed</Kod> v lokálnom úložisku — pamätá si,
-            že si ponuku „pridať na plochu“ odmietol.
+            <Code>install_prompt_dismissed</Code> v lokálnom úložisku — pamätá
+            si, že si ponuku „pridať na plochu“ odmietol.
           </li>
         </LegalList>
         <p>

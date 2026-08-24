@@ -29,18 +29,18 @@ export const LEGAL_DETAILS = {
   /** Both pages carry it under the heading. */
   effectiveFrom: {
     hint: "dátum účinnosti, napríklad „1. septembra 2026“",
-    value: "",
+    value: "24. augusta 2026",
   },
 
   /** The data controller. A person's name is fine; this is a side project. */
   operatorName: {
     hint: "meno alebo obchodný názov prevádzkovateľa",
-    value: "",
+    value: "Miroslav Pillár",
   },
 
   operatorAddress: {
     hint: "poštová adresa prevádzkovateľa",
-    value: "",
+    value: "Košice, Slovensko",
   },
 
   /**
@@ -50,20 +50,20 @@ export const LEGAL_DETAILS = {
    */
   contactEmail: {
     hint: "e-mail, na ktorom prevádzkovateľ naozaj odpovedá",
-    value: "",
+    value: "pillar.mr@gmail.com",
   },
 
   /** Where Vercel and Supabase actually hold the data, and — if that is outside
    *  the EU — what makes the transfer lawful. */
   hostingRegion: {
     hint: "región serverov a základ prenosu údajov mimo EÚ",
-    value: "",
+    value: "Ireland, EU",
   },
 
   /** Terms only, under governing law. */
   courtVenue: {
     hint: "mesto, ktorého súdy sú príslušné na spory",
-    value: "",
+    value: "Košice",
   },
 } satisfies Record<string, LegalDetail>;
 

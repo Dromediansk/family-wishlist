@@ -26,7 +26,7 @@ export function Detail({ of }: Readonly<{ of: LegalDetail }>) {
 /** A literal the reader may have to match character for character — a cookie
  *  name, an OAuth scope. Tailwind's preflight already makes `code` monospace at
  *  1em; this only gives it a surface to sit on. */
-export function Kod({ children }: Readonly<{ children: React.ReactNode }>) {
+export function Code({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
     <code className="bg-secondary rounded px-1 py-0.5 text-sm">{children}</code>
   );
