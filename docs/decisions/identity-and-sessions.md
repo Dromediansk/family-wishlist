@@ -64,12 +64,15 @@ It also cannot do the whole job: which groups somebody is in lives in
 `memberships`, which only `service_role` can read, and that key has no business
 in an edge proxy.
 
-`/login` and `/join/*` are exempt from the bounce. The join route has to be — it
-is what sends a signed-out visitor on to `/login`, and it never gets the chance
-if the redirect fires first. `/auth/*` is excluded from the matcher instead: the
-callback sets the session cookies itself and holds a one-shot PKCE verifier
-while it does. The PWA metadata routes are excluded too, since redirecting them
-to an HTML login page breaks installing the app.
+`/login`, `/join/*`, `/privacy` and `/terms` are exempt from the bounce. The
+join route has to be — it is what sends a signed-out visitor on to `/login`, and
+it never gets the chance if the redirect fires first. The two legal pages have
+to be because they are read *before* anybody signs in, Google's OAuth review
+among them. Both stay inside the matcher, so a session that happens to be there
+is still refreshed. `/auth/*` is excluded from the matcher instead: the callback
+sets the session cookies itself and holds a one-shot PKCE verifier while it
+does. The PWA metadata routes are excluded too, since redirecting them to an
+HTML login page breaks installing the app.
 
 ### Where the OAuth exchange happens
 

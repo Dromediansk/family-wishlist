@@ -226,13 +226,23 @@ The root layout deliberately has **no `<main>`**. Each child supplies its own
 - the **element**, because a `<header>` nested inside `<main>` stops being the
   `banner` landmark;
 - the **class**, because `flex-1` fills the `min-h-dvh` column, lets a short
-  page centre itself, and holds the install nudge to the bottom edge.
+  page centre itself, and pushes the install nudge and the footer down to the
+  bottom edge.
+
+The footer *is* in the root layout, unlike the header. It has to be: the legal
+pages it links to are the ones a stranger needs before signing in, so a footer
+mounted in `(app)` would hide them from exactly the person looking.
 
 ### The `(app)` route group
 
 `(app)` adds nothing to any URL. Its only job is to draw a line between routes
-that have a session behind them and the two surfaces a stranger can reach —
-`/login` and the 404 — so the header is never chrome for a stranger.
+that have a session behind them and the four surfaces a stranger can reach —
+`/login`, the 404, `/privacy` and `/terms` — so the header is never chrome for a
+stranger.
+
+`(legal)` is the same idea from the other side, and adds nothing to a URL either.
+It holds the two pages that must stay readable with no session at all, and gives
+them the one piece of chrome they need in place of the header: a link back in.
 
 The line is "has a session", not "belongs to a group": `/start` sits inside the
 group and wears the same chrome. The header's right-hand half thins out instead

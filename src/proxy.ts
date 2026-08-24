@@ -19,12 +19,19 @@ import { NextResponse, type NextRequest } from "next/server";
  * /join/* has to be here too: the route handler behind it is what sends a
  * signed-out visitor on to /login?returnTo=..., and it never gets the chance
  * if this redirect fires first.
+ *
+ * /privacy and /terms are read by people deciding whether to sign in at all —
+ * and by Google's OAuth review, which fetches them signed out. Listing them
+ * here rather than excluding them from the matcher keeps their session refresh,
+ * which is the only reason the matcher exists.
  */
 function isPublic(pathname: string): boolean {
   return (
     pathname === "/login" ||
     pathname.startsWith("/login/") ||
-    pathname.startsWith("/join/")
+    pathname.startsWith("/join/") ||
+    pathname === "/privacy" ||
+    pathname === "/terms"
   );
 }
 
