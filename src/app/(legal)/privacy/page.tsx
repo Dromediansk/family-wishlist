@@ -1,12 +1,13 @@
 import type { Metadata } from "next";
 
 import {
-  Doplnit,
+  Detail,
   Kod,
   LegalList,
   LegalPage,
   LegalSection,
 } from "@/components/legal-page";
+import { LEGAL_DETAILS } from "@/lib/legal";
 
 export const metadata: Metadata = {
   title: "Ochrana osobných údajov · Prajem si..",
@@ -28,10 +29,10 @@ export default function PrivacyPage() {
     <LegalPage title="Ochrana osobných údajov">
       <LegalSection title="Kto tvoje údaje spracúva">
         <p>
-          Prevádzkovateľom je <Doplnit>meno alebo názov</Doplnit>,{" "}
-          <Doplnit>adresa</Doplnit>. Napísať sa dá na{" "}
-          <Doplnit>kontaktný e-mail</Doplnit> — je to jediná adresa, na ktorej
-          sa o týchto údajoch dá čokoľvek vyriešiť.
+          Prevádzkovateľom je <Detail of={LEGAL_DETAILS.operatorName} />,{" "}
+          <Detail of={LEGAL_DETAILS.operatorAddress} />. Napísať sa dá na{" "}
+          <Detail of={LEGAL_DETAILS.contactEmail} /> — je to jediná adresa, na
+          ktorej sa o týchto údajoch dá čokoľvek vyriešiť.
         </p>
         <p>
           Appka je nekomerčný projekt jedného človeka. Nepredáva sa v nej nič,
@@ -135,7 +136,7 @@ export default function PrivacyPage() {
         </LegalList>
         <p>
           Región serverov a právny základ prípadného prenosu mimo EÚ:{" "}
-          <Doplnit>región a mechanizmus prenosu</Doplnit>.
+          <Detail of={LEGAL_DETAILS.hostingRegion} />.
         </p>
       </LegalSection>
 
@@ -193,9 +194,9 @@ export default function PrivacyPage() {
           </li>
           <li>
             <strong>Vymazanie a všetko ostatné</strong> — napíš na{" "}
-            <Doplnit>kontaktný e-mail</Doplnit>. Appka nemá tlačidlo na zrušenie
-            účtu; robí sa ručne. Pri vymazaní platí obmedzenie opísané vyššie
-            pri histórii darov.
+            <Detail of={LEGAL_DETAILS.contactEmail} />. Appka nemá tlačidlo na
+            zrušenie účtu; robí sa ručne. Pri vymazaní platí obmedzenie opísané
+            vyššie pri histórii darov.
           </li>
         </LegalList>
         <p>

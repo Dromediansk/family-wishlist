@@ -2,11 +2,12 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 import {
-  Doplnit,
+  Detail,
   LegalList,
   LegalPage,
   LegalSection,
 } from "@/components/legal-page";
+import { LEGAL_DETAILS } from "@/lib/legal";
 
 export const metadata: Metadata = {
   title: "Podmienky používania · Prajem si..",
@@ -32,10 +33,10 @@ export default function TermsPage() {
           darček a majiteľ zoznamu sa to nedozvie.
         </p>
         <p>
-          Prevádzkuje ju <Doplnit>meno alebo názov</Doplnit>,{" "}
-          <Doplnit>adresa</Doplnit>, kontakt <Doplnit>kontaktný e-mail</Doplnit>
-          . Používanie je bezplatné a nekomerčné. Používaním appky súhlasíš s
-          týmito podmienkami.
+          Prevádzkuje ju <Detail of={LEGAL_DETAILS.operatorName} />,{" "}
+          <Detail of={LEGAL_DETAILS.operatorAddress} />, kontakt{" "}
+          <Detail of={LEGAL_DETAILS.contactEmail} />. Používanie je bezplatné a
+          nekomerčné. Používaním appky súhlasíš s týmito podmienkami.
         </p>
       </LegalSection>
 
@@ -139,8 +140,9 @@ export default function TermsPage() {
 
       <LegalSection title="Ukončenie">
         <p>
-          Zrušenie účtu si môžeš vyžiadať na <Doplnit>kontaktný e-mail</Doplnit>
-          . Podrobnosti o tom, čo sa pri ňom zmaže a čo zostane, sú v{" "}
+          Zrušenie účtu si môžeš vyžiadať na{" "}
+          <Detail of={LEGAL_DETAILS.contactEmail} />. Podrobnosti o tom, čo sa
+          pri ňom zmaže a čo zostane, sú v{" "}
           <Link
             href="/privacy"
             className="text-primary underline underline-offset-4"
@@ -164,7 +166,7 @@ export default function TermsPage() {
       <LegalSection title="Rozhodné právo">
         <p>
           Vzťah sa riadi právom Slovenskej republiky. Na spory sú príslušné súdy{" "}
-          <Doplnit>miesto</Doplnit>.
+          <Detail of={LEGAL_DETAILS.courtVenue} />.
         </p>
       </LegalSection>
     </LegalPage>

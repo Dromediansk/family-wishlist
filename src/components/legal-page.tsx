@@ -1,3 +1,5 @@
+import { LEGAL_DETAILS, type LegalDetail } from "@/lib/legal";
+
 /**
  * The furniture the two legal pages share. Hand-rolled rather than reached for
  * with `@tailwindcss/typography`: two documents do not pay for a plugin, and the
@@ -5,14 +7,20 @@
  * docs/decisions/ui-patterns.md#typography
  */
 
-/** The `[DOPLNIŤ: …]` gaps only the operator can fill — deliberately loud, so
- *  none of them reaches production unnoticed. `rg 'DOPLNIŤ'` is the list. */
-export function Doplnit({ children }: Readonly<{ children: React.ReactNode }>) {
-  return (
-    <span className="bg-destructive/15 text-destructive rounded px-1 font-medium">
-      [DOPLNIŤ: {children}]
-    </span>
-  );
+/**
+ * One of the operator's details from `src/lib/legal.ts`, or a deliberately loud
+ * gap where it should be. Filling that file turns every one of these into plain
+ * text at once — there is nothing to edit here.
+ */
+export function Detail({ of }: Readonly<{ of: LegalDetail }>) {
+  if (of.value.trim() === "") {
+    return (
+      <span className="bg-destructive/15 text-destructive rounded px-1 font-medium">
+        [DOPLNIŤ: {of.hint}]
+      </span>
+    );
+  }
+  return of.value;
 }
 
 /** A literal the reader may have to match character for character — a cookie
@@ -35,7 +43,7 @@ export function LegalPage({
         {title}
       </h1>
       <p className="text-muted-foreground mt-3 text-sm">
-        Účinné od <Doplnit>dátum</Doplnit>
+        Účinné od <Detail of={LEGAL_DETAILS.effectiveFrom} />
       </p>
       {children}
     </article>
