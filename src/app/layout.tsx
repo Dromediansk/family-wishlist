@@ -5,6 +5,7 @@ import localFont from "next/font/local";
 import { InstallPrompt } from "@/components/install-prompt";
 import { LiveRefresh } from "@/components/live-refresh";
 import { OfflineBanner } from "@/components/offline-banner";
+import { SiteFooter } from "@/components/site-footer";
 import { getViewer } from "@/lib/data/access";
 import { isConfigured } from "@/lib/supabase";
 import { THEME_COLORS } from "@/lib/theme-colors";
@@ -72,8 +73,10 @@ export const dynamic = "force-dynamic";
 /**
  * Everything for every visitor, signed in or not. The header is not here — it
  * lives in `(app)/layout.tsx`, so `/login` and the 404 render without it. The
- * install nudge and the offline notice stay document-level on purpose: the
- * person most likely to install this has just landed on `/login`.
+ * footer is, though: the legal pages it links to have to be reachable from
+ * `/login`. The install nudge and the offline notice stay document-level for the
+ * same kind of reason — the person most likely to install this has just landed
+ * on `/login`.
  *
  * **There is deliberately no `<main>` here.** Every child owes its own
  * `<main className="flex-1">`, and both the element and the class are
@@ -98,6 +101,7 @@ export default function RootLayout({
           <OfflineBanner />
           {children}
           <InstallPrompt />
+          <SiteFooter />
         </div>
       </body>
     </html>
