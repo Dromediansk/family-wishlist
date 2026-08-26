@@ -27,11 +27,12 @@ export default async function LoginPage({
    * behaves as if it never arrived. docs/decisions/groups-and-invites.md#invites
    */
   const returnTo = safeReturnTo(params.returnTo);
-  const t = await getTranslations("login");
 
   // Already signed in — go straight to the invite, or let `/` work out where
   // they belong.
   if (access.kind !== "anonymous") redirect(returnTo ?? "/");
+
+  const t = await getTranslations("login");
 
   return (
     /*

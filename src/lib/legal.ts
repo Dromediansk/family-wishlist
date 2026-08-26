@@ -17,8 +17,13 @@
  */
 
 export const LEGAL_DETAILS = {
-  /** Both pages carry it under the heading. */
-  effectiveFrom: "24. augusta 2026",
+  /**
+   * Both pages carry it under the heading. An ISO date rather than prose: it is
+   * the one detail here that is *read* rather than named, so `formatDate` writes
+   * it the way each language does — every other value is a proper noun and the
+   * same in both.
+   */
+  effectiveFrom: "2026-08-24",
 
   /** The data controller. A person's name is fine; this is a side project. */
   operatorName: "Miroslav Pillár",

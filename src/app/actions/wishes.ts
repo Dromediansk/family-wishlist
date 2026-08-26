@@ -3,11 +3,11 @@
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 
-import { getErrorText, type ErrorKey } from "@/i18n/errors";
+import { firstIssue, getErrorText, type ErrorText } from "@/i18n/errors";
 import { getViewer } from "@/lib/data/access";
 import { getWishOwner } from "@/lib/data/wishes";
 import type { UserId } from "@/lib/ids";
-import { MAX_PHOTO_BYTES, sniffImageType } from "@/lib/images";
+import { MAX_PHOTO_BYTES, MAX_PHOTO_MB, sniffImageType } from "@/lib/images";
 import {
   pruneWishPhotos,
   removeWishPhoto,
@@ -49,10 +49,12 @@ const photoSchema = z.discriminatedUnion("kind", [
     file: z
       .instanceof(Blob, { message: "photoUnreadable" })
       .refine((file) => file.size > 0, "photoUnreadable")
-      .refine(
-        (file) => file.size <= MAX_PHOTO_BYTES,
-        "photoTooLarge",
-      ),
+      .refine((file) => file.size <= MAX_PHOTO_BYTES, {
+        error: "photoTooLarge",
+        // `firstIssue` reads a `.max()`'s own `maximum`; a `.refine()` has none,
+        // so the limit travels here and the sentence never repeats the number.
+        params: { max: MAX_PHOTO_MB },
+      }),
   }),
 ]);
 
@@ -80,27 +82,6 @@ const wishInputSchema = z.object({
 
 export type WishInput = z.input<typeof wishInputSchema>;
 
-/**
- * The first thing wrong, as a message key plus whatever that message needs.
- *
- * A length limit is read back off the issue rather than repeated in the
- * catalogue, so raising a `.max()` cannot leave the sentence quoting the old
- * number in either language.
- */
-function firstIssue(error: z.ZodError): {
-  key: ErrorKey;
-  params: Record<string, string | number>;
-} {
-  const issue = error.issues[0];
-  if (!issue) return { key: "invalid", params: {} };
-
-  const params: Record<string, string | number> = {};
-  if ("maximum" in issue && typeof issue.maximum === "number") {
-    params.max = issue.maximum;
-  }
-  return { key: issue.message as ErrorKey, params };
-}
-
 /** Never trust group ids from the client — only ones the caller actually belongs to. */
 function ownsEveryGroup(viewer: Viewer, groupIds: string[]): boolean {
   const allowed = new Set(viewer.groups.map((group) => group.id as string));
@@ -123,6 +104,7 @@ async function lookUpRefusal(
   wishId: string,
   ownerId: UserId,
   operation: "delete" | "update",
+  text: ErrorText,
 ): Promise<ActionResult> {
   const { data } = await getSupabase()
     .from("wishes")
@@ -132,7 +114,6 @@ async function lookUpRefusal(
     .maybeSingle();
 
   const { key, final } = refusalFor(data, operation);
-  const text = await getErrorText();
   return { ok: false, error: text(key), final };
 }
 
@@ -148,10 +129,9 @@ async function attachPhoto(
   wishId: string,
   ownerId: UserId,
   intent: z.output<typeof photoSchema>,
+  text: ErrorText,
 ): Promise<ActionResult> {
   if (intent.kind === "unchanged") return { ok: true };
-
-  const text = await getErrorText();
 
   let path: string | null = null;
 
@@ -243,7 +223,7 @@ export async function addWish(input: WishInput): Promise<ActionResult> {
     };
   }
 
-  const photo = await attachPhoto(wishId, viewer.userId, parsed.data.photo);
+  const photo = await attachPhoto(wishId, viewer.userId, parsed.data.photo, text);
 
   revalidatePath("/", "layout");
   await notifyOwnerChanged(viewer.userId);
@@ -300,10 +280,10 @@ export async function updateWish(
 
   if (error) return { ok: false, error: error.message };
   if (!data) {
-    return lookUpRefusal(id.data, viewer.userId, "update");
+    return lookUpRefusal(id.data, viewer.userId, "update", text);
   }
 
-  const photo = await attachPhoto(id.data, viewer.userId, parsed.data.photo);
+  const photo = await attachPhoto(id.data, viewer.userId, parsed.data.photo, text);
 
   revalidatePath("/", "layout");
   await notifyOwnerChanged(viewer.userId);
@@ -336,7 +316,7 @@ export async function deleteWish(wishId: string): Promise<ActionResult> {
 
   if (error) return { ok: false, error: error.message };
   if (!data || data.length === 0) {
-    return lookUpRefusal(id.data, viewer.userId, "delete");
+    return lookUpRefusal(id.data, viewer.userId, "delete", text);
   }
 
   // The row is gone, so nothing points at the picture any more.

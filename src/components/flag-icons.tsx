@@ -1,3 +1,5 @@
+import type { Locale } from "@/i18n/config";
+
 /**
  * The two flags the language switcher offers. Hand-drawn for the same reason
  * `google-icon.tsx` is: lucide has no flags, and the alternative — the
@@ -60,3 +62,12 @@ export function FlagSk() {
     </svg>
   );
 }
+
+/**
+ * Which flag stands for which language — a lookup rather than a conditional, so
+ * the switcher reads the flag and the label (`LOCALE_LABELS`) the same way.
+ */
+export const LOCALE_FLAGS: Record<Locale, () => React.ReactNode> = {
+  en: FlagEn,
+  sk: FlagSk,
+};

@@ -150,6 +150,10 @@ export function wishPhotoUrl(wish: {
   return version ? `/wish-photo/${wish.id}?v=${version}` : null;
 }
 
+/** The two writes an owner can be turned down for, and the two reasons each. */
+type Operation = "delete" | "update";
+type RefusalReason = "reserved" | "notYours";
+
 /**
  * Every way an owner's delete or edit can be turned down, in one place.
  *
@@ -161,10 +165,15 @@ export function wishPhotoUrl(wish: {
 const REFUSALS = {
   delete: { reserved: "deleteReserved", notYours: "deleteNotYours" },
   update: { reserved: "updateReserved", notYours: "updateNotYours" },
-} as const;
+} as const satisfies Record<Operation, Record<RefusalReason, string>>;
 
-export type RefusalKey =
-  (typeof REFUSALS)[keyof typeof REFUSALS][keyof (typeof REFUSALS)["delete"]];
+/*
+ * That these are keys the catalogue actually defines is checked where they are
+ * worded: the action passes one to `text()`, which takes an `ErrorKey`. Naming
+ * `ErrorKey` here as well would only couple this pure file to the i18n layer to
+ * repeat a guarantee it already has.
+ */
+export type RefusalKey = (typeof REFUSALS)[Operation][RefusalReason];
 
 /**
  * Why an owner's delete or edit matched no rows: it isn't theirs, or it is
@@ -176,7 +185,7 @@ export type RefusalKey =
  */
 export function refusalFor(
   row: { claimed_by_user_id: string | null } | null,
-  operation: "delete" | "update",
+  operation: Operation,
 ): { key: RefusalKey; final: true } {
   const keys = REFUSALS[operation];
   return {

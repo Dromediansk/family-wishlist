@@ -1,6 +1,8 @@
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 
+import { Code } from "@/components/ui/code";
 import { LEGAL_DETAILS, type LegalDetailKey } from "@/lib/legal";
+import { formatDate } from "@/lib/utils";
 
 /**
  * The furniture the two legal pages share. Hand-rolled rather than reached for
@@ -28,13 +30,16 @@ export function Detail({ of }: Readonly<{ of: LegalDetailKey }>) {
   return value;
 }
 
-/** A literal the reader may have to match character for character — a cookie
- *  name, an OAuth scope. Tailwind's preflight already makes `code` monospace at
- *  1em; this only gives it a surface to sit on. */
-export function Code({ children }: Readonly<{ children: React.ReactNode }>) {
-  return (
-    <code className="bg-secondary rounded px-1 py-0.5 text-sm">{children}</code>
-  );
+/**
+ * The effective date, written the way the reader's language writes one — the
+ * value is an ISO date, so it is the only detail that is read rather than named.
+ * An unfilled one is still `Detail`'s red gap; there is one such mechanism.
+ */
+export function EffectiveFrom() {
+  const locale = useLocale();
+  const value = LEGAL_DETAILS.effectiveFrom;
+  if (value.trim() === "") return <Detail of="effectiveFrom" />;
+  return formatDate(value, locale);
 }
 
 /**
@@ -82,7 +87,7 @@ export function LegalPage({
       </h1>
       <p className="text-muted-foreground mt-3 text-sm">
         {t.rich("effectiveFrom", {
-          effectiveFrom: () => <Detail of="effectiveFrom" />,
+          effectiveFrom: () => <EffectiveFrom />,
         })}
       </p>
       {children}

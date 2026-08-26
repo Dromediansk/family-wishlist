@@ -92,7 +92,6 @@ function InviteRow({
   usable: boolean;
 }) {
   const t = useTranslations("invites");
-  const common = useTranslations("common");
   const [copied, setCopied] = useState(false);
 
   async function copy() {
@@ -148,7 +147,7 @@ function InviteRow({
             }
             question={t("revokeQuestion")}
             description={t("revokeDescription")}
-            confirmLabel={common("cancel")}
+            confirmLabel={t("revoke")}
             cancelLabel={t("revokeKeep")}
             refusedTitle={t("revokeRefused")}
             action={() => revokeInvite(groupId, invite.id)}

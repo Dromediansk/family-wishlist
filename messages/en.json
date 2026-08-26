@@ -22,7 +22,6 @@
   },
   "errors": {
     "invalid": "That doesn't look right.",
-    "noName": "No name",
     "signInFirst": "Sign in first.",
     "pickWhoYouAre": "Choose who you are first.",
     "notYourGroup": "This group isn't yours.",
@@ -37,7 +36,7 @@
     "urlScheme": "The link must start with http:// or https://",
     "pickGroup": "Pick at least one group.",
     "photoUnreadable": "The photo could not be read.",
-    "photoTooLarge": "The photo can be at most 2 MB.",
+    "photoTooLarge": "The photo can be at most {max} MB.",
     "photoNotImage": "The photo must be an image (JPEG, PNG or WebP).",
     "photoSaveFailed": "The photo could not be saved.",
     "photoFailedWishSaved": "{reason} The wish is saved without it.",
@@ -141,7 +140,7 @@
     "effectiveFrom": "Effective from <effectiveFrom></effectiveFrom>",
     "missing": "[TO FILL IN: {hint}]",
     "hints": {
-      "effectiveFrom": "the effective date, for example “1 September 2026”",
+      "effectiveFrom": "the effective date as YYYY-MM-DD, for example “2026-09-01”",
       "operatorName": "the operator's name or trading name",
       "operatorAddress": "the operator's postal address",
       "contactEmail": "an e-mail address the operator actually answers",
@@ -400,7 +399,7 @@
       "replace": "Choose another",
       "remove": "Remove photo",
       "dropHint": "or drop an image here",
-      "tooLarge": "The photo is too large. Try a smaller image.",
+      "tooLarge": "The photo is too large (at most {max} MB). Try a smaller image.",
       "unreadable": "The photo could not be read. Try another image."
     }
   }

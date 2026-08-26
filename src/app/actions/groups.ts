@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect, RedirectType } from "next/navigation";
 import { z } from "zod";
 
-import { getErrorText, type ErrorKey } from "@/i18n/errors";
+import { firstIssue, getErrorText } from "@/i18n/errors";
 import {
   enterGroup,
   getAccountName,
@@ -41,13 +41,8 @@ export async function createGroup(
 
   const name = nameSchema.safeParse(rawName);
   if (!name.success) {
-    const issue = name.error.issues[0];
-    return {
-      ok: false,
-      error: text(issue.message as ErrorKey, {
-        max: "maximum" in issue ? Number(issue.maximum) : 0,
-      }),
-    };
+    const issue = firstIssue(name.error);
+    return { ok: false, error: text(issue.key, issue.params) };
   }
 
   // Counted on groups.created_by, so leaving a group does not give the budget

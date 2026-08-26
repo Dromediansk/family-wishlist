@@ -34,14 +34,15 @@ const atkinson = localFont({
  */
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations("metadata");
+  const name = t("name");
   return {
-    title: t("name"),
+    title: name,
     description: t("description"),
-    applicationName: t("name"),
+    applicationName: name,
     appleWebApp: {
       capable: true,
       // Matches `short_name` in manifest.ts.
-      title: t("name"),
+      title: name,
       statusBarStyle: "default",
     },
   };
@@ -74,20 +75,54 @@ export const viewport: Viewport = {
 };
 
 /**
- * Namespaces no client component may ask for, so none of them is shipped to the
- * browser.
+ * The only namespaces shipped to the browser: the ones a `"use client"`
+ * component actually asks for. Everything else — the policy pages' prose, the
+ * page bodies, `metadata`, and the `errors` worded inside Server Actions before
+ * they ever cross back — is rendered on the server and stays there.
  *
- * `legal` is the two policy pages — by far the largest namespace, and rendered
- * entirely on the server. `metadata` is read by `generateMetadata`, and
- * `errors` is worded inside Server Actions before it ever crosses back. Sending
- * all three would put tens of kilobytes of prose in front of every phone on
- * every route, which is the opposite of the brief.
+ * An allowlist rather than a list of exclusions, because the default has to be
+ * "stays on the server". A namespace added to the catalogues is read by a
+ * Server Component until somebody says otherwise, and the whole point is that
+ * tens of kilobytes of prose never land in front of a phone on every route.
  *
- * Adding a client component that needs one of these is what would break, and it
- * breaks loudly: next-intl throws for a namespace the provider does not carry.
- * docs/decisions/language.md
+ * The payload is re-serialized on every write, too: `revalidatePath("/",
+ * "layout")` re-renders this layout, so each action's response carries it again
+ * to every open tab.
+ *
+ * Making a client component read one of these is what would break, and it
+ * breaks loudly: next-intl throws for a namespace the provider does not carry —
+ * add the namespace here and it works. docs/decisions/language.md
  */
-const SERVER_ONLY_NAMESPACES = new Set(["legal", "metadata", "errors"]);
+const CLIENT_NAMESPACES = [
+  "account",
+  "common",
+  "groups",
+  "install",
+  "invites",
+  "members",
+  "wishes",
+];
+
+/**
+ * Built once per locale per process rather than per request — the layout is
+ * `force-dynamic`, so this runs on every document, and the answer only ever has
+ * two possible values.
+ */
+const clientMessagesByLocale = new Map<string, Record<string, unknown>>();
+
+function clientMessages(
+  locale: string,
+  messages: Record<string, unknown>,
+): Record<string, unknown> {
+  let subset = clientMessagesByLocale.get(locale);
+  if (!subset) {
+    subset = Object.fromEntries(
+      CLIENT_NAMESPACES.map((namespace) => [namespace, messages[namespace]]),
+    );
+    clientMessagesByLocale.set(locale, subset);
+  }
+  return subset;
+}
 
 /**
  * Every page depends on who is looking, so nothing may be prerendered or shared
@@ -112,13 +147,7 @@ export default async function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   const locale = await getLocale();
-
-  const messages = await getMessages();
-  const clientMessages = Object.fromEntries(
-    Object.entries(messages).filter(
-      ([namespace]) => !SERVER_ONLY_NAMESPACES.has(namespace),
-    ),
-  );
+  const messages = clientMessages(locale, await getMessages());
 
   return (
     <html lang={locale}>
@@ -132,7 +161,7 @@ export default async function RootLayout({
         <Suspense fallback={null}>
           <LiveChannels />
         </Suspense>
-        <NextIntlClientProvider messages={clientMessages}>
+        <NextIntlClientProvider messages={messages}>
           <div className="mx-auto flex min-h-dvh w-full max-w-5xl flex-col px-4 pt-[max(1.5rem,env(safe-area-inset-top))] pb-[max(1.5rem,env(safe-area-inset-bottom))] sm:px-6 sm:pt-10 sm:pb-10">
             <OfflineBanner />
             {children}

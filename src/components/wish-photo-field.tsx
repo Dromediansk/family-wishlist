@@ -5,7 +5,7 @@ import { ImagePlusIcon } from "lucide-react";
 import { useTranslations } from "next-intl";
 
 import { Button } from "@/components/ui/button";
-import { MAX_PHOTO_BYTES } from "@/lib/images";
+import { MAX_PHOTO_BYTES, MAX_PHOTO_MB } from "@/lib/images";
 import { previewSrc, resizeForUpload } from "@/lib/resize-image";
 import { cn } from "@/lib/utils";
 
@@ -86,7 +86,7 @@ export function WishPhotoField({
       const resized = await resizeForUpload(file);
 
       if (resized.size > MAX_PHOTO_BYTES) {
-        setError(t("tooLarge"));
+        setError(t("tooLarge", { max: MAX_PHOTO_MB }));
         return;
       }
 

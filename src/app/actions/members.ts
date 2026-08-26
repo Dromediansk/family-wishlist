@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 
-import { getErrorText, type ErrorKey } from "@/i18n/errors";
+import { firstIssue, getErrorText } from "@/i18n/errors";
 import { requireGroupAdmin } from "@/lib/data/access";
 import { countGroupAdmins, getMembershipRole } from "@/lib/data/members";
 import { notifyChanged } from "@/lib/realtime";
@@ -36,13 +36,8 @@ export async function renameMember(
 
   const name = nameSchema.safeParse(newName);
   if (!name.success) {
-    const issue = name.error.issues[0];
-    return {
-      ok: false,
-      error: text(issue.message as ErrorKey, {
-        max: "maximum" in issue ? Number(issue.maximum) : 0,
-      }),
-    };
+    const issue = firstIssue(name.error);
+    return { ok: false, error: text(issue.key, issue.params) };
   }
 
   const supabase = getSupabase();

@@ -204,8 +204,12 @@ export async function getAccountName(viewer: Viewer): Promise<string> {
   if (error) throw error;
   if (data) return (data as { name: string }).name;
 
-  const text = await getErrorText();
-  return text("noName");
+  // Not translated, for the same reason `ensureAppUser` below is not: this
+  // value is written to `memberships.name` by createGroup and joinWithInvite,
+  // and a stored name that depended on the browser language of whoever created
+  // the row would be the wrong kind of surprise. It mirrors
+  // handle_new_auth_user's own fallback in supabase/migrations/.
+  return "Bez mena";
 }
 
 /**

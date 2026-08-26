@@ -53,7 +53,8 @@ export function otherLocale(locale: Locale): Locale {
  *
  * Matching is on the primary subtag, so `en-GB` and `en-US` both find `en`.
  * Equal q-values keep header order, which is how a browser expresses preference
- * within one quality band.
+ * within one quality band — `sort` has been stable since ES2019, so nothing
+ * here has to carry an index to hold that.
  */
 export function pickLocale(
   acceptLanguage: string | null | undefined,
@@ -62,7 +63,7 @@ export function pickLocale(
 
   const ranked = acceptLanguage
     .split(",")
-    .map((part, index) => {
+    .map((part) => {
       const [tag, ...params] = part.trim().split(";");
       const q = params
         .map((param) => param.trim())
@@ -72,11 +73,10 @@ export function pickLocale(
         primary: tag.trim().toLowerCase().split("-")[0],
         // A malformed q reads as unacceptable rather than as best.
         quality: Number.isFinite(quality) ? quality : 0,
-        index,
       };
     })
     .filter((entry) => entry.quality > 0)
-    .sort((a, b) => b.quality - a.quality || a.index - b.index);
+    .sort((a, b) => b.quality - a.quality);
 
   for (const entry of ranked) {
     // `*` means "anything else will do", which the default already answers.

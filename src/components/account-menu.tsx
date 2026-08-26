@@ -7,7 +7,7 @@ import { useLocale, useTranslations } from "next-intl";
 
 import { signOut } from "@/app/actions/auth";
 import { setLocale } from "@/app/actions/locale";
-import { FlagEn, FlagSk } from "@/components/flag-icons";
+import { LOCALE_FLAGS } from "@/components/flag-icons";
 import { buttonVariants } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -17,7 +17,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { LOCALE_LABELS, otherLocale, type Locale } from "@/i18n/config";
+import { LOCALE_LABELS, otherLocale } from "@/i18n/config";
 import { groupInPath } from "@/lib/groups";
 import { cn, initial } from "@/lib/utils";
 import { isGroupAdmin } from "@/lib/visibility";
@@ -45,7 +45,8 @@ export function AccountMenu({
 }) {
   const current = groupInPath(usePathname(), groups);
   const t = useTranslations("account");
-  const other = otherLocale(useLocale() as Locale);
+  const other = otherLocale(useLocale());
+  const Flag = LOCALE_FLAGS[other];
   return (
     <>
       {/*
@@ -90,7 +91,7 @@ export function AccountMenu({
            */}
           <DropdownMenuItem asChild>
             <button type="submit" form={SET_LOCALE_FORM}>
-              {other === "en" ? <FlagEn /> : <FlagSk />}
+              <Flag />
               {LOCALE_LABELS[other]}
             </button>
           </DropdownMenuItem>

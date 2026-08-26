@@ -22,6 +22,13 @@ export type PhotoMime = "image/webp" | "image/jpeg" | "image/png";
 /** Matches the bucket's own limit, so a rejection is the same size either way. */
 export const MAX_PHOTO_BYTES = 2 * 1024 * 1024;
 
+/**
+ * The same limit as the refusals quote it. Both catalogues take it as `{max}`
+ * rather than spelling it out, so raising the limit above cannot leave four
+ * sentences claiming the old one.
+ */
+export const MAX_PHOTO_MB = MAX_PHOTO_BYTES / 1024 / 1024;
+
 /** The longest edge the browser downscales to before uploading. */
 export const MAX_PHOTO_EDGE = 1200;
 

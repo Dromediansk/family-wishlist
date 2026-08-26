@@ -41,10 +41,12 @@ async function HeaderAccount() {
   // Without configuration there is no database to ask — getSupabase() throws.
   if (!isConfigured()) return null;
 
-  const t = await getTranslations("header");
-
   const access = await getAccess();
   if (access.kind === "anonymous") return null;
+
+  // Below the guards, not above them: an anonymous visitor renders nothing here,
+  // and this is what first resolves the request's catalogue.
+  const t = await getTranslations("header");
 
   const viewer = access.viewer;
 

@@ -1,5 +1,4 @@
 import { redirect } from "next/navigation";
-import { getTranslations } from "next-intl/server";
 
 import { HistoryPage } from "@/components/history-page";
 import { SetupRequired } from "@/components/setup-required";
@@ -26,21 +25,16 @@ export default async function ReceivedPage() {
 
   const viewer = access.viewer;
   const received = await getReceivedBy(viewer);
-  const t = await getTranslations("received");
 
   return (
     <HistoryPage
+      namespace="received"
       // Own list, read through the first group by join date — the same order the
       // switcher shows. This page spans every group, so no one of them is
       // current here.
       backHref={`/g/${viewer.groups[0].id}/member/${viewer.userId}`}
-      backLabel={t("back")}
-      title={t("title")}
-      description={t("description")}
-      emptyText={t("empty")}
       items={received}
-      personLabel={t("personLabel")}
-      personName={(wish) => wish.giverName}
+      personKey="giverName"
       groups={viewer.groups}
     />
   );

@@ -7,8 +7,10 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { Code } from "@/components/ui/code";
 
-const CODE = "bg-muted rounded px-1.5 py-0.5 font-mono text-sm";
+/** The steps, in order. Each is one `t.rich` message. */
+const STEPS = ["step1", "step2", "step3", "step4"] as const;
 
 /** Shown instead of a stack trace when the Supabase env vars are missing. */
 export function SetupRequired() {
@@ -20,7 +22,7 @@ export function SetupRequired() {
    * around them.
    */
   const tags = {
-    code: (chunks: React.ReactNode) => <code className={CODE}>{chunks}</code>,
+    code: (chunks: React.ReactNode) => <Code>{chunks}</Code>,
     strong: (chunks: React.ReactNode) => (
       <strong className="text-foreground">{chunks}</strong>
     ),
@@ -46,10 +48,9 @@ export function SetupRequired() {
         <CardDescription>{t("description")}</CardDescription>
       </CardHeader>
       <ol className="text-muted-foreground max-w-[62ch] list-decimal space-y-3 pl-5">
-        <li>{t.rich("step1", tags)}</li>
-        <li>{t.rich("step2", tags)}</li>
-        <li>{t.rich("step3", tags)}</li>
-        <li>{t("step4")}</li>
+        {STEPS.map((step) => (
+          <li key={step}>{t.rich(step, tags)}</li>
+        ))}
       </ol>
       <p className="text-muted-foreground text-sm">{t.rich("docs", tags)}</p>
     </Card>

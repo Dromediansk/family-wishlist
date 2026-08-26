@@ -22,7 +22,6 @@
   },
   "errors": {
     "invalid": "Toto nevyzerá správne.",
-    "noName": "Bez mena",
     "signInFirst": "Najprv sa prihlás.",
     "pickWhoYouAre": "Najprv si vyber, kto si.",
     "notYourGroup": "Táto skupina ti nepatrí.",
@@ -37,7 +36,7 @@
     "urlScheme": "Odkaz musí začínať na http:// alebo https://",
     "pickGroup": "Vyber aspoň jednu skupinu.",
     "photoUnreadable": "Fotku sa nepodarilo načítať.",
-    "photoTooLarge": "Fotka môže mať najviac 2 MB.",
+    "photoTooLarge": "Fotka môže mať najviac {max} MB.",
     "photoNotImage": "Fotka musí byť obrázok (JPEG, PNG alebo WebP).",
     "photoSaveFailed": "Fotku sa nepodarilo uložiť.",
     "photoFailedWishSaved": "{reason} Želanie je uložené bez nej.",
@@ -141,7 +140,7 @@
     "effectiveFrom": "Účinné od <effectiveFrom></effectiveFrom>",
     "missing": "[DOPLNIŤ: {hint}]",
     "hints": {
-      "effectiveFrom": "dátum účinnosti, napríklad „1. septembra 2026“",
+      "effectiveFrom": "dátum účinnosti v tvare RRRR-MM-DD, napríklad „2026-09-01“",
       "operatorName": "meno alebo obchodný názov prevádzkovateľa",
       "operatorAddress": "poštová adresa prevádzkovateľa",
       "contactEmail": "e-mail, na ktorom prevádzkovateľ naozaj odpovedá",
@@ -400,7 +399,7 @@
       "replace": "Vybrať inú",
       "remove": "Odstrániť fotku",
       "dropHint": "alebo sem presuň obrázok",
-      "tooLarge": "Fotka je príliš veľká. Skús menší obrázok.",
+      "tooLarge": "Fotka je príliš veľká (najviac {max} MB). Skús menší obrázok.",
       "unreadable": "Fotku sa nepodarilo načítať. Skús iný obrázok."
     }
   }
