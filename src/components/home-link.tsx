@@ -21,7 +21,7 @@ export function HomeLink() {
   return (
     <Link
       href={groupId ? `/g/${groupId}` : "/"}
-      aria-label="Prajem si.."
+      aria-label="Prajem si"
       className="flex min-w-0 items-center"
     >
       <GiftIcon className="text-primary size-6 shrink-0" />

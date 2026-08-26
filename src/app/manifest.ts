@@ -19,8 +19,8 @@ export const dynamic = "force-static";
 export default function manifest(): MetadataRoute.Manifest {
   return {
     lang: "sk",
-    name: "Prajem si..",
-    short_name: "Prajem si..",
+    name: "Prajem si",
+    short_name: "Prajem si",
     description: "Čo by si kto želal a kto potichu kupuje čo.",
     start_url: "/",
     scope: "/",

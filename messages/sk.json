@@ -79,7 +79,7 @@
     "deleteDescription": "Skupina zmizne pre všetkých jej členov."
   },
   "footer": {
-    "copyright": "Prajem si.. · © {year}",
+    "copyright": "Prajem si · © {year}",
     "legalNav": "Právne informácie",
     "privacy": "Ochrana osobných údajov",
     "terms": "Podmienky používania"
@@ -148,7 +148,7 @@
       "courtVenue": "mesto, ktorého súdy sú príslušné na spory"
     },
     "privacy": {
-      "metaTitle": "Ochrana osobných údajov · Prajem si..",
+      "metaTitle": "Ochrana osobných údajov · Prajem si",
       "metaDescription": "Aké údaje o tebe appka ukladá, prečo, kto ich vidí a ako dlho.",
       "title": "Ochrana osobných údajov",
       "controller": {
@@ -219,12 +219,12 @@
       }
     },
     "terms": {
-      "metaTitle": "Podmienky používania · Prajem si..",
+      "metaTitle": "Podmienky používania · Prajem si",
       "metaDescription": "Za akých podmienok sa dá appka používať, čo od nej čakať a čo nie.",
       "title": "Podmienky používania",
       "about": {
         "title": "O čom to je",
-        "p1": "„Prajem si..“ je appka na zoznamy želaní pre rodinu, tím alebo partiu priateľov. Každý si zapíše, čo by chcel; ostatní môžu potichu vybrať darček a majiteľ zoznamu sa to nedozvie.",
+        "p1": "„Prajem si“ je appka na zoznamy želaní pre rodinu, tím alebo partiu priateľov. Každý si zapíše, čo by chcel; ostatní môžu potichu vybrať darček a majiteľ zoznamu sa to nedozvie.",
         "p2": "Prevádzkuje ju <operatorName></operatorName>, <operatorAddress></operatorAddress>, kontakt <contactEmail></contactEmail>. Používanie je bezplatné a nekomerčné. Používaním appky súhlasíš s týmito podmienkami."
       },
       "account": {
@@ -298,7 +298,7 @@
     "peerEmpty": "V tomto zozname zatiaľ nie sú žiadne želania."
   },
   "login": {
-    "name": "Prajem si..",
+    "name": "Prajem si",
     "pitch": "Zapíš si, čo by si chcel.<break></break> Ostatní potichu vyberú darček a ty sa do poslednej chvíle nič nedozvieš.",
     "signIn": "Prihlásiť sa",
     "footnote": "Prihlásením získaš vlastný účet. Potom si založ skupinu alebo otvor pozvánku, ktorú ti niekto poslal.",
@@ -318,7 +318,7 @@
     "removeQuestion": "Odstrániť <strong>{name}</strong> zo skupiny? Ich zoznam ({wishes}) im zostane. Rezervácie, ktoré existovali len vďaka členstvu v tejto skupine sa uvoľnia. Vrátiť sa môžu len cez novú pozvánku."
   },
   "metadata": {
-    "name": "Prajem si..",
+    "name": "Prajem si",
     "description": "Čo by si kto prial a kto splní prianie komu."
   },
   "notFound": {
