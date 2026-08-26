@@ -1,0 +1,407 @@
+{
+  "account": {
+    "label": "Účet – {name}",
+    "manageGroup": "Spravovať skupinu",
+    "signOut": "Odhlásiť sa"
+  },
+  "buying": {
+    "everyone": "Všetci",
+    "title": "Čo kupujem",
+    "description": "Všetko, čo máš rezervované naprieč všetkými zoznamami.",
+    "history": "História",
+    "empty": "Zatiaľ nemáš nič rezervované.",
+    "wishedBy": "praje si: {name}"
+  },
+  "common": {
+    "close": "Zavrieť",
+    "cancel": "Zrušiť",
+    "offline": "Bez pripojenia. Zmeny sa odošlú, keď sa sieť vráti.",
+    "visibleInGroup": "Viditeľné v skupine",
+    "optional": "(nepovinné)",
+    "wishCount": "{count, plural, one {# želanie} few {# želania} other {# želaní}}"
+  },
+  "errors": {
+    "invalid": "Toto nevyzerá správne.",
+    "noName": "Bez mena",
+    "signInFirst": "Najprv sa prihlás.",
+    "pickWhoYouAre": "Najprv si vyber, kto si.",
+    "notYourGroup": "Táto skupina ti nepatrí.",
+    "adminOnlyMembers": "Členov skupiny môže spravovať len správca.",
+    "adminOnlyInvite": "Pozvať do skupiny môže len jej správca.",
+    "adminOnlyDeleteGroup": "Skupinu môže vymazať len jej správca.",
+    "invalidWish": "Neplatné želanie.",
+    "invalidGroup": "Neplatná skupina.",
+    "titleRequired": "Názov je povinný.",
+    "titleTooLong": "Názov môže mať najviac {max} znakov.",
+    "descriptionTooLong": "Popis môže mať najviac {max} znakov.",
+    "urlScheme": "Odkaz musí začínať na http:// alebo https://",
+    "pickGroup": "Vyber aspoň jednu skupinu.",
+    "photoUnreadable": "Fotku sa nepodarilo načítať.",
+    "photoTooLarge": "Fotka môže mať najviac 2 MB.",
+    "photoNotImage": "Fotka musí byť obrázok (JPEG, PNG alebo WebP).",
+    "photoSaveFailed": "Fotku sa nepodarilo uložiť.",
+    "photoFailedWishSaved": "{reason} Želanie je uložené bez nej.",
+    "groupsNotAssigned": "Želanie je uložené, ale skupiny sa nepodarilo priradiť.",
+    "wishGone": "Toto želanie neexistuje.",
+    "claimRace": "Niekto bol rýchlejší — táto položka je už rezervovaná.",
+    "unclaimNotYours": "Uvoľniť môžeš len vlastné rezervácie.",
+    "fulfilNotYours": "Toto už nemáš rezervované.",
+    "deleteReserved": "Toto želanie už má niekto rezervované, preto ho nemôžeš vymazať.",
+    "deleteNotYours": "Mazať môžeš len vlastné želania.",
+    "updateReserved": "Toto želanie už má niekto rezervované, preto ho nemôžeš upraviť.",
+    "updateNotYours": "Upravovať môžeš len vlastné želania.",
+    "nameRequired": "Meno je povinné.",
+    "nameTooLong": "Meno môže mať najviac {max} znakov.",
+    "invalidMember": "Neplatný člen.",
+    "invalidRole": "Neplatná rola.",
+    "memberGone": "Tento člen už neexistuje.",
+    "lastAdmin": "Musí existovať aspoň jeden správca.",
+    "lastAdminPromoteFirst": "Musí existovať aspoň jeden správca. Najprv povýš niekoho iného.",
+    "groupNameRequired": "Názov skupiny je povinný.",
+    "groupNameTooLong": "Názov skupiny môže mať najviac {max} znakov.",
+    "groupCap": "Vytvoriť môžeš najviac {count, plural, one {# skupinu} few {# skupiny} other {# skupín}}.",
+    "groupCreateFailed": "Skupinu sa nepodarilo vytvoriť.",
+    "groupGone": "Táto skupina už neexistuje.",
+    "invalidInvite": "Neplatná pozvánka.",
+    "inviteGone": "Táto pozvánka už neexistuje.",
+    "inviteExpired": "Táto pozvánka už neplatí.",
+    "inviteRevokeDenied": "Túto pozvánku môže zrušiť len jej autor alebo správca.",
+    "joinFailed": "Nepodarilo sa pridať do skupiny.",
+    "signInFailed": "Prihlásenie sa nepodarilo spustiť.",
+    "signInIncomplete": "Prihlásenie sa nedokončilo. Skús to znova."
+  },
+  "family": {
+    "everyone": "Všetci",
+    "title": "Správa skupiny {name}",
+    "description": "Pozvi niekoho nového, premenúvaj ľudí alebo meň, kto môže spravovať tento zoznam.",
+    "invitesTitle": "Pozvánky",
+    "invitesDescription": "Kto odkaz otvorí, sa hneď pridá do tejto skupiny. Odkaz platí 24 hodín.",
+    "deleteTitle": "Vymazať skupinu",
+    "deleteDescription": "Skupina zmizne pre všetkých jej členov."
+  },
+  "footer": {
+    "copyright": "Prajem si.. · © {year}",
+    "legalNav": "Právne informácie",
+    "privacy": "Ochrana osobných údajov",
+    "terms": "Podmienky používania"
+  },
+  "given": {
+    "back": "Čo kupujem",
+    "title": "Čo som daroval",
+    "description": "Darčeky, ktoré si už odovzdal. Zostávajú tu natrvalo.",
+    "empty": "Zatiaľ si nič nedaroval.",
+    "personLabel": "pre:"
+  },
+  "group": {
+    "intro": "Pridaj si niečo do vlastného zoznamu alebo si vyber, čo kúpiš niekomu inému."
+  },
+  "groups": {
+    "create": {
+      "action": "Vytvoriť skupinu",
+      "description": "Budeš jej správca. Ostatných do nej pozveš odkazom.",
+      "nameLabel": "Názov skupiny",
+      "namePlaceholder": "napr. Naša rodina"
+    },
+    "delete": {
+      "action": "Vymazať",
+      "question": "Vymazať skupinu „{name}“?",
+      "description": "Prístup k nej stratia všetci jej členovia ({count}) a pozvánky prestanú platiť. Rezervácie, ktoré existovali len vďaka tejto skupine, sa uvoľnia. Vrátiť sa to nedá.",
+      "cancel": "Nechať",
+      "refusedTitle": "Skupinu sa nedá vymazať"
+    },
+    "switcher": {
+      "heading": "Skupiny",
+      "current": "Skupina – {name}"
+    }
+  },
+  "header": {
+    "buying": "Čo kupujem"
+  },
+  "install": {
+    "prompt": "Nainštaluj si appku na plochu, otvorí sa ti ako každá iná.",
+    "iosPrompt": "Pridaj si appku na plochu: ťukni na ikonu zdieľania a zvoľ „Add to Home Screen“.",
+    "install": "Nainštalovať",
+    "dismiss": "Teraz nie"
+  },
+  "invites": {
+    "create": "Vytvoriť pozvánku",
+    "empty": "Zatiaľ žiadne pozvánky.",
+    "from": "Od: {name}",
+    "uses": "Použité: {count}",
+    "inactive": "Neaktívna",
+    "copyLink": "Kopírovať odkaz",
+    "revoke": "Zrušiť pozvánku",
+    "revokeQuestion": "Zrušiť túto pozvánku?",
+    "revokeDescription": "Odkaz prestane fungovať. Kto sa už pridal cezeň, zostáva v skupine.",
+    "revokeKeep": "Nechať",
+    "revokeRefused": "Pozvánku sa nedá zrušiť"
+  },
+  "legal": {
+    "backToApp": "Späť do appky",
+    "effectiveFrom": "Účinné od <effectiveFrom></effectiveFrom>",
+    "missing": "[DOPLNIŤ: {hint}]",
+    "hints": {
+      "effectiveFrom": "dátum účinnosti, napríklad „1. septembra 2026“",
+      "operatorName": "meno alebo obchodný názov prevádzkovateľa",
+      "operatorAddress": "poštová adresa prevádzkovateľa",
+      "contactEmail": "e-mail, na ktorom prevádzkovateľ naozaj odpovedá",
+      "hostingRegion": "región serverov a základ prenosu údajov mimo EÚ",
+      "courtVenue": "mesto, ktorého súdy sú príslušné na spory"
+    },
+    "privacy": {
+      "metaTitle": "Ochrana osobných údajov · Prajem si..",
+      "metaDescription": "Aké údaje o tebe appka ukladá, prečo, kto ich vidí a ako dlho.",
+      "title": "Ochrana osobných údajov",
+      "controller": {
+        "title": "Kto tvoje údaje spracúva",
+        "p1": "Prevádzkovateľom je <operatorName></operatorName>, <operatorAddress></operatorAddress>. Napísať sa dá na <contactEmail></contactEmail> — je to jediná adresa, na ktorej sa o týchto údajoch dá čokoľvek vyriešiť.",
+        "p2": "Appka je nekomerčný projekt jedného človeka. Nepredáva sa v nej nič, nič sa neinzeruje a žiadne údaje sa nikomu nepredávajú."
+      },
+      "stored": {
+        "title": "Čo o tebe ukladáme",
+        "account": "<strong>Účet</strong> — e-mailová adresa a meno z tvojho Google účtu. Pri prihlásení žiadame od Googlu len rozsah <code>openid email profile</code>. Profilovú fotku z Googlu nečítame ani neukladáme.",
+        "groupName": "<strong>Meno a rola v skupine</strong> — v každej skupine môžeš mať iné meno — „Miro“ pre rodinu, „Miroslav“ pre kolegov. Rola je <em>správca</em> alebo <em>člen</em>.",
+        "groups": "<strong>Skupiny</strong> — ktoré si vytvoril a do ktorých patríš.",
+        "wishes": "<strong>Želania</strong> — názov, popis, odkaz a nepovinná fotka, plus to, ktorým tvojim skupinám je želanie viditeľné.",
+        "claims": "<strong>Rezervácie</strong> — kto ktoré želanie rezervoval a kedy.",
+        "history": "<strong>História darov</strong> — po odovzdaní darčeka vzniká záznam s kópiou mien oboch strán, názvu a popisu želania, odkazu a názvov skupín."
+      },
+      "notStored": {
+        "title": "Čo neukladáme",
+        "p1": "Žiadne platobné údaje, telefónne čísla ani adresy. Žiadna analytika, žiadne meranie návštevnosti, žiadne sledovanie chýb a žiadne reklamné ani sledovacie cookies. Appka neposiela nikomu žiadne e-maily.",
+        "p2": "Fotky sa zmenšujú a prekódujú do formátu WebP <strong>ešte v tvojom prehliadači</strong>, čím sa zahodia aj údaje o polohe (EXIF GPS), ktoré telefón do fotky zapisuje. Na server tak odchádza fotka bez nich."
+      },
+      "lawfulBasis": {
+        "title": "Prečo ich spracúvame",
+        "contract": "<strong>Plnenie zmluvy</strong> (čl. 6 ods. 1 písm. b GDPR) — účet, členstvá, želania a rezervácie. Bez nich appka nevie robiť to, na čo si ju otvoril.",
+        "legitimate": "<strong>Oprávnený záujem</strong> (čl. 6 ods. 1 písm. f GDPR) — nemenná história darov. Záujem je na strane druhého účastníka: jeho záznam nemá zmiznúť preto, že ty odídeš."
+      },
+      "whoSees": {
+        "title": "Kto tvoje údaje vidí",
+        "p1": "Tvoje želanie vidia iba členovia tých skupín, ktorým si ho priradil. Skupiny sa nedajú vyhľadať ani do nich požiadať o vstup — dostaneš sa do nej jedine cez pozvánkový odkaz.",
+        "p2": "<strong>Kto ti rezervoval želanie, sa z appky nedozvieš — nikdy a nikde.</strong> Vo svojom vlastnom zozname rezervácie nevidíš. Tajomstvo skončí až vo chvíli, keď ten, kto darček kúpil, sám označí, že ti ho odovzdal.",
+        "p3": "Prevádzkovateľ má z technických dôvodov prístup k databáze a k uloženým fotkám. Do údajov nazerá len vtedy, keď treba opraviť poruchu."
+      },
+      "processors": {
+        "title": "Komu ich ďalej zverujeme",
+        "vercel": "<strong>Vercel</strong> — prevádzka a doručovanie appky.",
+        "supabase": "<strong>Supabase</strong> — databáza, prihlasovanie, úložisko fotiek a rozposielanie signálu „niečo sa zmenilo“.",
+        "google": "<strong>Google</strong> — prihlasovanie. Google sám spracúva tvoje údaje podľa vlastných pravidiel.",
+        "region": "Región serverov a právny základ prípadného prenosu mimo EÚ: <hostingRegion></hostingRegion>."
+      },
+      "cookies": {
+        "title": "Cookies a lokálne úložisko",
+        "p1": "Všetko nižšie je nevyhnutné na fungovanie appky — preto tu nie je žiadna lišta so súhlasom. Nič z toho ťa nesleduje.",
+        "auth": "<code>sb-*-auth-token*</code> a <code>sb-*-code-verifier</code> — tvoje prihlásenie a bezpečné dokončenie prihlasovania cez Google. Prístupový token platí hodinu a obnovuje sa počas používania.",
+        "returnTo": "<code>wishlist-return-to</code> — desať minút, neprístupné JavaScriptu. Prenesie otvorenú pozvánku cez prihlásenie a hneď po použití sa maže. Pozvánka takto neprechádza Googlom.",
+        "locale": "<code>wishlist-locale</code> — rok, neprístupné JavaScriptu. Pamätá si, ktorý jazyk si si vybral v menu. Kým si nevyberieš, appka sa riadi jazykom prehliadača a žiadne cookie nevzniká.",
+        "installPrompt": "<code>install_prompt_dismissed</code> v lokálnom úložisku — pamätá si, že si ponuku „pridať na plochu“ odmietol.",
+        "p2": "Prihlásenie sa odbavuje celé na serveri, takže v lokálnom úložisku prehliadača nikdy neskončí žiadna prihlasovacia session."
+      },
+      "retention": {
+        "title": "Ako dlho ich uchovávame",
+        "p1": "Účet, členstvá, želania a fotky uchovávame, kým máš účet. Po jeho zrušení sa mažú.",
+        "p2": "<strong>Výnimkou je história darov.</strong> Záznam o odovzdanom darčeku je nemenný a uchováva sa natrvalo, aj po zrušení účtu: väzba na účet sa odstráni, ale mená oboch strán, názov a popis želania, odkaz a názvy skupín v ňom zostávajú, pretože boli do záznamu skopírované v čase odovzdania. Je to zámer — inak by odchod jedného človeka zmazal spoločnú históriu aj druhému. Vrátiť sa to nedá."
+      },
+      "rights": {
+        "title": "Tvoje práva",
+        "p1": "Máš právo na prístup k svojim údajom, na ich opravu a vymazanie, na prenosnosť, na obmedzenie spracúvania a právo namietať proti spracúvaniu na základe oprávneného záujmu.",
+        "correction": "<strong>Oprava</strong> — meno v skupine si zmeníš priamo v appke.",
+        "erasure": "<strong>Vymazanie a všetko ostatné</strong> — napíš na <contactEmail></contactEmail>. Appka nemá tlačidlo na zrušenie účtu; robí sa ručne. Pri vymazaní platí obmedzenie opísané vyššie pri histórii darov.",
+        "p2": "Ak s naším postupom nesúhlasíš, môžeš podať sťažnosť na Úrad na ochranu osobných údajov Slovenskej republiky."
+      },
+      "children": {
+        "title": "Deti",
+        "p1": "Účet vznikne jedine prihlásením cez Google, takže o tom, kto si ho môže vytvoriť, rozhodujú vekové pravidlá Googlu. Appka sama vek nezisťuje."
+      },
+      "changes": {
+        "title": "Zmeny",
+        "p1": "Ak sa tieto pravidlá zmenia, upravíme túto stránku a posunieme dátum účinnosti hore. Podstatnú zmenu oznámime aj v appke."
+      }
+    },
+    "terms": {
+      "metaTitle": "Podmienky používania · Prajem si..",
+      "metaDescription": "Za akých podmienok sa dá appka používať, čo od nej čakať a čo nie.",
+      "title": "Podmienky používania",
+      "about": {
+        "title": "O čom to je",
+        "p1": "„Prajem si..“ je appka na zoznamy želaní pre rodinu, tím alebo partiu priateľov. Každý si zapíše, čo by chcel; ostatní môžu potichu vybrať darček a majiteľ zoznamu sa to nedozvie.",
+        "p2": "Prevádzkuje ju <operatorName></operatorName>, <operatorAddress></operatorAddress>, kontakt <contactEmail></contactEmail>. Používanie je bezplatné a nekomerčné. Používaním appky súhlasíš s týmito podmienkami."
+      },
+      "account": {
+        "title": "Účet",
+        "p1": "Prihlásiť sa dá jedine cez Google — iná cesta dovnútra neexistuje. Za svoj Google účet a za to, kto sa k nemu dostane, zodpovedáš ty.",
+        "p2": "Účet, ktorý nie je v žiadnej skupine, je bežný stav. Nemusíš sa nikam hlásiť, kým ťa niekto nepozve alebo kým si skupinu nevytvoríš sám."
+      },
+      "groups": {
+        "title": "Skupiny a pozvánky",
+        "invite": "<strong>Pozvánkový odkaz je kľúč.</strong> Kto ho otvorí, ten sa do skupiny pridá — a tým získa prístup ku všetkým želaniam v nej. Posielaj ho len ľuďom, ktorých tam chceš mať.",
+        "validity": "Odkaz platí 24 hodín a vytvoriť ho môže iba správca skupiny.",
+        "cap": "Jeden účet môže vytvoriť najviac päť skupín.",
+        "noLeaving": "<strong>Zo skupiny sa nedá odísť sám.</strong> Jediná cesta von je požiadať správcu, aby ťa odobral.",
+        "admin": "Skupina má vždy aspoň jedného správcu a ktorýkoľvek správca ju môže zmazať."
+      },
+      "content": {
+        "title": "Čo do appky píšeš a nahrávaš",
+        "p1": "Za názvy, popisy, odkazy a fotky, ktoré pridáš, zodpovedáš ty. K fotke musíš mať právo ju použiť. Fotka smie mať najviac 2 MB a formát WebP, JPEG alebo PNG.",
+        "p2": "Nepridávaj nič nezákonné, urážlivé ani nič, čo zasahuje do práv iných. Obsah, ktorý toto poruší, môžeme odstrániť."
+      },
+      "moderation": {
+        "title": "Nezákonný obsah a moderovanie",
+        "p1": "Ak v appke uvidíš obsah, ktorý je podľa teba nezákonný, napíš na <contactEmail></contactEmail> — v ktorej skupine je, čie želanie to je a čo mu vytýkaš. Každé takéto oznámenie prevádzkovateľ posúdi a odpíše na adresu, z ktorej prišlo.",
+        "p2": "Moderuje jeden človek a ručne. Nič tu obsah automaticky neprehľadáva, o odstránení nerozhoduje algoritmus a nefunguje tu žiadne odvolacie konanie — je len ten istý e-mail.",
+        "p3": "Keď prevádzkovateľ obsah odstráni alebo zruší účet, povie o tom tomu, koho sa to týka, aj dôvod. Ohradiť sa dá odpoveďou na ten istý e-mail a cesta na súd zostáva otvorená vždy."
+      },
+      "secret": {
+        "title": "Tajomstvo rezervácií a jeho hranice",
+        "p1": "Vo svojom zozname nikdy neuvidíš, kto ti čo rezervoval. Tajomstvo skončí jedine tak, že ten, kto darček kúpil, sám označí, že ti ho odovzdal. Nerobí to za neho žiadny termín ani prevádzkovateľ.",
+        "p2": "Tri veci to však prezradiť dokážu a je poctivé ich pomenovať:",
+        "hole1": "Rezervované želanie sa nedá zmazať ani upraviť — kto sa o to pokúsi pri všetkých svojich želaniach, zistí, ktoré sú obsadené. (Appka nikdy neprezradí <em>kým</em>.)",
+        "hole2": "Ten, kto darček kúpil, môže prekvapenie pokaziť sám tým, že stlačí <em>Darované</em> priskoro.",
+        "hole3": "Odobranie člena zo skupiny potichu uvoľní všetky rezervácie, ktoré držal."
+      },
+      "history": {
+        "title": "História darov",
+        "p1": "Označenie „darované“ je nevratné. Vznikne z neho nemenný záznam, ktorý si mená a text želania odkladá ako kópiu, takže zostane čitateľný aj keď jeden z vás zo skupiny odíde, keď sa skupina zmaže alebo keď si niekto zruší účet. Vrátiť sa to nedá."
+      },
+      "availability": {
+        "title": "Dostupnosť a záruka",
+        "p1": "Appka je projekt jedného človeka, beží na bezplatných službách a spravuje sa ručne. Nie je za ňou tím, nočná pohotovosť ani podporná linka.",
+        "p2": "Poskytuje sa <strong>„tak ako je“</strong>, bez záruky nepretržitej dostupnosti. Môže sa stať, že bude chvíľu nedostupná, že sa niečo pokazí alebo že jej prevádzka raz skončí. Zálohuj si to, na čom ti záleží."
+      },
+      "liability": {
+        "title": "Obmedzenie zodpovednosti",
+        "p1": "V rozsahu, ktorý slovenské právo dovoľuje, prevádzkovateľ nezodpovedá za škodu z používania appky — vrátane nedostupnosti, straty údajov, prezradeného prekvapenia alebo darčeka, ktorý si kúpili dvaja."
+      },
+      "termination": {
+        "title": "Ukončenie",
+        "p1": "Zrušenie účtu si môžeš vyžiadať na <contactEmail></contactEmail>. Podrobnosti o tom, čo sa pri ňom zmaže a čo zostane, sú v <privacy>Ochrane osobných údajov</privacy>.",
+        "p2": "Účet, ktorý tieto podmienky porušuje, môže prevádzkovateľ odstrániť."
+      },
+      "changes": {
+        "title": "Zmeny podmienok",
+        "p1": "Podmienky sa môžu zmeniť; platí vždy verzia na tejto stránke a dátum účinnosti hore. Podstatnú zmenu oznámime aj v appke."
+      },
+      "law": {
+        "title": "Rozhodné právo",
+        "p1": "Vzťah sa riadi právom Slovenskej republiky. Na spory sú príslušné súdy <courtVenue></courtVenue>."
+      }
+    }
+  },
+  "list": {
+    "everyone": "Všetci",
+    "ownTitle": "Môj zoznam želaní",
+    "peerTitle": "Toto si praje {name}",
+    "ownIntro": "Pridaj si čokoľvek, čo by si chcel. Nedozvieš sa, kto si čo vybral.",
+    "peerIntro": "Rezervuj si to, aby to nekúpil ešte niekto ďalší.",
+    "received": "Čo som dostal",
+    "ownEmpty": "Tvoj zoznam je prázdny. Pridaj si vyššie prvé želanie.",
+    "peerEmpty": "V tomto zozname zatiaľ nie sú žiadne želania."
+  },
+  "login": {
+    "name": "Prajem si..",
+    "pitch": "Zapíš si, čo by si chcel.<break></break> Ostatní potichu vyberú darček a ty sa do poslednej chvíle nič nedozvieš.",
+    "signIn": "Prihlásiť sa",
+    "footnote": "Prihlásením získaš vlastný účet. Potom si založ skupinu alebo otvor pozvánku, ktorú ti niekto poslal.",
+    "footnoteInvite": "Po prihlásení ťa pozvánka pridá do skupiny."
+  },
+  "members": {
+    "adminBadge": "správca",
+    "canManageMembers": "Môže spravovať členov skupiny",
+    "save": "Uložiť",
+    "remove": "Odstrániť",
+    "roleAdmin": "Správca",
+    "roleMember": "Člen",
+    "demoteHint": "Zmeniť na bežného člena",
+    "promoteHint": "Umožniť spravovať členov skupiny",
+    "nameFor": "Meno pre {name}",
+    "removeFor": "Odstrániť {name}",
+    "removeQuestion": "Odstrániť <strong>{name}</strong> zo skupiny? Ich zoznam ({wishes}) im zostane. Rezervácie, ktoré existovali len vďaka členstvu v tejto skupine sa uvoľnia. Vrátiť sa môžu len cez novú pozvánku."
+  },
+  "metadata": {
+    "name": "Prajem si..",
+    "description": "Čo by si kto prial a kto splní prianie komu."
+  },
+  "notFound": {
+    "title": "Takáto stránka tu nie je",
+    "description": "Možno je odkaz zastaraný, alebo sa v adrese stratilo písmenko. Skús to od začiatku.",
+    "back": "Späť na zoznam rodiny"
+  },
+  "received": {
+    "back": "Môj zoznam",
+    "title": "Čo som dostal",
+    "description": "Splnené želania a kto ti ich daroval.",
+    "empty": "Zatiaľ si nedostal žiadny darček.",
+    "personLabel": "od:"
+  },
+  "setup": {
+    "title": "Ešte krok — pripoj databázu",
+    "description": "Aplikácia potrebuje projekt v Supabase, aby mohla čokoľvek ukladať.",
+    "step1": "Vytvor si bezplatný projekt na <dashboard>supabase.com/dashboard</dashboard>.",
+    "step2": "Otvor SQL editor a spusti <code>supabase/migrations/0001_init.sql</code> z tohto repozitára.",
+    "step3": "Skopíruj <code>.env.example</code> do <code>.env.production.local</code> a doplň URL svojho projektu a kľúč <strong>service_role</strong>.",
+    "step4": "Reštartuj vývojový server.",
+    "docs": "Kompletný návod nájdeš v priečinku <code>docs/setup</code>."
+  },
+  "start": {
+    "back": "Späť",
+    "welcome": "Vitaj!",
+    "anotherGroup": "Ďalšia skupina",
+    "intro": "Skupina je rodina alebo partia, ktorá si navzájom vidí zoznamy želaní. Založ si vlastnú alebo sa pridaj do cudzej.",
+    "createTitle": "Vytvoriť skupinu",
+    "createDescription": "Založ novú skupinu. Budeš jej správca a ostatných do nej pozveš odkazom.",
+    "joinTitle": "Pridať sa do skupiny",
+    "joinDescription": "Otvor pozvánku, ktorú ti niekto poslal.",
+    "joinHint": "Odkaz ťa pridá do skupiny sám."
+  },
+  "wishes": {
+    "claim": "Toto kúpim",
+    "release": "Toto nekupujem",
+    "claimedBy": "Toto kupuje {name}",
+    "claimedBySomeone": "Toto už niekto kupuje",
+    "form": {
+      "title": "Názov",
+      "titlePlaceholder": "napr. Vlnené ponožky, veľkosť 42",
+      "description": "Popis",
+      "descriptionPlaceholder": "Farba, veľkosť alebo čokoľvek iné, čo je dobré vedieť.",
+      "url": "Odkaz",
+      "visibleInGroups": "Viditeľné v skupinách",
+      "photo": "Fotka"
+    },
+    "add": {
+      "action": "Pridať želanie",
+      "description": "Pridá sa do tvojho vlastného zoznamu."
+    },
+    "edit": {
+      "trigger": "Upraviť {title}",
+      "title": "Upraviť želanie",
+      "description": "Zmeň podrobnosti tohto želania.",
+      "submit": "Uložiť zmeny"
+    },
+    "delete": {
+      "trigger": "Vymazať {title}",
+      "question": "Vymazať „{title}“?",
+      "refusedTitle": "Nedá sa vymazať „{title}“",
+      "description": "Natrvalo sa odstráni z tvojho zoznamu.",
+      "confirm": "Vymazať",
+      "cancel": "Ponechať"
+    },
+    "fulfil": {
+      "action": "Darované",
+      "question": "Darované „{title}“?",
+      "refusedTitle": "„{title}“ sa nedá označiť",
+      "description": "{name} uvidí, že tento darček je od teba. Želanie zmizne zo zoznamu a späť sa to už vrátiť nedá.",
+      "cancel": "Ešte nie"
+    },
+    "photo": {
+      "open": "Zobraziť fotku: {title}",
+      "alt": "Fotka: {title}",
+      "choose": "Vybrať fotku",
+      "replace": "Vybrať inú",
+      "remove": "Odstrániť fotku",
+      "dropHint": "alebo sem presuň obrázok",
+      "tooLarge": "Fotka je príliš veľká. Skús menší obrázok.",
+      "unreadable": "Fotku sa nepodarilo načítať. Skús iný obrázok."
+    }
+  }
+}

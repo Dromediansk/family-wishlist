@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { ArrowLeftIcon } from "lucide-react";
+import { getTranslations } from "next-intl/server";
 
 import { DeleteGroupButton } from "@/components/delete-group";
 import { CreateInviteButton, InviteList } from "@/components/invites";
@@ -30,9 +31,10 @@ export default async function FamilyPage({
   // for itself as well.
   if (!isGroupAdmin(ctx)) redirect(`/g/${ctx.groupId}`);
 
-  const [members, invites] = await Promise.all([
+  const [members, invites, t] = await Promise.all([
     getGroupMembers(ctx),
     listGroupInvites(ctx),
+    getTranslations("family"),
   ]);
 
   return (
@@ -41,18 +43,17 @@ export default async function FamilyPage({
         <Button variant="ghost" size="sm" asChild className="-ml-4">
           <Link href={`/g/${ctx.groupId}`}>
             <ArrowLeftIcon />
-            Všetci
+            {t("everyone")}
           </Link>
         </Button>
       </div>
 
       <div>
         <h1 className="text-2xl font-semibold text-balance">
-          Správa skupiny {ctx.groupName}
+          {t("title", { name: ctx.groupName })}
         </h1>
         <p className="text-muted-foreground mt-1 max-w-[62ch]">
-          Pozvi niekoho nového, premenúvaj ľudí alebo meň, kto môže spravovať
-          tento zoznam.
+          {t("description")}
         </p>
       </div>
 
@@ -60,9 +61,11 @@ export default async function FamilyPage({
 
       <div className="space-y-4">
         <div className="space-y-2">
-          <h2 className="text-xl font-semibold text-balance">Pozvánky</h2>
+          <h2 className="text-xl font-semibold text-balance">
+            {t("invitesTitle")}
+          </h2>
           <p className="text-muted-foreground max-w-[62ch]">
-            Kto odkaz otvorí, sa hneď pridá do tejto skupiny. Odkaz platí 24 hodín.
+            {t("invitesDescription")}
           </p>
         </div>
         <CreateInviteButton groupId={ctx.groupId} />
@@ -73,9 +76,11 @@ export default async function FamilyPage({
           the everyday ones. The dialog owns the consequences. */}
       <div className="space-y-4 border-t pt-6">
         <div className="space-y-2">
-          <h2 className="text-xl font-semibold text-balance">Vymazať skupinu</h2>
+          <h2 className="text-xl font-semibold text-balance">
+            {t("deleteTitle")}
+          </h2>
           <p className="text-muted-foreground max-w-[62ch]">
-            Skupina zmizne pre všetkých jej členov.
+            {t("deleteDescription")}
           </p>
         </div>
         <DeleteGroupButton

@@ -1,9 +1,10 @@
 import { NextResponse } from "next/server";
 
 import { joinWithInvite } from "@/app/actions/invites";
+import { getErrorText } from "@/i18n/errors";
 import { getViewer } from "@/lib/data/access";
 import { findInviteByToken } from "@/lib/data/invites";
-import { INVITE_EXPIRED_MESSAGE, inviteUsable } from "@/lib/invites";
+import { INVITE_EXPIRED_KEY, inviteUsable } from "@/lib/invites";
 
 /**
  * The door into a group. A route handler, not a page, so every outcome can
@@ -23,8 +24,12 @@ export async function GET(
 
   const invite = await findInviteByToken(token);
   if (!invite || !inviteUsable(invite, new Date())) {
+    // A Route Handler can read the locale cookie like anything else on the
+    // server, so the refusal it hands to `/start` is already in the right
+    // language. docs/decisions/language.md
+    const text = await getErrorText();
     return redirectTo(
-      `/start?error=${encodeURIComponent(INVITE_EXPIRED_MESSAGE)}`,
+      `/start?error=${encodeURIComponent(text(INVITE_EXPIRED_KEY))}`,
     );
   }
 

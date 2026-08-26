@@ -1,4 +1,6 @@
-import { LEGAL_DETAILS, type LegalDetail } from "@/lib/legal";
+import { useTranslations } from "next-intl";
+
+import { LEGAL_DETAILS, type LegalDetailKey } from "@/lib/legal";
 
 /**
  * The furniture the two legal pages share. Hand-rolled rather than reached for
@@ -12,15 +14,18 @@ import { LEGAL_DETAILS, type LegalDetail } from "@/lib/legal";
  * gap where it should be. Filling that file turns every one of these into plain
  * text at once — there is nothing to edit here.
  */
-export function Detail({ of }: Readonly<{ of: LegalDetail }>) {
-  if (of.value.trim() === "") {
+export function Detail({ of }: Readonly<{ of: LegalDetailKey }>) {
+  const t = useTranslations("legal");
+  const value = LEGAL_DETAILS[of];
+
+  if (value.trim() === "") {
     return (
       <span className="bg-destructive/15 text-destructive rounded px-1 font-medium">
-        [DOPLNIŤ: {of.hint}]
+        {t("missing", { hint: t(`hints.${of}`) })}
       </span>
     );
   }
-  return of.value;
+  return value;
 }
 
 /** A literal the reader may have to match character for character — a cookie
@@ -32,10 +37,43 @@ export function Code({ children }: Readonly<{ children: React.ReactNode }>) {
   );
 }
 
+/**
+ * What a paragraph of policy may contain, in one place.
+ *
+ * The prose lives in `messages/*.json` — a policy is a document, and it reads as
+ * one there rather than as forty fragments of JSX. What it cannot carry is the
+ * markup, so these are handed to `t.rich` at each call site: the emphasis and
+ * the code spans wrap text, and the operator's details are empty tags that
+ * expand into a whole element.
+ * docs/decisions/language.md
+ */
+export function useLegalTags() {
+  /*
+   * The operator's details are tags rather than values, and they are empty ones
+   * — `<contactEmail></contactEmail>`. `t.rich` takes a function per tag and
+   * only strings and numbers as values, so an element has to arrive as the
+   * former; the chunks between the tags are always empty and are ignored.
+   */
+  const details = Object.fromEntries(
+    (Object.keys(LEGAL_DETAILS) as LegalDetailKey[]).map((key) => [
+      key,
+      () => <Detail of={key} />,
+    ]),
+  ) as Record<LegalDetailKey, () => React.ReactNode>;
+
+  return {
+    strong: (chunks: React.ReactNode) => <strong>{chunks}</strong>,
+    em: (chunks: React.ReactNode) => <em>{chunks}</em>,
+    code: (chunks: React.ReactNode) => <Code>{chunks}</Code>,
+    ...details,
+  };
+}
+
 export function LegalPage({
   title,
   children,
 }: Readonly<{ title: string; children: React.ReactNode }>) {
+  const t = useTranslations("legal");
   return (
     <article>
       {/* No header renders above these pages, so this is the only heading. */}
@@ -43,7 +81,9 @@ export function LegalPage({
         {title}
       </h1>
       <p className="text-muted-foreground mt-3 text-sm">
-        Účinné od <Detail of={LEGAL_DETAILS.effectiveFrom} />
+        {t.rich("effectiveFrom", {
+          effectiveFrom: () => <Detail of="effectiveFrom" />,
+        })}
       </p>
       {children}
     </article>

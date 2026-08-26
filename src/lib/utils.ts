@@ -1,18 +1,10 @@
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 
+import type { Locale } from "@/i18n/config";
+
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
-}
-
-/**
- * Slovak counts take three forms: 1 želanie, 2–4 želania, 0 and 5+ želaní.
- * Returns the number together with the right form, e.g. "3 želania".
- */
-export function wishCount(count: number): string {
-  if (count === 1) return `${count} želanie`;
-  if (count >= 2 && count <= 4) return `${count} želania`;
-  return `${count} želaní`;
 }
 
 /**
@@ -24,18 +16,36 @@ export function initial(name: string): string {
 }
 
 /**
- * A date the way a Slovak sentence writes one: "12. decembra 2025". Built once
- * — constructing an Intl formatter per row is the expensive half.
+ * A date the way the reader's language writes one — "12. decembra 2025" in
+ * Slovak, "12 December 2025" in English.
  *
  * The only date this app displays. A claim's timestamp is deliberately never
  * shown; a gift's date is a memory rather than a hint.
+ *
+ * One formatter per locale, kept: constructing an `Intl.DateTimeFormat` per row
+ * is the expensive half, and the app has two languages rather than a long tail
+ * of them, so the map cannot grow.
  */
-const dateFormat = new Intl.DateTimeFormat("sk-SK", {
-  day: "numeric",
-  month: "long",
-  year: "numeric",
-});
+const dateFormats = new Map<string, Intl.DateTimeFormat>();
 
-export function formatDate(iso: string): string {
-  return dateFormat.format(new Date(iso));
+export function formatDate(iso: string, locale: Locale): string {
+  let format = dateFormats.get(locale);
+  if (!format) {
+    format = new Intl.DateTimeFormat(DATE_LOCALES[locale], {
+      day: "numeric",
+      month: "long",
+      year: "numeric",
+    });
+    dateFormats.set(locale, format);
+  }
+  return format.format(new Date(iso));
 }
+
+/**
+ * `en-GB` rather than `en`, which would give "December 12, 2025" — the app is
+ * read in Slovakia, where the day comes first.
+ */
+const DATE_LOCALES: Record<Locale, string> = {
+  sk: "sk-SK",
+  en: "en-GB",
+};

@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 
+import { getErrorText, type ErrorKey } from "@/i18n/errors";
 import { getViewer } from "@/lib/data/access";
 import { getWishOwner } from "@/lib/data/wishes";
 import type { UserId } from "@/lib/ids";
@@ -17,14 +18,20 @@ import { getSupabase } from "@/lib/supabase";
 import type { ActionResult, Viewer } from "@/lib/types";
 import { refusalFor } from "@/lib/wishes";
 
-const idSchema = z.uuid("Neplatné želanie.");
+/*
+ * Every message below is a key under the `errors` namespace, not a sentence.
+ * A Zod schema is built once when the module loads, long before any request
+ * has a language; the wording happens inside the action, where `getErrorText`
+ * can read the request's locale. docs/decisions/language.md
+ */
+const idSchema = z.uuid("invalidWish");
 
 /** Empty optional fields arrive from forms as "" — treat those as absent. */
-const optionalText = (max: number, label: string) =>
+const optionalText = (max: number, tooLongKey: string) =>
   z
     .string()
     .trim()
-    .max(max, `${label} môže mať najviac ${max} znakov.`)
+    .max(max, tooLongKey)
     .transform((value) => (value === "" ? null : value))
     .nullable()
     .optional();
@@ -40,11 +47,11 @@ const photoSchema = z.discriminatedUnion("kind", [
   z.object({
     kind: z.literal("set"),
     file: z
-      .instanceof(Blob, { message: "Fotku sa nepodarilo načítať." })
-      .refine((file) => file.size > 0, "Fotku sa nepodarilo načítať.")
+      .instanceof(Blob, { message: "photoUnreadable" })
+      .refine((file) => file.size > 0, "photoUnreadable")
       .refine(
         (file) => file.size <= MAX_PHOTO_BYTES,
-        "Fotka môže mať najviac 2 MB.",
+        "photoTooLarge",
       ),
   }),
 ]);
@@ -53,9 +60,9 @@ const wishInputSchema = z.object({
   title: z
     .string()
     .trim()
-    .min(1, "Názov je povinný.")
-    .max(120, "Názov môže mať najviac 120 znakov."),
-  description: optionalText(1000, "Popis"),
+    .min(1, "titleRequired")
+    .max(120, "titleTooLong"),
+  description: optionalText(1000, "descriptionTooLong"),
   url: z
     .string()
     .trim()
@@ -65,16 +72,33 @@ const wishInputSchema = z.object({
     .refine(
       (value) =>
         value == null || /^https?:\/\/\S+$/i.test(value),
-      "Odkaz musí začínať na http:// alebo https://",
+      "urlScheme",
     ),
-  groupIds: z.array(z.uuid()).min(1, "Vyber aspoň jednu skupinu."),
+  groupIds: z.array(z.uuid()).min(1, "pickGroup"),
   photo: photoSchema.optional().default({ kind: "unchanged" }),
 });
 
 export type WishInput = z.input<typeof wishInputSchema>;
 
-function firstIssue(error: z.ZodError): string {
-  return error.issues[0]?.message ?? "Toto nevyzerá správne.";
+/**
+ * The first thing wrong, as a message key plus whatever that message needs.
+ *
+ * A length limit is read back off the issue rather than repeated in the
+ * catalogue, so raising a `.max()` cannot leave the sentence quoting the old
+ * number in either language.
+ */
+function firstIssue(error: z.ZodError): {
+  key: ErrorKey;
+  params: Record<string, string | number>;
+} {
+  const issue = error.issues[0];
+  if (!issue) return { key: "invalid", params: {} };
+
+  const params: Record<string, string | number> = {};
+  if ("maximum" in issue && typeof issue.maximum === "number") {
+    params.max = issue.maximum;
+  }
+  return { key: issue.message as ErrorKey, params };
 }
 
 /** Never trust group ids from the client — only ones the caller actually belongs to. */
@@ -107,7 +131,9 @@ async function lookUpRefusal(
     .eq("owner_user_id", ownerId)
     .maybeSingle();
 
-  return { ok: false, ...refusalFor(data, operation) };
+  const { key, final } = refusalFor(data, operation);
+  const text = await getErrorText();
+  return { ok: false, error: text(key), final };
 }
 
 /**
@@ -125,6 +151,8 @@ async function attachPhoto(
 ): Promise<ActionResult> {
   if (intent.kind === "unchanged") return { ok: true };
 
+  const text = await getErrorText();
+
   let path: string | null = null;
 
   if (intent.kind === "set") {
@@ -134,14 +162,11 @@ async function attachPhoto(
     // reachable by direct POST. The bytes decide.
     const mime = sniffImageType(new Uint8Array(bytes));
     if (!mime) {
-      return {
-        ok: false,
-        error: "Fotka musí byť obrázok (JPEG, PNG alebo WebP).",
-      };
+      return { ok: false, error: text("photoNotImage") };
     }
 
     path = await uploadWishPhoto(wishId, bytes, mime);
-    if (!path) return { ok: false, error: "Fotku sa nepodarilo uložiť." };
+    if (!path) return { ok: false, error: text("photoSaveFailed") };
   }
 
   const { data, error } = await getSupabase()
@@ -158,7 +183,7 @@ async function attachPhoto(
     // Nothing was pointed at it, so take the upload back rather than letting a
     // prune that keeps the *current* photo sweep the wrong one later.
     if (path) await removeWishPhoto(path);
-    return { ok: false, error: "Fotku sa nepodarilo uložiť." };
+    return { ok: false, error: text("photoSaveFailed") };
   }
 
   // Whatever hung there before, plus anything an earlier attempt left behind.
@@ -168,14 +193,19 @@ async function attachPhoto(
 
 /** Add a wish to your OWN list. The owner is always the caller. */
 export async function addWish(input: WishInput): Promise<ActionResult> {
+  const text = await getErrorText();
+
   const viewer = await getViewer();
-  if (!viewer) return { ok: false, error: "Najprv si vyber, kto si." };
+  if (!viewer) return { ok: false, error: text("pickWhoYouAre") };
 
   const parsed = wishInputSchema.safeParse(input);
-  if (!parsed.success) return { ok: false, error: firstIssue(parsed.error) };
+  if (!parsed.success) {
+    const issue = firstIssue(parsed.error);
+    return { ok: false, error: text(issue.key, issue.params) };
+  }
 
   if (!ownsEveryGroup(viewer, parsed.data.groupIds)) {
-    return { ok: false, error: "Neplatná skupina." };
+    return { ok: false, error: text("invalidGroup") };
   }
 
   const supabase = getSupabase();
@@ -208,7 +238,7 @@ export async function addWish(input: WishInput): Promise<ActionResult> {
     // The wish row already exists; retrying would add a second one.
     return {
       ok: false,
-      error: "Želanie je uložené, ale skupiny sa nepodarilo priradiť.",
+      error: text("groupsNotAssigned"),
       final: true,
     };
   }
@@ -224,7 +254,7 @@ export async function addWish(input: WishInput): Promise<ActionResult> {
     // docs/decisions/ui-patterns.md#a-refusal-ends-the-dialog
     return {
       ok: false,
-      error: `${photo.error} Želanie je uložené bez nej.`,
+      error: text("photoFailedWishSaved", { reason: photo.error }),
       final: true,
     };
   }
@@ -240,17 +270,22 @@ export async function updateWish(
   wishId: string,
   input: WishInput,
 ): Promise<ActionResult> {
+  const text = await getErrorText();
+
   const viewer = await getViewer();
-  if (!viewer) return { ok: false, error: "Najprv si vyber, kto si." };
+  if (!viewer) return { ok: false, error: text("pickWhoYouAre") };
 
   const id = idSchema.safeParse(wishId);
-  if (!id.success) return { ok: false, error: "Neplatné želanie." };
+  if (!id.success) return { ok: false, error: text("invalidWish") };
 
   const parsed = wishInputSchema.safeParse(input);
-  if (!parsed.success) return { ok: false, error: firstIssue(parsed.error) };
+  if (!parsed.success) {
+    const issue = firstIssue(parsed.error);
+    return { ok: false, error: text(issue.key, issue.params) };
+  }
 
   if (!ownsEveryGroup(viewer, parsed.data.groupIds)) {
-    return { ok: false, error: "Neplatná skupina." };
+    return { ok: false, error: text("invalidGroup") };
   }
 
   const supabase = getSupabase();
@@ -280,11 +315,13 @@ export async function updateWish(
 
 /** Remove a wish from your own list. Refused once it has been reserved. */
 export async function deleteWish(wishId: string): Promise<ActionResult> {
+  const text = await getErrorText();
+
   const viewer = await getViewer();
-  if (!viewer) return { ok: false, error: "Najprv si vyber, kto si." };
+  if (!viewer) return { ok: false, error: text("pickWhoYouAre") };
 
   const id = idSchema.safeParse(wishId);
-  if (!id.success) return { ok: false, error: "Neplatné želanie." };
+  if (!id.success) return { ok: false, error: text("invalidWish") };
 
   const supabase = getSupabase();
   const { data, error } = await supabase
@@ -316,11 +353,13 @@ export async function deleteWish(wishId: string): Promise<ActionResult> {
  * docs/decisions/wishes-claims-history.md
  */
 export async function claimWish(wishId: string): Promise<ActionResult> {
+  const text = await getErrorText();
+
   const viewer = await getViewer();
-  if (!viewer) return { ok: false, error: "Najprv si vyber, kto si." };
+  if (!viewer) return { ok: false, error: text("pickWhoYouAre") };
 
   const id = idSchema.safeParse(wishId);
-  if (!id.success) return { ok: false, error: "Neplatné želanie." };
+  if (!id.success) return { ok: false, error: text("invalidWish") };
 
   /*
    * Which list this wish is on decides whether this viewer may touch it at all.
@@ -329,7 +368,7 @@ export async function claimWish(wishId: string): Promise<ActionResult> {
    */
   const ownerId = await getWishOwner(viewer, id.data);
   if (!ownerId) {
-    return { ok: false, error: "Toto želanie neexistuje.", final: true };
+    return { ok: false, error: text("wishGone"), final: true };
   }
 
   const supabase = getSupabase();
@@ -349,7 +388,7 @@ export async function claimWish(wishId: string): Promise<ActionResult> {
     // Final: pressing the button again cannot un-reserve it.
     return {
       ok: false,
-      error: "Niekto bol rýchlejší — táto položka je už rezervovaná.",
+      error: text("claimRace"),
       final: true,
     };
   }
@@ -364,11 +403,13 @@ export async function claimWish(wishId: string): Promise<ActionResult> {
 
 /** Release a wish you claimed, so someone else can take it. */
 export async function unclaimWish(wishId: string): Promise<ActionResult> {
+  const text = await getErrorText();
+
   const viewer = await getViewer();
-  if (!viewer) return { ok: false, error: "Najprv si vyber, kto si." };
+  if (!viewer) return { ok: false, error: text("pickWhoYouAre") };
 
   const id = idSchema.safeParse(wishId);
-  if (!id.success) return { ok: false, error: "Neplatné želanie." };
+  if (!id.success) return { ok: false, error: text("invalidWish") };
 
   // Informational, not a guard — `.eq("claimed_by_user_id", ...)` below is
   // what the write actually checks. The owner, not the (un)claimer, is who
@@ -387,7 +428,7 @@ export async function unclaimWish(wishId: string): Promise<ActionResult> {
   if (!data || data.length === 0) {
     return {
       ok: false,
-      error: "Uvoľniť môžeš len vlastné rezervácie.",
+      error: text("unclaimNotYours"),
       final: true,
     };
   }
@@ -407,11 +448,13 @@ export async function unclaimWish(wishId: string): Promise<ActionResult> {
  * read, and no way for the pair to half-happen.
  */
 export async function fulfilWish(wishId: string): Promise<ActionResult> {
+  const text = await getErrorText();
+
   const viewer = await getViewer();
-  if (!viewer) return { ok: false, error: "Najprv si vyber, kto si." };
+  if (!viewer) return { ok: false, error: text("pickWhoYouAre") };
 
   const id = idSchema.safeParse(wishId);
-  if (!id.success) return { ok: false, error: "Neplatné želanie." };
+  if (!id.success) return { ok: false, error: text("invalidWish") };
 
   // Informational, not a guard — `fulfil_wish`'s own `claimed_by_user_id =
   // p_giver_id` predicate is what actually runs. Read before the wish row is
@@ -426,7 +469,7 @@ export async function fulfilWish(wishId: string): Promise<ActionResult> {
   if (error) return { ok: false, error: error.message };
   if (!data) {
     // Final: the wish is gone, so pressing again cannot make this work.
-    return { ok: false, error: "Toto už nemáš rezervované.", final: true };
+    return { ok: false, error: text("fulfilNotYours"), final: true };
   }
 
   // `fulfil_wish` deletes the wish in SQL, which Storage knows nothing about,

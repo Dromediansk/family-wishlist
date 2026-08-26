@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import { GiftIcon } from "lucide-react";
+import { getTranslations } from "next-intl/server";
 
 import { signInWithGoogle } from "@/app/actions/auth";
 import { GoogleIcon } from "@/components/google-icon";
@@ -26,6 +27,7 @@ export default async function LoginPage({
    * behaves as if it never arrived. docs/decisions/groups-and-invites.md#invites
    */
   const returnTo = safeReturnTo(params.returnTo);
+  const t = await getTranslations("login");
 
   // Already signed in — go straight to the invite, or let `/` work out where
   // they belong.
@@ -55,13 +57,11 @@ export default async function LoginPage({
 
       {/* The header does not render here, so this is the page's only heading. */}
       <h1 className="mt-6 text-2xl font-semibold text-balance sm:text-3xl">
-        Prajem si..
+        {t("name")}
       </h1>
 
       <p className="text-muted-foreground mt-3 text-balance">
-        Zapíš si, čo by si chcel.
-        <br /> Ostatní potichu vyberú darček a ty sa do poslednej chvíle nič
-        nedozvieš.
+        {t.rich("pitch", { break: () => <br /> })}
       </p>
 
       {/*
@@ -80,7 +80,7 @@ export default async function LoginPage({
         ) : null}
         <SubmitButton variant="outline" size="lg" className="w-full">
           <GoogleIcon />
-          Prihlásiť sa
+          {t("signIn")}
         </SubmitButton>
       </form>
 
@@ -91,9 +91,7 @@ export default async function LoginPage({
       ) : null}
 
       <p className="text-muted-foreground mt-6 text-sm text-balance">
-        {returnTo
-          ? "Po prihlásení ťa pozvánka pridá do skupiny."
-          : "Prihlásením získaš vlastný účet. Potom si založ skupinu alebo otvor pozvánku, ktorú ti niekto poslal."}
+        {returnTo ? t("footnoteInvite") : t("footnote")}
       </p>
     </div>
   );

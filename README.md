@@ -32,6 +32,8 @@ so. It never says who reserved it.
   both sides keep a permanent record of it.
 - **Everything is live.** Changes appear in every other open tab within about a
   second — without the app ever saying what changed.
+- **Slovak or English.** It opens in whichever your browser asks for, and one
+  item in the avatar menu switches it.
 - **Installable.** Add it to a phone's home screen and it opens like any other
   app.
 
@@ -62,7 +64,8 @@ Everything lives in [`docs/`](docs/README.md), in three layers:
   [groups and invites](docs/decisions/groups-and-invites.md),
   [identity](docs/decisions/identity-and-sessions.md),
   [live updates](docs/decisions/live-updates.md),
-  [UI patterns](docs/decisions/ui-patterns.md).
+  [UI patterns](docs/decisions/ui-patterns.md),
+  [language](docs/decisions/language.md).
 
 Running it: [Local development](docs/setup/local-development.md) ·
 [Production](docs/setup/production.md) · [Database](docs/setup/database.md) ·
@@ -73,7 +76,7 @@ Working on the code? [`CLAUDE.md`](CLAUDE.md) is the short version.
 ## Stack
 
 Next.js 16 (App Router) · React 19 · TypeScript · Tailwind CSS 4 · Radix UI
-primitives · Supabase Postgres · Supabase Auth (Google)
+primitives · next-intl · Supabase Postgres · Supabase Auth (Google)
 
 Every read and write happens on the server with the `service_role` key. Row level
 security is on for every table with no policies at all, because the one rule

@@ -2,6 +2,7 @@
 
 import { useRef, useState } from "react";
 import { ImagePlusIcon } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 import { Button } from "@/components/ui/button";
 import { MAX_PHOTO_BYTES } from "@/lib/images";
@@ -43,6 +44,7 @@ export function WishPhotoField({
   onChange,
   disabled = false,
 }: Props) {
+  const t = useTranslations("wishes.photo");
   const input = useRef<HTMLInputElement>(null);
   const [preview, setPreview] = useState<{ file: File; src: string } | null>(
     null,
@@ -84,14 +86,14 @@ export function WishPhotoField({
       const resized = await resizeForUpload(file);
 
       if (resized.size > MAX_PHOTO_BYTES) {
-        setError("Fotka je príliš veľká. Skús menší obrázok.");
+        setError(t("tooLarge"));
         return;
       }
 
       setPreview({ file: resized, src: await previewSrc(resized) });
       onChange({ kind: "set", file: resized });
     } catch {
-      setError("Fotku sa nepodarilo načítať. Skús iný obrázok.");
+      setError(t("unreadable"));
     } finally {
       setBusy(false);
       // Cleared so that picking the same file twice still counts as a change.
@@ -149,7 +151,7 @@ export function WishPhotoField({
               loading={busy}
               onClick={() => input.current?.click()}
             >
-              Vybrať inú
+              {t("replace")}
             </Button>
             <Button
               type="button"
@@ -163,7 +165,7 @@ export function WishPhotoField({
               }}
               className="text-muted-foreground hover:text-destructive"
             >
-              Odstrániť fotku
+              {t("remove")}
             </Button>
           </div>
         </div>
@@ -178,11 +180,11 @@ export function WishPhotoField({
             onClick={() => input.current?.click()}
           >
             <ImagePlusIcon />
-            Vybrať fotku
+            {t("choose")}
           </Button>
           {/* Dragging is not a gesture a phone has, so the hint stays off it. */}
           <span className="text-muted-foreground hidden text-sm sm:inline">
-            alebo sem presuň obrázok
+            {t("dropHint")}
           </span>
         </div>
       )}

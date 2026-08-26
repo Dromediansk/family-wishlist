@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import { getTranslations } from "next-intl/server";
 
 import { HistoryPage } from "@/components/history-page";
 import { SetupRequired } from "@/components/setup-required";
@@ -25,6 +26,7 @@ export default async function ReceivedPage() {
 
   const viewer = access.viewer;
   const received = await getReceivedBy(viewer);
+  const t = await getTranslations("received");
 
   return (
     <HistoryPage
@@ -32,12 +34,12 @@ export default async function ReceivedPage() {
       // switcher shows. This page spans every group, so no one of them is
       // current here.
       backHref={`/g/${viewer.groups[0].id}/member/${viewer.userId}`}
-      backLabel="Môj zoznam"
-      title="Čo som dostal"
-      description="Splnené želania a kto ti ich daroval."
-      emptyText="Zatiaľ si nedostal žiadny darček."
+      backLabel={t("back")}
+      title={t("title")}
+      description={t("description")}
+      emptyText={t("empty")}
       items={received}
-      personLabel="od:"
+      personLabel={t("personLabel")}
       personName={(wish) => wish.giverName}
       groups={viewer.groups}
     />

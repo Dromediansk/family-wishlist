@@ -1,11 +1,12 @@
 import Link from "next/link";
 import { GiftIcon, ShieldIcon } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 import { AddWishDialog } from "@/components/add-wish-dialog";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import type { GroupId } from "@/lib/ids";
-import { cn, wishCount } from "@/lib/utils";
+import { cn } from "@/lib/utils";
 import type { GroupRef, MemberSummary } from "@/lib/types";
 
 /**
@@ -28,6 +29,9 @@ export function MemberCard({
   groups: readonly GroupRef[];
   member: MemberSummary;
 }) {
+  const t = useTranslations("members");
+  const common = useTranslations("common");
+
   // An empty list reads better as a lone "0" than as "0 / 0".
   const available =
     member.viewerIsOwner || member.wishCount === 0
@@ -40,11 +44,11 @@ export function MemberCard({
       {member.role === "admin" ? (
         <Badge
           variant="secondary"
-          title="Môže spravovať členov skupiny"
+          title={t("canManageMembers")}
           className="pointer-events-none absolute top-3 right-3"
         >
           <ShieldIcon />
-          správca
+          {t("adminBadge")}
         </Badge>
       ) : null}
 
@@ -83,7 +87,7 @@ export function MemberCard({
           </span>
           <span className="sr-only">
             {available !== null ? `${available} / ` : null}
-            {wishCount(member.wishCount)}
+            {common("wishCount", { count: member.wishCount })}
           </span>
         </span>
       </div>

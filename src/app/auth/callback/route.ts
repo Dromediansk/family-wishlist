@@ -1,6 +1,7 @@
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 
+import { getErrorText } from "@/i18n/errors";
 import { ensureAppUser } from "@/lib/data/access";
 import { RETURN_TO_COOKIE, safeReturnTo } from "@/lib/invites";
 import { createAuthClient } from "@/lib/supabase-auth";
@@ -32,7 +33,7 @@ export async function GET(request: Request) {
     );
 
   if (oauthError) return failed(oauthError);
-  if (!code) return failed("Prihlásenie sa nedokončilo. Skús to znova.");
+  if (!code) return failed((await getErrorText())("signInIncomplete"));
 
   const supabase = await createAuthClient();
   const { data, error } = await supabase.auth.exchangeCodeForSession(code);

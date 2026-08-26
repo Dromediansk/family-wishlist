@@ -1,57 +1,57 @@
 import { DatabaseIcon } from "lucide-react";
+import { useTranslations } from "next-intl";
 
-import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+
+const CODE = "bg-muted rounded px-1.5 py-0.5 font-mono text-sm";
 
 /** Shown instead of a stack trace when the Supabase env vars are missing. */
 export function SetupRequired() {
+  const t = useTranslations("setup");
+
+  /*
+   * The file names inside the steps stay in the language the files are named
+   * in, so they are carried as tags rather than translated into the sentence
+   * around them.
+   */
+  const tags = {
+    code: (chunks: React.ReactNode) => <code className={CODE}>{chunks}</code>,
+    strong: (chunks: React.ReactNode) => (
+      <strong className="text-foreground">{chunks}</strong>
+    ),
+    dashboard: (chunks: React.ReactNode) => (
+      <a
+        className="text-primary underline underline-offset-4"
+        href="https://supabase.com/dashboard"
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        {chunks}
+      </a>
+    ),
+  };
+
   return (
     <Card>
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <DatabaseIcon className="text-primary size-6 shrink-0" />
-          Ešte krok — pripoj databázu
+          {t("title")}
         </CardTitle>
-        <CardDescription>
-          Aplikácia potrebuje projekt v Supabase, aby mohla čokoľvek ukladať.
-        </CardDescription>
+        <CardDescription>{t("description")}</CardDescription>
       </CardHeader>
       <ol className="text-muted-foreground max-w-[62ch] list-decimal space-y-3 pl-5">
-        <li>
-          Vytvor si bezplatný projekt na{" "}
-          <a
-            className="text-primary underline underline-offset-4"
-            href="https://supabase.com/dashboard"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            supabase.com/dashboard
-          </a>
-          .
-        </li>
-        <li>
-          Otvor SQL editor a spusti{" "}
-          <code className="bg-muted rounded px-1.5 py-0.5 font-mono text-sm">
-            supabase/migrations/0001_init.sql
-          </code>{" "}
-          z tohto repozitára.
-        </li>
-        <li>
-          Skopíruj{" "}
-          <code className="bg-muted rounded px-1.5 py-0.5 font-mono text-sm">
-            .env.example
-          </code>{" "}
-          do{" "}
-          <code className="bg-muted rounded px-1.5 py-0.5 font-mono text-sm">
-            .env.production.local
-          </code>{" "}
-          a doplň URL svojho projektu a kľúč{" "}
-          <strong className="text-foreground">service_role</strong>.
-        </li>
-        <li>Reštartuj vývojový server.</li>
+        <li>{t.rich("step1", tags)}</li>
+        <li>{t.rich("step2", tags)}</li>
+        <li>{t.rich("step3", tags)}</li>
+        <li>{t("step4")}</li>
       </ol>
-      <p className="text-muted-foreground text-sm">
-        Kompletný návod nájdeš v priečinku docs/setup.
-      </p>
+      <p className="text-muted-foreground text-sm">{t.rich("docs", tags)}</p>
     </Card>
   );
 }

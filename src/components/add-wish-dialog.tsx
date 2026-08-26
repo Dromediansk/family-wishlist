@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { PlusIcon } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 import { addWish } from "@/app/actions/wishes";
 import { Button } from "@/components/ui/button";
@@ -36,6 +37,7 @@ export function AddWishDialog({
   size = "default",
   className,
 }: Props) {
+  const t = useTranslations("wishes.add");
   const [open, setOpen] = useState(false);
 
   return (
@@ -43,21 +45,19 @@ export function AddWishDialog({
       <DialogTrigger asChild>
         <Button variant={variant} size={size} className={className}>
           <PlusIcon />
-          Pridať želanie
+          {t("action")}
         </Button>
       </DialogTrigger>
       {/* `sm:`-qualified, or the width leaks down and un-fullscreens the phone. */}
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Pridať želanie</DialogTitle>
-          <DialogDescription>
-            Pridá sa do tvojho vlastného zoznamu.
-          </DialogDescription>
+          <DialogTitle>{t("action")}</DialogTitle>
+          <DialogDescription>{t("description")}</DialogDescription>
         </DialogHeader>
         <WishForm
           groups={groups}
           defaultGroupIds={[currentGroupId]}
-          submitLabel="Pridať želanie"
+          submitLabel={t("action")}
           onSubmit={(values) => addWish(values)}
           onDone={() => setOpen(false)}
         />

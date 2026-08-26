@@ -1,4 +1,5 @@
 import { UsersRoundIcon } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 import { Badge } from "@/components/ui/badge";
 import { groupsWorthNaming } from "@/lib/groups";
@@ -59,13 +60,14 @@ export function ArchivedGroupTags({
  * share one, and a snapshot has no id to fall back on.
  */
 function GroupBadges({ names }: { names: readonly string[] }) {
+  const t = useTranslations("common");
   return (
     <div className="flex flex-wrap items-center gap-1.5">
       {names.map((name, index) => (
         // `title` carries the name the truncation can hide, nothing more.
         <Badge key={`${name}-${index}`} variant="outline" title={name}>
           <UsersRoundIcon aria-hidden />
-          <span className="sr-only">Viditeľné v skupine</span>
+          <span className="sr-only">{t("visibleInGroup")}</span>
           <span className="max-w-40 truncate">{name}</span>
         </Badge>
       ))}

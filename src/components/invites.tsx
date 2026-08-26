@@ -8,6 +8,7 @@ import {
   PlusIcon,
   Trash2Icon,
 } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 import { createInvite, revokeInvite } from "@/app/actions/invites";
 import { ConfirmActionDialog } from "@/components/confirm-action-dialog";
@@ -18,11 +19,12 @@ import { inviteUsable } from "@/lib/invites";
 import type { InviteWithCreator } from "@/lib/types";
 
 /**
- * The **Vytvoriť pozvánku** button on `/family`. Admin-only, like everything on
+ * The "create an invite" button on `/family`. Admin-only, like everything on
  * that page — and it is the page's own `isGroupAdmin` redirect that says so, not
  * this component. docs/decisions/groups-and-invites.md#invites
  */
 export function CreateInviteButton({ groupId }: { groupId: GroupId }) {
+  const t = useTranslations("invites");
   const { pending, error, run } = useAction();
 
   return (
@@ -33,7 +35,7 @@ export function CreateInviteButton({ groupId }: { groupId: GroupId }) {
         className="w-full sm:w-auto"
       >
         <PlusIcon />
-        Vytvoriť pozvánku
+        {t("create")}
       </Button>
 
       {error ? (
@@ -58,10 +60,10 @@ export function InviteList({
   groupId: GroupId;
   invites: InviteWithCreator[];
 }) {
+  const t = useTranslations("invites");
+
   if (invites.length === 0) {
-    return (
-      <p className="text-muted-foreground text-sm">Zatiaľ žiadne pozvánky.</p>
-    );
+    return <p className="text-muted-foreground text-sm">{t("empty")}</p>;
   }
 
   const now = new Date();
@@ -89,6 +91,8 @@ function InviteRow({
   invite: InviteWithCreator;
   usable: boolean;
 }) {
+  const t = useTranslations("invites");
+  const common = useTranslations("common");
   const [copied, setCopied] = useState(false);
 
   async function copy() {
@@ -103,13 +107,18 @@ function InviteRow({
       <LinkIcon className="text-muted-foreground size-5 shrink-0" aria-hidden />
 
       <div className="min-w-0 flex-1">
-        <p className="truncate text-sm">{`Od: ${invite.createdByName}`}</p>
+        <p className="truncate text-sm">
+          {t("from", { name: invite.createdByName })}
+        </p>
         <p className="text-muted-foreground text-sm">
           {usable
-            ? `Použité: ${invite.uses}${
-                invite.maxUses !== null ? ` / ${invite.maxUses}` : ""
-              }`
-            : "Neaktívna"}
+            ? t("uses", {
+                count:
+                  invite.maxUses !== null
+                    ? `${invite.uses} / ${invite.maxUses}`
+                    : invite.uses,
+              })
+            : t("inactive")}
         </p>
       </div>
 
@@ -119,7 +128,7 @@ function InviteRow({
             type="button"
             variant="outline"
             size="icon"
-            aria-label="Kopírovať odkaz"
+            aria-label={t("copyLink")}
             onClick={copy}
           >
             {copied ? <CheckIcon /> : <CopyIcon />}
@@ -132,16 +141,16 @@ function InviteRow({
                 variant="ghost"
                 size="icon"
                 className="text-muted-foreground hover:text-destructive"
-                aria-label="Zrušiť pozvánku"
+                aria-label={t("revoke")}
               >
                 <Trash2Icon />
               </Button>
             }
-            question="Zrušiť túto pozvánku?"
-            description="Odkaz prestane fungovať. Kto sa už pridal cezeň, zostáva v skupine."
-            confirmLabel="Zrušiť"
-            cancelLabel="Nechať"
-            refusedTitle="Pozvánku sa nedá zrušiť"
+            question={t("revokeQuestion")}
+            description={t("revokeDescription")}
+            confirmLabel={common("cancel")}
+            cancelLabel={t("revokeKeep")}
+            refusedTitle={t("revokeRefused")}
             action={() => revokeInvite(groupId, invite.id)}
           />
         </>

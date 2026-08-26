@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import { getTranslations } from "next-intl/server";
 
 import { HistoryPage } from "@/components/history-page";
 import { SetupRequired } from "@/components/setup-required";
@@ -15,16 +16,17 @@ export default async function GivenPage() {
   if (access.kind === "groupless") redirect("/start");
 
   const given = await getGivenBy(access.viewer);
+  const t = await getTranslations("given");
 
   return (
     <HistoryPage
       backHref="/buying"
-      backLabel="Čo kupujem"
-      title="Čo som daroval"
-      description="Darčeky, ktoré si už odovzdal. Zostávajú tu natrvalo."
-      emptyText="Zatiaľ si nič nedaroval."
+      backLabel={t("back")}
+      title={t("title")}
+      description={t("description")}
+      emptyText={t("empty")}
       items={given}
-      personLabel="pre:"
+      personLabel={t("personLabel")}
       personName={(wish) => wish.ownerName}
       groups={access.viewer.groups}
     />

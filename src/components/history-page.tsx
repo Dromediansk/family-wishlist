@@ -1,10 +1,12 @@
 import Link from "next/link";
 import { ArrowLeftIcon } from "lucide-react";
+import { useLocale } from "next-intl";
 
 import { ArchivedGroupTags } from "@/components/group-tags";
 import { WishRow } from "@/components/wish-row";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import type { Locale } from "@/i18n/config";
 import { formatDate } from "@/lib/utils";
 import type { FulfilledWish, GroupRef } from "@/lib/types";
 
@@ -38,6 +40,7 @@ export function HistoryPage({
   personName,
   groups,
 }: Props) {
+  const locale = useLocale() as Locale;
   return (
     <div className="space-y-6">
       <div>
@@ -77,7 +80,7 @@ export function HistoryPage({
                     <span>
                       {personLabel} {personName(wish)}
                     </span>
-                    <span>{formatDate(wish.fulfilledAt)}</span>
+                    <span>{formatDate(wish.fulfilledAt, locale)}</span>
                   </div>
                 }
               />

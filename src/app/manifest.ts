@@ -8,6 +8,13 @@ export const dynamic = "force-static";
 /**
  * Makes the app installable. `short_name` is what sits under the home-screen
  * icon, so it must stay short enough that iOS does not truncate it.
+ *
+ * **Deliberately not translated**, unlike everything else a visitor reads. The
+ * name is the name in both languages, and a per-request manifest would have to
+ * give up the `force-static` above — for one sentence nobody sees after the
+ * install sheet closes. `lang` says "sk" for the same reason: it describes this
+ * document, which is Slovak, not the app the reader is about to open.
+ * docs/decisions/language.md
  */
 export default function manifest(): MetadataRoute.Manifest {
   return {

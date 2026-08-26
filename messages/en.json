@@ -1,0 +1,407 @@
+{
+  "account": {
+    "label": "Account – {name}",
+    "manageGroup": "Manage group",
+    "signOut": "Sign out"
+  },
+  "buying": {
+    "everyone": "Everyone",
+    "title": "What I'm buying",
+    "description": "Everything you have reserved, across every list.",
+    "history": "History",
+    "empty": "You haven't reserved anything yet.",
+    "wishedBy": "wished for by: {name}"
+  },
+  "common": {
+    "close": "Close",
+    "cancel": "Cancel",
+    "offline": "No connection. Changes will be sent when the network comes back.",
+    "visibleInGroup": "Visible in group",
+    "optional": "(optional)",
+    "wishCount": "{count, plural, one {# wish} other {# wishes}}"
+  },
+  "errors": {
+    "invalid": "That doesn't look right.",
+    "noName": "No name",
+    "signInFirst": "Sign in first.",
+    "pickWhoYouAre": "Choose who you are first.",
+    "notYourGroup": "This group isn't yours.",
+    "adminOnlyMembers": "Only an admin can manage a group's members.",
+    "adminOnlyInvite": "Only an admin can invite people to a group.",
+    "adminOnlyDeleteGroup": "Only an admin can delete a group.",
+    "invalidWish": "Invalid wish.",
+    "invalidGroup": "Invalid group.",
+    "titleRequired": "A name is required.",
+    "titleTooLong": "The name can be at most {max} characters.",
+    "descriptionTooLong": "The description can be at most {max} characters.",
+    "urlScheme": "The link must start with http:// or https://",
+    "pickGroup": "Pick at least one group.",
+    "photoUnreadable": "The photo could not be read.",
+    "photoTooLarge": "The photo can be at most 2 MB.",
+    "photoNotImage": "The photo must be an image (JPEG, PNG or WebP).",
+    "photoSaveFailed": "The photo could not be saved.",
+    "photoFailedWishSaved": "{reason} The wish is saved without it.",
+    "groupsNotAssigned": "The wish is saved, but its groups could not be assigned.",
+    "wishGone": "This wish doesn't exist.",
+    "claimRace": "Somebody was faster — this item is already reserved.",
+    "unclaimNotYours": "You can only release your own reservations.",
+    "fulfilNotYours": "You no longer have this reserved.",
+    "deleteReserved": "Somebody has already reserved this wish, so you cannot delete it.",
+    "deleteNotYours": "You can only delete your own wishes.",
+    "updateReserved": "Somebody has already reserved this wish, so you cannot edit it.",
+    "updateNotYours": "You can only edit your own wishes.",
+    "nameRequired": "A name is required.",
+    "nameTooLong": "The name can be at most {max} characters.",
+    "invalidMember": "Invalid member.",
+    "invalidRole": "Invalid role.",
+    "memberGone": "This member no longer exists.",
+    "lastAdmin": "There must be at least one admin.",
+    "lastAdminPromoteFirst": "There must be at least one admin. Promote somebody else first.",
+    "groupNameRequired": "A group name is required.",
+    "groupNameTooLong": "The group name can be at most {max} characters.",
+    "groupCap": "You can create at most {count, plural, one {# group} other {# groups}}.",
+    "groupCreateFailed": "The group could not be created.",
+    "groupGone": "This group no longer exists.",
+    "invalidInvite": "Invalid invite.",
+    "inviteGone": "This invite no longer exists.",
+    "inviteExpired": "This invite is no longer valid.",
+    "inviteRevokeDenied": "Only its author or an admin can revoke this invite.",
+    "joinFailed": "You could not be added to the group.",
+    "signInFailed": "Sign-in could not be started.",
+    "signInIncomplete": "Sign-in didn't finish. Try again."
+  },
+  "family": {
+    "everyone": "Everyone",
+    "title": "Managing {name}",
+    "description": "Invite somebody new, rename people, or change who can manage this list.",
+    "invitesTitle": "Invites",
+    "invitesDescription": "Whoever opens the link joins this group straight away. The link is good for 24 hours.",
+    "deleteTitle": "Delete the group",
+    "deleteDescription": "The group disappears for every one of its members."
+  },
+  "footer": {
+    "copyright": "Prajem si.. · © {year}",
+    "legalNav": "Legal information",
+    "privacy": "Privacy policy",
+    "terms": "Terms of use"
+  },
+  "given": {
+    "back": "What I'm buying",
+    "title": "What I've given",
+    "description": "Gifts you have already handed over. They stay here for good.",
+    "empty": "You haven't given anything yet.",
+    "personLabel": "for:"
+  },
+  "group": {
+    "intro": "Add something to your own list, or pick out what you'll buy for somebody else."
+  },
+  "groups": {
+    "create": {
+      "action": "Create a group",
+      "description": "You'll be its admin. You invite the others with a link.",
+      "nameLabel": "Group name",
+      "namePlaceholder": "e.g. Our family"
+    },
+    "delete": {
+      "action": "Delete",
+      "question": "Delete the group “{name}”?",
+      "description": "All of its members ({count}) will lose access and its invites will stop working. Reservations that existed only through this group will be released. This cannot be undone.",
+      "cancel": "Keep",
+      "refusedTitle": "The group cannot be deleted"
+    },
+    "switcher": {
+      "heading": "Groups",
+      "current": "Group – {name}"
+    }
+  },
+  "header": {
+    "buying": "What I'm buying"
+  },
+  "install": {
+    "prompt": "Install the app on your home screen and it opens like any other.",
+    "iosPrompt": "Add the app to your home screen: tap the share icon and choose “Add to Home Screen”.",
+    "install": "Install",
+    "dismiss": "Not now"
+  },
+  "invites": {
+    "create": "Create an invite",
+    "empty": "No invites yet.",
+    "from": "From: {name}",
+    "uses": "Used: {count}",
+    "inactive": "Inactive",
+    "copyLink": "Copy link",
+    "revoke": "Revoke invite",
+    "revokeQuestion": "Revoke this invite?",
+    "revokeDescription": "The link will stop working. Anyone who already joined through it stays in the group.",
+    "revokeKeep": "Keep",
+    "revokeRefused": "The invite cannot be revoked"
+  },
+  "legal": {
+    "backToApp": "Back to the app",
+    "effectiveFrom": "Effective from <effectiveFrom></effectiveFrom>",
+    "missing": "[TO FILL IN: {hint}]",
+    "hints": {
+      "effectiveFrom": "the effective date, for example “1 September 2026”",
+      "operatorName": "the operator's name or trading name",
+      "operatorAddress": "the operator's postal address",
+      "contactEmail": "an e-mail address the operator actually answers",
+      "hostingRegion": "the server region, and the basis for any transfer outside the EU",
+      "courtVenue": "the city whose courts have jurisdiction over disputes"
+    },
+    "privacy": {
+      "metaTitle": "Privacy policy · Prajem si..",
+      "metaDescription": "What the app stores about you, why, who can see it and for how long.",
+      "title": "Privacy policy",
+      "controller": {
+        "title": "Who processes your data",
+        "p1": "The controller is <operatorName></operatorName>, <operatorAddress></operatorAddress>. You can write to <contactEmail></contactEmail> — it is the only address at which anything about this data can be resolved.",
+        "p2": "The app is one person's non-commercial project. Nothing is sold in it, nothing is advertised, and no data is sold to anybody."
+      },
+      "stored": {
+        "title": "What we store about you",
+        "account": "<strong>Account</strong> — the e-mail address and name from your Google account. When you sign in we ask Google only for the <code>openid email profile</code> scope. We neither read nor store your Google profile picture.",
+        "groupName": "<strong>Your name and role in a group</strong> — you can have a different name in each group: “Miro” for the family, “Miroslav” for colleagues. The role is <em>admin</em> or <em>member</em>.",
+        "groups": "<strong>Groups</strong> — the ones you created and the ones you belong to.",
+        "wishes": "<strong>Wishes</strong> — the name, description, link and an optional photo, plus which of your groups each wish is visible to.",
+        "claims": "<strong>Reservations</strong> — who reserved which wish, and when.",
+        "history": "<strong>Gift history</strong> — once a gift is handed over, a record is created holding a copy of both names, the wish's name and description, its link and the group names."
+      },
+      "notStored": {
+        "title": "What we don't store",
+        "p1": "No payment details, no phone numbers, no addresses. No analytics, no traffic measurement, no error tracking, and no advertising or tracking cookies. The app sends nobody any e-mail.",
+        "p2": "Photos are shrunk and re-encoded to WebP <strong>in your browser, before they are uploaded</strong>, which also discards the location data (EXIF GPS) a phone writes into a photo. What reaches the server no longer carries it."
+      },
+      "lawfulBasis": {
+        "title": "Why we process it",
+        "contract": "<strong>Performance of a contract</strong> (Art. 6(1)(b) GDPR) — the account, memberships, wishes and reservations. Without them the app cannot do the thing you opened it for.",
+        "legitimate": "<strong>Legitimate interest</strong> (Art. 6(1)(f) GDPR) — the immutable gift history. The interest is the other party's: their record should not disappear because you left."
+      },
+      "whoSees": {
+        "title": "Who can see your data",
+        "p1": "Your wish is visible only to members of the groups you assigned it to. Groups cannot be searched for, and there is no way to request to join one — an invite link is the only way in.",
+        "p2": "<strong>The app will never tell you who reserved a wish of yours — nowhere, and at no point.</strong> You do not see reservations on your own list. The secret ends only when the person who bought the gift marks it as handed over to you.",
+        "p3": "For technical reasons the operator has access to the database and to the stored photos. They look at the data only when a fault has to be fixed."
+      },
+      "processors": {
+        "title": "Who else we entrust it to",
+        "vercel": "<strong>Vercel</strong> — running and delivering the app.",
+        "supabase": "<strong>Supabase</strong> — the database, sign-in, photo storage, and broadcasting the “something changed” signal.",
+        "google": "<strong>Google</strong> — sign-in. Google processes your data under its own rules.",
+        "region": "The server region and the legal basis for any transfer outside the EU: <hostingRegion></hostingRegion>."
+      },
+      "cookies": {
+        "title": "Cookies and local storage",
+        "p1": "Everything below is necessary for the app to work — which is why there is no consent banner. None of it tracks you.",
+        "auth": "<code>sb-*-auth-token*</code> and <code>sb-*-code-verifier</code> — your sign-in, and the safe completion of signing in through Google. The access token lasts an hour and is refreshed while you use the app.",
+        "returnTo": "<code>wishlist-return-to</code> — ten minutes, not readable by JavaScript. It carries an opened invite across the sign-in and is deleted as soon as it has been used. This is what keeps the invite out of Google's hands.",
+        "locale": "<code>wishlist-locale</code> — a year, not readable by JavaScript. It remembers which language you chose in the menu. Until you choose one, the app follows your browser's language and no cookie is set.",
+        "installPrompt": "<code>install_prompt_dismissed</code> in local storage — remembers that you dismissed the “add to home screen” prompt.",
+        "p2": "Signing in is handled entirely on the server, so no session ever ends up in the browser's local storage."
+      },
+      "retention": {
+        "title": "How long we keep it",
+        "p1": "The account, memberships, wishes and photos are kept for as long as you have an account. They are deleted when it is closed.",
+        "p2": "<strong>The gift history is the exception.</strong> A record of a handed-over gift is immutable and kept permanently, even after an account is closed: the link to the account is removed, but both names, the wish's name and description, its link and the group names remain in it, because they were copied into the record at the moment of handover. This is deliberate — otherwise one person leaving would erase a shared history for the other as well. It cannot be undone."
+      },
+      "rights": {
+        "title": "Your rights",
+        "p1": "You have the right of access to your data, to its rectification and erasure, to portability, to restriction of processing, and the right to object to processing based on legitimate interest.",
+        "correction": "<strong>Rectification</strong> — you change your name in a group directly in the app.",
+        "erasure": "<strong>Erasure and everything else</strong> — write to <contactEmail></contactEmail>. The app has no button for closing an account; it is done by hand. On erasure, the limitation described above for the gift history applies.",
+        "p2": "If you disagree with how we handle this, you may lodge a complaint with the Office for Personal Data Protection of the Slovak Republic."
+      },
+      "children": {
+        "title": "Children",
+        "p1": "An account can only be created by signing in through Google, so who may create one is decided by Google's own age rules. The app itself does not ask for an age."
+      },
+      "changes": {
+        "title": "Changes",
+        "p1": "If these rules change, we will update this page and move the effective date at the top. We will announce a substantial change in the app as well."
+      }
+    },
+    "terms": {
+      "metaTitle": "Terms of use · Prajem si..",
+      "metaDescription": "The terms the app can be used under, what to expect from it and what not to.",
+      "title": "Terms of use",
+      "about": {
+        "title": "What this is",
+        "p1": "“Prajem si..” is a wish-list app for a family, a team or a circle of friends. Everyone writes down what they'd like; everyone else can quietly pick out a gift, and the owner of the list never finds out.",
+        "p2": "It is run by <operatorName></operatorName>, <operatorAddress></operatorAddress>, contact <contactEmail></contactEmail>. It is free to use and non-commercial. By using the app you agree to these terms."
+      },
+      "account": {
+        "title": "Your account",
+        "p1": "The only way to sign in is through Google — there is no other way in. You are responsible for your Google account and for who can get at it.",
+        "p2": "An account that is in no group is an ordinary state. You don't have to join anything until somebody invites you or until you create a group yourself."
+      },
+      "groups": {
+        "title": "Groups and invites",
+        "invite": "<strong>An invite link is a key.</strong> Whoever opens it joins the group — and with it gets access to every wish in it. Send it only to people you want in there.",
+        "validity": "A link is good for 24 hours, and only a group's admin can create one.",
+        "cap": "One account can create at most five groups.",
+        "noLeaving": "<strong>You cannot leave a group yourself.</strong> The only way out is to ask an admin to remove you.",
+        "admin": "A group always has at least one admin, and any admin can delete it."
+      },
+      "content": {
+        "title": "What you write and upload",
+        "p1": "You are responsible for the names, descriptions, links and photos you add. You must have the right to use a photo you upload. A photo may be at most 2 MB, in WebP, JPEG or PNG.",
+        "p2": "Do not add anything unlawful or abusive, or anything that infringes other people's rights. Content that breaks this may be removed."
+      },
+      "moderation": {
+        "title": "Illegal content and moderation",
+        "p1": "If you see content in the app that you believe is unlawful, write to <contactEmail></contactEmail> — which group it is in, whose wish it is, and what your objection is. The operator assesses every such report and replies to the address it came from.",
+        "p2": "Moderation is done by one person, by hand. Nothing here scans content automatically, no algorithm decides on a removal, and there is no appeals procedure — there is only the same e-mail address.",
+        "p3": "When the operator removes content or closes an account, they tell the person concerned, and give the reason. You can object by replying to that same e-mail, and the route to a court always stays open."
+      },
+      "secret": {
+        "title": "The reservation secret, and its limits",
+        "p1": "You will never see on your own list who reserved what for you. The secret ends only when the person who bought the gift marks it as handed over. No deadline and no operator does it on their behalf.",
+        "p2": "Three things can nevertheless give it away, and it is only honest to name them:",
+        "hole1": "A reserved wish cannot be deleted or edited — anybody who tries this on every one of their wishes will learn which are taken. (The app never reveals <em>by whom</em>.)",
+        "hole2": "The person who bought the gift can spoil the surprise themselves by pressing <em>Given</em> too early.",
+        "hole3": "Removing a member from a group quietly releases every reservation they held."
+      },
+      "history": {
+        "title": "Gift history",
+        "p1": "Marking something “given” cannot be undone. It creates an immutable record which keeps the names and the wish's text as a copy, so it stays readable even when one of you leaves the group, when the group is deleted, or when somebody closes their account. It cannot be reversed."
+      },
+      "availability": {
+        "title": "Availability and warranty",
+        "p1": "The app is one person's project, runs on free services and is administered by hand. There is no team behind it, no on-call rota and no support line.",
+        "p2": "It is provided <strong>“as is”</strong>, with no guarantee of continuous availability. It may be unavailable for a while, something may break, or it may one day stop running altogether. Keep your own copy of anything you care about."
+      },
+      "liability": {
+        "title": "Limitation of liability",
+        "p1": "To the extent Slovak law allows, the operator is not liable for damage arising from use of the app — including unavailability, loss of data, a surprise given away, or a gift two people bought."
+      },
+      "termination": {
+        "title": "Ending it",
+        "p1": "You can request that your account be closed at <contactEmail></contactEmail>. The details of what is deleted and what remains are in the <privacy>Privacy policy</privacy>.",
+        "p2": "The operator may remove an account that breaks these terms."
+      },
+      "changes": {
+        "title": "Changes to these terms",
+        "p1": "These terms may change; the version on this page, with the effective date at the top, is always the one that applies. We will announce a substantial change in the app as well."
+      },
+      "law": {
+        "title": "Governing law",
+        "p1": "This relationship is governed by the law of the Slovak Republic. The courts of <courtVenue></courtVenue> have jurisdiction over disputes."
+      }
+    }
+  },
+  "list": {
+    "everyone": "Everyone",
+    "ownTitle": "My wish list",
+    "peerTitle": "{name} would like",
+    "ownIntro": "Add anything you'd like. You won't find out who picked what.",
+    "peerIntro": "Reserve it, so nobody else buys it too.",
+    "received": "What I've received",
+    "ownEmpty": "Your list is empty. Add your first wish above.",
+    "peerEmpty": "There are no wishes on this list yet."
+  },
+  "login": {
+    "name": "Prajem si..",
+    "pitch": "Write down what you'd like.<break></break> Everyone else quietly picks a gift, and you find out nothing until the last moment.",
+    "signIn": "Sign in",
+    "footnote": "Signing in gives you your own account. After that, start a group or open an invite somebody sent you.",
+    "footnoteInvite": "Once you sign in, the invite will add you to the group."
+  },
+  "members": {
+    "adminBadge": "admin",
+    "canManageMembers": "Can manage group members",
+    "save": "Save",
+    "remove": "Remove",
+    "roleAdmin": "Admin",
+    "roleMember": "Member",
+    "demoteHint": "Change to an ordinary member",
+    "promoteHint": "Allow managing the group's members",
+    "nameFor": "Name for {name}",
+    "removeFor": "Remove {name}",
+    "removeQuestion": "Remove <strong>{name}</strong> from the group? Their list ({wishes}) stays theirs. Reservations that existed only through membership of this group will be released. They can only come back through a new invite."
+  },
+  "metadata": {
+    "name": "Prajem si..",
+    "description": "What everyone would like, and who is quietly getting it."
+  },
+  "notFound": {
+    "title": "There's no such page here",
+    "description": "The link may be out of date, or a letter may have gone missing from the address. Try again from the start.",
+    "back": "Back to the family list"
+  },
+  "received": {
+    "back": "My list",
+    "title": "What I've received",
+    "description": "Wishes that came true, and who granted them.",
+    "empty": "You haven't received a gift yet.",
+    "personLabel": "from:"
+  },
+  "setup": {
+    "title": "One more step — connect a database",
+    "description": "The app needs a Supabase project before it can store anything.",
+    "step1": "Create a free project at <dashboard>supabase.com/dashboard</dashboard>.",
+    "step2": "Open the SQL editor and run <code>supabase/migrations/0001_init.sql</code> from this repository.",
+    "step3": "Copy <code>.env.example</code> to <code>.env.production.local</code> and fill in your project's URL and its <strong>service_role</strong> key.",
+    "step4": "Restart the development server.",
+    "docs": "The full walkthrough is in <code>docs/setup</code>."
+  },
+  "start": {
+    "back": "Back",
+    "welcome": "Welcome!",
+    "anotherGroup": "Another group",
+    "intro": "A group is a family or a circle of people who can see each other's wish lists. Start your own, or join somebody else's.",
+    "createTitle": "Create a group",
+    "createDescription": "Start a new group. You'll be its admin, and you invite the others with a link.",
+    "joinTitle": "Join a group",
+    "joinDescription": "Open an invite somebody sent you.",
+    "joinHint": "The link adds you to the group by itself."
+  },
+  "wishes": {
+    "claim": "I'll buy this",
+    "release": "I'm not buying this",
+    "claimedBy": "{name} is buying this",
+    "claimedBySomeone": "Somebody is already buying this",
+    "form": {
+      "title": "Name",
+      "titlePlaceholder": "e.g. Woollen socks, size 42",
+      "description": "Description",
+      "descriptionPlaceholder": "Colour, size or anything else worth knowing.",
+      "url": "Link",
+      "visibleInGroups": "Visible in groups",
+      "photo": "Photo"
+    },
+    "add": {
+      "action": "Add a wish",
+      "description": "It goes on your own list."
+    },
+    "edit": {
+      "trigger": "Edit {title}",
+      "title": "Edit wish",
+      "description": "Change the details of this wish.",
+      "submit": "Save changes"
+    },
+    "delete": {
+      "trigger": "Delete {title}",
+      "question": "Delete “{title}”?",
+      "refusedTitle": "“{title}” cannot be deleted",
+      "description": "It will be removed from your list for good.",
+      "confirm": "Delete",
+      "cancel": "Keep"
+    },
+    "fulfil": {
+      "action": "Given",
+      "question": "Given “{title}”?",
+      "refusedTitle": "“{title}” cannot be marked",
+      "description": "{name} will see that this gift is from you. The wish disappears from the list, and this cannot be undone.",
+      "cancel": "Not yet"
+    },
+    "photo": {
+      "open": "View photo: {title}",
+      "alt": "Photo: {title}",
+      "choose": "Choose a photo",
+      "replace": "Choose another",
+      "remove": "Remove photo",
+      "dropHint": "or drop an image here",
+      "tooLarge": "The photo is too large. Try a smaller image.",
+      "unreadable": "The photo could not be read. Try another image."
+    }
+  }
+}

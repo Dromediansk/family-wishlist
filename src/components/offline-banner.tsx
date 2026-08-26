@@ -2,6 +2,7 @@
 
 import { useOffline } from "next/offline";
 import { WifiOffIcon } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 /**
  * Shown while the phone cannot reach the server. Next holds and replays the
@@ -10,6 +11,7 @@ import { WifiOffIcon } from "lucide-react";
  */
 export function OfflineBanner() {
   const isOffline = useOffline();
+  const t = useTranslations("common");
 
   if (!isOffline) return null;
 
@@ -19,7 +21,7 @@ export function OfflineBanner() {
       className="bg-destructive text-destructive-foreground mb-4 flex items-center gap-2 rounded-lg px-4 py-3"
     >
       <WifiOffIcon className="size-5 shrink-0" />
-      Bez pripojenia. Zmeny sa odošlú, keď sa sieť vráti.
+      {t("offline")}
     </div>
   );
 }

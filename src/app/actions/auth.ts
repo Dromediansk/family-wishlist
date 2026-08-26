@@ -3,6 +3,7 @@
 import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
 
+import { getErrorText } from "@/i18n/errors";
 import { RETURN_TO_COOKIE, safeReturnTo } from "@/lib/invites";
 import { createAuthClient } from "@/lib/supabase-auth";
 
@@ -72,8 +73,10 @@ export async function signInWithGoogle(formData?: FormData) {
   });
 
   if (error || !data.url) {
+    // Google's own message comes through untranslated when there is one — it
+    // says more than a generic sentence, even in the wrong language.
     const message = encodeURIComponent(
-      error?.message ?? "Prihlásenie sa nepodarilo spustiť.",
+      error?.message ?? (await getErrorText())("signInFailed"),
     );
     // Carries the invite along, so pressing the button again still lands in the
     // group rather than losing the link to a failed first attempt.

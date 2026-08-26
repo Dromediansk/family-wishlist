@@ -3,6 +3,7 @@ import "server-only";
 import { cache } from "react";
 import { z } from "zod";
 
+import { getErrorText, type ErrorKey } from "@/i18n/errors";
 import { resolveAccess, seedPeers, type Access } from "@/lib/access";
 import { asGroupId, asMembershipId, asUserId, type UserId } from "@/lib/ids";
 import { getSupabase } from "@/lib/supabase";
@@ -151,13 +152,15 @@ export const enterGroup = cache(
 export async function requireGroup(
   groupId: string,
 ): Promise<{ ok: true; ctx: GroupContext } | { ok: false; error: string }> {
+  const text = await getErrorText();
+
   // Both are memoised and `enterGroup` asks the same question anyway, so this
   // costs nothing and keeps "you are not signed in" from being reported as
   // "that group is not yours".
-  if (!(await getViewer())) return { ok: false, error: "Najprv sa prihlás." };
+  if (!(await getViewer())) return { ok: false, error: text("signInFirst") };
 
   const ctx = await enterGroup(groupId);
-  if (!ctx) return { ok: false, error: "Táto skupina ti nepatrí." };
+  if (!ctx) return { ok: false, error: text("notYourGroup") };
   return { ok: true, ctx };
 }
 
@@ -166,18 +169,21 @@ export async function requireGroup(
  * group* — being one elsewhere is not cover. An admin-only **page** re-checks
  * with `isGroupAdmin(ctx)` in its own body; a hidden menu item is not a guard.
  *
- * `refusal` says which admin-only work was asked for, because "len správca" on
- * its own leaves the reader guessing what they were refused.
+ * `refusal` names which admin-only work was asked for, because "admins only"
+ * on its own leaves the reader guessing what they were refused. It is a
+ * message key rather than a sentence, so a caller cannot hand this a string
+ * that is only in one language.
  */
 export async function requireGroupAdmin(
   groupId: string,
-  refusal = "Členov skupiny môže spravovať len správca.",
+  refusal: ErrorKey = "adminOnlyMembers",
 ): Promise<{ ok: true; ctx: GroupContext } | { ok: false; error: string }> {
   const permitted = await requireGroup(groupId);
   if (!permitted.ok) return permitted;
 
   if (!isGroupAdmin(permitted.ctx)) {
-    return { ok: false, error: refusal };
+    const text = await getErrorText();
+    return { ok: false, error: text(refusal) };
   }
   return permitted;
 }
@@ -196,7 +202,10 @@ export async function getAccountName(viewer: Viewer): Promise<string> {
     .maybeSingle();
 
   if (error) throw error;
-  return (data as { name: string } | null)?.name ?? "Bez mena";
+  if (data) return (data as { name: string }).name;
+
+  const text = await getErrorText();
+  return text("noName");
 }
 
 /**
@@ -235,6 +244,10 @@ export async function ensureAppUser(
   const { error: insertError } = await supabase.from("app_users").insert({
     auth_user_id: authUserId,
     email,
+    // Not translated, and deliberately: this is a row being written, not a
+    // label being rendered. It mirrors handle_new_auth_user's own fallback in
+    // supabase/migrations/, and a stored name that depended on the browser
+    // language at sign-up would be the wrong kind of surprise.
     name: email?.split("@")[0]?.slice(0, 50) || "Bez mena",
   });
 

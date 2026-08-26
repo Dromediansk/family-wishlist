@@ -1,6 +1,7 @@
 "use client";
 
 import { Trash2Icon } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 import { deleteGroup } from "@/app/actions/groups";
 import { ConfirmActionDialog } from "@/components/confirm-action-dialog";
@@ -21,22 +22,24 @@ export function DeleteGroupButton({
   groupName: string;
   memberCount: number;
 }) {
+  const t = useTranslations("groups.delete");
   return (
     <ConfirmActionDialog
       trigger={
         <Button variant="destructive" className="w-full sm:w-auto">
           <Trash2Icon />
-          Vymazať
+          {t("action")}
         </Button>
       }
-      question={`Vymazať skupinu „${groupName}“?`}
-      /* The count sits in brackets on purpose: the noun and its verb decline
-         differently at 1 / 2–4 / 5+, and a bracket needs neither. */
-      description={`Prístup k nej stratia všetci jej členovia (${memberCount}) a pozvánky prestanú platiť. Rezervácie, ktoré existovali len vďaka tejto skupine, sa uvoľnia. Vrátiť sa to nedá.`}
-      confirmLabel="Vymazať"
-      cancelLabel="Nechať"
+      question={t("question", { name: groupName })}
+      /* The count sits in brackets on purpose: in Slovak the noun and its verb
+         decline differently at 1 / 2-4 / 5+, and a bracket needs neither. It
+         reads the same way in English, so the message keeps the shape. */
+      description={t("description", { count: memberCount })}
+      confirmLabel={t("action")}
+      cancelLabel={t("cancel")}
       confirmVariant="destructive"
-      refusedTitle="Skupinu sa nedá vymazať"
+      refusedTitle={t("refusedTitle")}
       action={() => deleteGroup(groupId)}
     />
   );

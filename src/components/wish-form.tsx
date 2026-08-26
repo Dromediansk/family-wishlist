@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { useTranslations } from "next-intl";
 
 import { Button } from "@/components/ui/button";
 import { DialogBody, DialogFooter } from "@/components/ui/dialog";
@@ -61,6 +62,9 @@ export function WishForm({
   onSubmit,
   onDone,
 }: Props) {
+  const t = useTranslations("wishes.form");
+  const common = useTranslations("common");
+
   const blank: WishFormValues = { ...EMPTY_TEXT, groupIds: defaultGroupIds };
   const [values, setValues] = useState<WishFormValues>(initial ?? blank);
   const [failure, setFailure] = useState<ActionFailure | null>(null);
@@ -103,12 +107,12 @@ export function WishForm({
     <form onSubmit={handleSubmit} className="flex min-h-0 flex-1 flex-col">
       <DialogBody className="flex flex-col gap-4">
         <div className="flex flex-col gap-2">
-          <Label htmlFor="wish-title">Názov</Label>
+          <Label htmlFor="wish-title">{t("title")}</Label>
           <Input
             id="wish-title"
             value={values.title}
             onChange={(event) => update("title", event.target.value)}
-            placeholder="napr. Vlnené ponožky, veľkosť 42"
+            placeholder={t("titlePlaceholder")}
             maxLength={120}
             autoFocus
             required
@@ -117,20 +121,22 @@ export function WishForm({
 
         <div className="flex flex-col gap-2">
           <Label htmlFor="wish-description">
-            Popis <span className="text-muted-foreground">(nepovinné)</span>
+            {t("description")}{" "}
+            <span className="text-muted-foreground">{common("optional")}</span>
           </Label>
           <Textarea
             id="wish-description"
             value={values.description}
             onChange={(event) => update("description", event.target.value)}
-            placeholder="Farba, veľkosť alebo čokoľvek iné, čo je dobré vedieť."
+            placeholder={t("descriptionPlaceholder")}
             maxLength={1000}
           />
         </div>
 
         <div className="flex flex-col gap-2">
           <Label htmlFor="wish-url">
-            Odkaz <span className="text-muted-foreground">(nepovinné)</span>
+            {t("url")}{" "}
+            <span className="text-muted-foreground">{common("optional")}</span>
           </Label>
           <Input
             id="wish-url"
@@ -144,7 +150,7 @@ export function WishForm({
 
         {groupsWorthNaming(groups) ? (
           <div className="flex flex-col gap-2">
-            <Label>Viditeľné v skupinách</Label>
+            <Label>{t("visibleInGroups")}</Label>
             {/*
              * Two columns at every width. Half a full-screen phone dialog is
              * about eleven characters at 17px, so a long name wraps rather than
@@ -179,7 +185,8 @@ export function WishForm({
 
         <div className="flex flex-col gap-2">
           <Label htmlFor="wish-photo">
-            Fotka <span className="text-muted-foreground">(nepovinné)</span>
+            {t("photo")}{" "}
+            <span className="text-muted-foreground">{common("optional")}</span>
           </Label>
           <WishPhotoField
             id="wish-photo"
@@ -210,7 +217,7 @@ export function WishForm({
             className={ACTION_BUTTON}
             onClick={onDone}
           >
-            Zavrieť
+            {common("close")}
           </Button>
         ) : (
           <Button

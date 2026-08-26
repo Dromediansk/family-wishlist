@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { useTranslations } from "next-intl";
 
 import {
   AlertDialog,
@@ -49,6 +50,7 @@ export function ConfirmActionDialog({
   refusedTitle,
   action,
 }: Props) {
+  const closeLabel = useTranslations("common")("close");
   const [failure, setFailure] = useState<ActionFailure | null>(null);
   const [pending, startTransition] = useTransition();
 
@@ -79,7 +81,9 @@ export function ConfirmActionDialog({
           </AlertDialogBody>
         ) : null}
         <AlertDialogFooter>
-          <AlertDialogCancel>{refused ? "Zavrieť" : cancelLabel}</AlertDialogCancel>
+          <AlertDialogCancel>
+            {refused ? closeLabel : cancelLabel}
+          </AlertDialogCancel>
           {refused ? null : (
             <AlertDialogAction
               variant={confirmVariant}

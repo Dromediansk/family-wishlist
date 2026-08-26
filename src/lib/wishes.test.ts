@@ -1,4 +1,8 @@
+import { createTranslator } from "next-intl";
 import { describe, expect, it } from "vitest";
+
+import en from "../../messages/en.json";
+import sk from "../../messages/sk.json";
 
 import { asGroupId, asUserId, type GroupId, type UserId } from "@/lib/ids";
 import {
@@ -190,46 +194,46 @@ describe("refusalFor", () => {
   const reserved = { claimed_by_user_id: claimerId };
   const free = { claimed_by_user_id: null };
 
-  it("says the wish is reserved when deleting one somebody holds", () => {
-    expect(refusalFor(reserved, "delete").error).toBe(
-      "Toto želanie už má niekto rezervované, preto ho nemôžeš vymazať.",
-    );
+  it("picks the reserved wording for a wish somebody holds", () => {
+    expect(refusalFor(reserved, "delete").key).toBe("deleteReserved");
+    expect(refusalFor(reserved, "update").key).toBe("updateReserved");
   });
 
-  it("says the same when editing one somebody holds", () => {
-    expect(refusalFor(reserved, "update").error).toBe(
-      "Toto želanie už má niekto rezervované, preto ho nemôžeš upraviť.",
-    );
-  });
-
-  it("never names the person holding it", () => {
-    expect(refusalFor(reserved, "delete").error).not.toContain(claimerId);
-    expect(refusalFor(reserved, "update").error).not.toContain(claimerId);
-  });
-
-  it("falls back to the ownership message for a row that is not reserved", () => {
+  it("falls back to the ownership wording for a row that is not reserved", () => {
     // Unreserved and unmatched are the same answer: whatever went wrong, it was
     // not a claim, so the owner learns nothing about claims either way.
-    expect(refusalFor(free, "delete").error).toBe(
-      "Mazať môžeš len vlastné želania.",
-    );
-    expect(refusalFor(free, "update").error).toBe(
-      "Upravovať môžeš len vlastné želania.",
-    );
+    expect(refusalFor(free, "delete").key).toBe("deleteNotYours");
+    expect(refusalFor(free, "update").key).toBe("updateNotYours");
   });
 
-  it("falls back to the same message when nothing matched at all", () => {
-    expect(refusalFor(null, "delete").error).toBe(
-      "Mazať môžeš len vlastné želania.",
-    );
-    expect(refusalFor(null, "update").error).toBe(
-      "Upravovať môžeš len vlastné želania.",
-    );
+  it("falls back to the same wording when nothing matched at all", () => {
+    expect(refusalFor(null, "delete").key).toBe("deleteNotYours");
+    expect(refusalFor(null, "update").key).toBe("updateNotYours");
   });
 
   it("marks a refusal final, so no dialog offers a retry that cannot work", () => {
     expect(refusalFor(reserved, "delete").final).toBe(true);
     expect(refusalFor(null, "update").final).toBe(true);
+  });
+
+  /*
+   * PRIVACY-RULE: the refusal an owner reads when a reserved wish will not
+   * budge must say that it is reserved and never by whom — in every language
+   * the app has. Rendering the real catalogues is what makes a careless
+   * translation fail here rather than in front of an owner.
+   */
+  it("never names the holder, in any language", () => {
+    for (const [locale, messages] of [
+      ["sk", sk],
+      ["en", en],
+    ] as const) {
+      const t = createTranslator({ locale, messages, namespace: "errors" });
+      for (const operation of ["delete", "update"] as const) {
+        const sentence = t(refusalFor(reserved, operation).key);
+        expect(sentence).not.toContain(claimerId);
+        expect(sentence.trim()).not.toBe("");
+      }
+    }
   });
 });
 
@@ -254,3 +258,4 @@ describe("wishPhotoUrl", () => {
     expect(before).not.toBe(after);
   });
 });
+
