@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeftIcon, PackageCheckIcon } from "lucide-react";
+import { getTranslations } from "next-intl/server";
 
 import { AddWishDialog } from "@/components/add-wish-dialog";
 import { ClaimButton } from "@/components/claim-button";
@@ -38,6 +39,7 @@ export default async function MemberPage({
   if (!owner) notFound();
 
   const list = await getWishListFor(ctx, owner.id);
+  const t = await getTranslations("list");
 
   return (
     <div className="space-y-6">
@@ -45,7 +47,7 @@ export default async function MemberPage({
         <Button variant="ghost" size="sm" asChild className="-ml-4">
           <Link href={`/g/${ctx.groupId}`}>
             <ArrowLeftIcon />
-            Všetci
+            {t("everyone")}
           </Link>
         </Button>
       </div>
@@ -54,13 +56,11 @@ export default async function MemberPage({
         <div>
           <h1 className="text-2xl font-semibold text-balance">
             {list.viewerIsOwner
-              ? "Môj zoznam želaní"
-              : `Toto si praje ${owner.name}`}
+              ? t("ownTitle")
+              : t("peerTitle", { name: owner.name })}
           </h1>
           <p className="text-muted-foreground mt-1 max-w-[62ch]">
-            {list.viewerIsOwner
-              ? "Pridaj si čokoľvek, čo by si chcel. Nedozvieš sa, kto si čo vybral."
-              : "Rezervuj si to, aby to nekúpil ešte niekto ďalší."}
+            {list.viewerIsOwner ? t("ownIntro") : t("peerIntro")}
           </p>
         </div>
         {list.viewerIsOwner ? (
@@ -68,7 +68,7 @@ export default async function MemberPage({
             <Button variant="ghost" size="sm" asChild>
               <Link href="/received">
                 <PackageCheckIcon />
-                Čo som dostal
+                {t("received")}
               </Link>
             </Button>
             <AddWishDialog
@@ -82,9 +82,7 @@ export default async function MemberPage({
 
       {list.wishes.length === 0 ? (
         <Card className="text-muted-foreground items-center py-12 text-center">
-          {list.viewerIsOwner
-            ? "Tvoj zoznam je prázdny. Pridaj si vyššie prvé želanie."
-            : "V tomto zozname zatiaľ nie sú žiadne želania."}
+          {list.viewerIsOwner ? t("ownEmpty") : t("peerEmpty")}
         </Card>
       ) : (
         <Card className="py-2">

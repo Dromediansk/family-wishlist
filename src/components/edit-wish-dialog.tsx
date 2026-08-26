@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { PencilIcon, Trash2Icon } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 import { deleteWish, updateWish } from "@/app/actions/wishes";
 import { ConfirmActionDialog } from "@/components/confirm-action-dialog";
@@ -26,6 +27,7 @@ export function EditWishDialog({
   wish: TaggedWish;
   groups: readonly GroupRef[];
 }) {
+  const t = useTranslations("wishes.edit");
   const [open, setOpen] = useState(false);
 
   /*
@@ -40,15 +42,15 @@ export function EditWishDialog({
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="ghost" size="icon" aria-label={`Upraviť ${wish.title}`}>
+        <Button variant="ghost" size="icon" aria-label={t("trigger", { title: wish.title })}>
           <PencilIcon />
         </Button>
       </DialogTrigger>
       {/* `sm:`-qualified, or the width leaks down and un-fullscreens the phone. */}
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Upraviť želanie</DialogTitle>
-          <DialogDescription>Zmeň podrobnosti tohto želania.</DialogDescription>
+          <DialogTitle>{t("title")}</DialogTitle>
+          <DialogDescription>{t("description")}</DialogDescription>
         </DialogHeader>
         <WishForm
           initial={{
@@ -60,7 +62,7 @@ export function EditWishDialog({
           }}
           initialPhotoUrl={wishPhotoUrl(wish)}
           groups={groups}
-          submitLabel="Uložiť zmeny"
+          submitLabel={t("submit")}
           onSubmit={(values) => updateWish(wish.id, values)}
           onDone={() => setOpen(false)}
         />
@@ -70,23 +72,24 @@ export function EditWishDialog({
 }
 
 export function DeleteWishButton({ wish }: { wish: OwnerWish }) {
+  const t = useTranslations("wishes.delete");
   return (
     <ConfirmActionDialog
       trigger={
         <Button
           variant="ghost"
           size="icon"
-          aria-label={`Vymazať ${wish.title}`}
+          aria-label={t("trigger", { title: wish.title })}
           className="text-muted-foreground hover:text-destructive"
         >
           <Trash2Icon />
         </Button>
       }
-      question={`Vymazať „${wish.title}“?`}
-      refusedTitle={`Nedá sa vymazať „${wish.title}“`}
-      description="Natrvalo sa odstráni z tvojho zoznamu."
-      confirmLabel="Vymazať"
-      cancelLabel="Ponechať"
+      question={t("question", { title: wish.title })}
+      refusedTitle={t("refusedTitle", { title: wish.title })}
+      description={t("description")}
+      confirmLabel={t("confirm")}
+      cancelLabel={t("cancel")}
       action={() => deleteWish(wish.id)}
     />
   );

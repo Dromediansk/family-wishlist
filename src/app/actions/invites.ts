@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 
+import { getErrorText } from "@/i18n/errors";
 import {
   enterGroup,
   getAccountName,
@@ -17,13 +18,14 @@ import {
   markInviteUsed,
   revokeInviteRow,
 } from "@/lib/data/invites";
-import { INVITE_EXPIRED_MESSAGE, inviteUsable } from "@/lib/invites";
+import { INVITE_EXPIRED_KEY, inviteUsable } from "@/lib/invites";
 import { notifyChanged } from "@/lib/realtime";
 import { getSupabase } from "@/lib/supabase";
 import type { ActionResult } from "@/lib/types";
 import { canRevokeInvite } from "@/lib/visibility";
 
-const inviteIdSchema = z.uuid("Neplatná pozvánka.");
+// A message key, not a sentence. docs/decisions/language.md
+const inviteIdSchema = z.uuid("invalidInvite");
 
 /**
  * Only an admin may open the door. The link *is* the permission — an
@@ -34,10 +36,7 @@ const inviteIdSchema = z.uuid("Neplatná pozvánka.");
 export async function createInvite(
   groupId: string,
 ): Promise<ActionResult & { token?: string }> {
-  const permitted = await requireGroupAdmin(
-    groupId,
-    "Pozvať do skupiny môže len jej správca.",
-  );
+  const permitted = await requireGroupAdmin(groupId, "adminOnlyInvite");
   if (!permitted.ok) return permitted;
 
   const { ctx } = permitted;
@@ -63,9 +62,11 @@ export async function revokeInvite(
 
   const { ctx } = permitted;
 
+  const text = await getErrorText();
+
   const parsedInvite = inviteIdSchema.safeParse(inviteId);
   if (!parsedInvite.success) {
-    return { ok: false, error: parsedInvite.error.issues[0].message };
+    return { ok: false, error: text("invalidInvite") };
   }
 
   // A read, not a pre-check standing in for a predicate: `canRevokeInvite`
@@ -74,13 +75,13 @@ export async function revokeInvite(
   // member's "only mine" while still telling the two refusals apart.
   const invite = await findInviteInGroup(ctx, parsedInvite.data);
   if (!invite) {
-    return { ok: false, error: "Táto pozvánka už neexistuje.", final: true };
+    return { ok: false, error: text("inviteGone"), final: true };
   }
 
   if (!canRevokeInvite(ctx, invite)) {
     return {
       ok: false,
-      error: "Túto pozvánku môže zrušiť len jej autor alebo správca.",
+      error: text("inviteRevokeDenied"),
       final: true,
     };
   }
@@ -88,7 +89,7 @@ export async function revokeInvite(
   // The scoped update is the guard that actually runs — the read above only
   // chose which refusal to show, and could in principle be stale by now.
   const revoked = await revokeInviteRow(ctx, parsedInvite.data);
-  if (!revoked) return { ok: false, error: "Táto pozvánka už neexistuje." };
+  if (!revoked) return { ok: false, error: text("inviteGone") };
 
   revalidatePath("/", "layout");
   await notifyChanged([ctx.groupId]);
@@ -103,13 +104,15 @@ export async function revokeInvite(
  * docs/decisions/groups-and-invites.md#invites
  */
 export async function joinWithInvite(token: string): Promise<ActionResult> {
+  const text = await getErrorText();
+
   const invite = await findInviteByToken(token);
   if (!invite || !inviteUsable(invite, new Date())) {
-    return { ok: false, error: INVITE_EXPIRED_MESSAGE, final: true };
+    return { ok: false, error: text(INVITE_EXPIRED_KEY), final: true };
   }
 
   const viewer = await getViewer();
-  if (!viewer) return { ok: false, error: "Najprv sa prihlás." };
+  if (!viewer) return { ok: false, error: text("signInFirst") };
 
   // Already a member: the door is open for them, and it stays that way
   // without spending one of this link's uses.
@@ -129,7 +132,7 @@ export async function joinWithInvite(token: string): Promise<ActionResult> {
     .select("id");
 
   if (error || !data || data.length === 0) {
-    return { ok: false, error: "Nepodarilo sa pridať do skupiny." };
+    return { ok: false, error: text("joinFailed") };
   }
 
   // The membership row above is what actually admitted this caller — a

@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { MapPinOffIcon } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -19,22 +20,20 @@ import {
  * would hide the fact that the address is simply wrong.
  */
 export default function NotFound() {
+  const t = useTranslations("notFound");
   return (
     <main className="flex-1">
       <Card className="mx-auto max-w-md">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <MapPinOffIcon className="text-primary size-6 shrink-0" />
-            Takáto stránka tu nie je
+            {t("title")}
           </CardTitle>
-          <CardDescription>
-            Možno je odkaz zastaraný, alebo sa v adrese stratilo písmenko. Skús
-            to od začiatku.
-          </CardDescription>
+          <CardDescription>{t("description")}</CardDescription>
         </CardHeader>
 
         <Button size="lg" asChild className="w-full">
-          <Link href="/">Späť na zoznam rodiny</Link>
+          <Link href="/">{t("back")}</Link>
         </Button>
       </Card>
     </main>

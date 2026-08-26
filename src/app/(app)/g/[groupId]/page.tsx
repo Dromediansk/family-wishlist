@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation";
+import { getTranslations } from "next-intl/server";
 
 import { MemberCard } from "@/components/member-card";
 import { SetupRequired } from "@/components/setup-required";
@@ -22,6 +23,7 @@ export default async function GroupPage({
   if (!ctx) notFound();
 
   const members = await getMemberSummaries(ctx);
+  const t = await getTranslations("group");
 
   return (
     <div className="space-y-6">
@@ -30,8 +32,7 @@ export default async function GroupPage({
           {ctx.groupName}
         </h1>
         <p className="text-muted-foreground mt-1 max-w-[62ch]">
-          Pridaj si niečo do vlastného zoznamu alebo si vyber, čo kúpiš niekomu
-          inému.
+          {t("intro")}
         </p>
       </div>
 

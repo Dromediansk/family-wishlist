@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { ArrowLeftIcon } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 /**
  * `(legal)` adds nothing to either URL. It exists for the same reason `(app)`
@@ -13,6 +14,7 @@ import { ArrowLeftIcon } from "lucide-react";
 export default function LegalLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
+  const t = useTranslations("legal");
   return (
     <main className="flex-1">
       {/*
@@ -24,7 +26,7 @@ export default function LegalLayout({
         className="text-muted-foreground hover:text-foreground mb-8 inline-flex items-center gap-2 text-sm"
       >
         <ArrowLeftIcon className="size-4 shrink-0" />
-        Späť do appky
+        {t("backToApp")}
       </Link>
 
       {children}

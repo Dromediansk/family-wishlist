@@ -1,4 +1,5 @@
 import type { NextConfig } from "next";
+import createNextIntlPlugin from "next-intl/plugin";
 
 const nextConfig: NextConfig = {
   experimental: {
@@ -31,4 +32,5 @@ const nextConfig: NextConfig = {
   },
 };
 
-export default nextConfig;
+/** Called bare, so it resolves its default path, `./src/i18n/request.ts`. */
+export default createNextIntlPlugin()(nextConfig);

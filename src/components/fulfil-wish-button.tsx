@@ -1,6 +1,7 @@
 "use client";
 
 import { PackageCheckIcon } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 import { fulfilWish } from "@/app/actions/wishes";
 import { ConfirmActionDialog } from "@/components/confirm-action-dialog";
@@ -24,19 +25,20 @@ export function FulfilWishButton({
   title: string;
   ownerName: string;
 }) {
+  const t = useTranslations("wishes.fulfil");
   return (
     <ConfirmActionDialog
       trigger={
         <Button variant="outline">
           <PackageCheckIcon />
-          Darované
+          {t("action")}
         </Button>
       }
-      question={`Darované „${title}“?`}
-      refusedTitle={`„${title}“ sa nedá označiť`}
-      description={`${ownerName} uvidí, že tento darček je od teba. Želanie zmizne zo zoznamu a späť sa to už vrátiť nedá.`}
-      confirmLabel="Darované"
-      cancelLabel="Ešte nie"
+      question={t("question", { title })}
+      refusedTitle={t("refusedTitle", { title })}
+      description={t("description", { name: ownerName })}
+      confirmLabel={t("action")}
+      cancelLabel={t("cancel")}
       action={() => fulfilWish(wishId)}
     />
   );

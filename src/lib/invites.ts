@@ -29,10 +29,11 @@ export function inviteUsable(invite: InviteState, now: Date): boolean {
 
 /**
  * The one refusal shown for a revoked, expired, or exhausted invite — a shared
- * constant so the join route and `joinWithInvite` cannot drift onto two
- * different sentences. docs/decisions/groups-and-invites.md#invites
+ * key so the join route and `joinWithInvite` cannot drift onto two different
+ * sentences, in either language. Both sites word it with `getErrorText`.
+ * docs/decisions/groups-and-invites.md#invites
  */
-export const INVITE_EXPIRED_MESSAGE = "Táto pozvánka už neplatí.";
+export const INVITE_EXPIRED_KEY = "inviteExpired" as const;
 
 /**
  * Where a sign-in may send the browser afterwards, and the cookie that carries

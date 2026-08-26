@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { PlusIcon } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 import { createGroup } from "@/app/actions/groups";
 import { SubmitButton } from "@/components/submit-button";
@@ -30,6 +31,8 @@ const FIELD = "group-name";
  * sends; the owner comes from the session.
  */
 export function CreateGroupDialog() {
+  const t = useTranslations("groups.create");
+  const common = useTranslations("common");
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [failure, setFailure] = useState<ActionFailure | null>(null);
@@ -65,16 +68,14 @@ export function CreateGroupDialog() {
       <DialogTrigger asChild>
         <Button className="w-full sm:w-auto">
           <PlusIcon />
-          Vytvoriť skupinu
+          {t("action")}
         </Button>
       </DialogTrigger>
       {/* `sm:`-qualified, or the width leaks down and un-fullscreens the phone. */}
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Vytvoriť skupinu</DialogTitle>
-          <DialogDescription>
-            Budeš jej správca. Ostatných do nej pozveš odkazom.
-          </DialogDescription>
+          <DialogTitle>{t("action")}</DialogTitle>
+          <DialogDescription>{t("description")}</DialogDescription>
         </DialogHeader>
         {/*
          * The form *is* the body and footer, not a block inside them, so the
@@ -83,12 +84,12 @@ export function CreateGroupDialog() {
         <form action={submit} className="flex min-h-0 flex-1 flex-col">
           <DialogBody className="flex flex-col gap-4">
             <div className="flex flex-col gap-2">
-              <Label htmlFor={FIELD}>Názov skupiny</Label>
+              <Label htmlFor={FIELD}>{t("nameLabel")}</Label>
               <Input
                 id={FIELD}
                 name={FIELD}
                 defaultValue=""
-                placeholder="napr. Naša rodina"
+                placeholder={t("namePlaceholder")}
                 maxLength={60}
                 autoFocus
                 required
@@ -113,12 +114,12 @@ export function CreateGroupDialog() {
                   variant="outline"
                   className="w-full sm:w-auto"
                 >
-                  Zavrieť
+                  {common("close")}
                 </Button>
               </DialogClose>
             ) : (
               <SubmitButton size="lg" className="w-full sm:w-auto">
-                Vytvoriť skupinu
+                {t("action")}
               </SubmitButton>
             )}
           </DialogFooter>

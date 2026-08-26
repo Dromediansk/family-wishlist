@@ -27,7 +27,7 @@ export default function FamilyLoading() {
         ))}
       </Card>
 
-      {/* Mirrors the Pozvánky section: heading, the create button, the list. */}
+      {/* Mirrors the invites section: heading, the create button, the list. */}
       <div className="space-y-4">
         <div className="space-y-2">
           <Skeleton className="h-7 w-32" />

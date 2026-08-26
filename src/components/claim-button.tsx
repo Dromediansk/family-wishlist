@@ -1,6 +1,7 @@
 "use client";
 
 import { GiftIcon, UndoIcon } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 import { claimWish, unclaimWish } from "@/app/actions/wishes";
 import { FulfilWishButton } from "@/components/fulfil-wish-button";
@@ -26,6 +27,7 @@ type Props = {
  */
 function ReleaseClaimButton({ wishId }: { wishId: string }) {
   const { pending, error, run } = useAction();
+  const t = useTranslations("wishes");
 
   return (
     <div className="flex flex-col items-end gap-1">
@@ -35,7 +37,7 @@ function ReleaseClaimButton({ wishId }: { wishId: string }) {
         onClick={() => run(() => unclaimWish(wishId))}
       >
         <UndoIcon />
-        Toto nekupujem
+        {t("release")}
       </Button>
       {error ? (
         <p className="text-destructive text-sm" role="alert">
@@ -81,6 +83,7 @@ export function ClaimButton({
   ownerName,
 }: Props) {
   const { pending, error, run } = useAction();
+  const t = useTranslations("wishes");
 
   // Held by somebody else — the same predicate the row dims on, so the two can
   // never disagree. There is nothing to click either way; the only difference is
@@ -90,8 +93,8 @@ export function ClaimButton({
     return (
       <span className="text-muted-foreground shrink-0">
         {claim.kind === "taken-by"
-          ? `Toto kupuje ${claim.by.name}`
-          : "Toto už niekto kupuje"}
+          ? t("claimedBy", { name: claim.by.name })
+          : t("claimedBySomeone")}
       </span>
     );
   }
@@ -105,7 +108,7 @@ export function ClaimButton({
     <div className="flex flex-col items-end gap-1">
       <Button loading={pending} onClick={() => run(() => claimWish(wishId))}>
         <GiftIcon />
-        Toto kúpim
+        {t("claim")}
       </Button>
       {error ? (
         <p className="text-destructive text-sm" role="alert">

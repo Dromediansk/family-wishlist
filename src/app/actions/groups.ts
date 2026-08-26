@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect, RedirectType } from "next/navigation";
 import { z } from "zod";
 
+import { firstIssue, getErrorText } from "@/i18n/errors";
 import {
   enterGroup,
   getAccountName,
@@ -16,11 +17,12 @@ import { notifyChanged } from "@/lib/realtime";
 import { getSupabase } from "@/lib/supabase";
 import type { ActionResult } from "@/lib/types";
 
+// Message keys, not sentences. docs/decisions/language.md
 const nameSchema = z
   .string()
   .trim()
-  .min(1, "Názov skupiny je povinný.")
-  .max(60, "Názov skupiny môže mať najviac 60 znakov.");
+  .min(1, "groupNameRequired")
+  .max(60, "groupNameTooLong");
 
 /**
  * Start a group. Whoever creates it is its admin — the only way to become one
@@ -32,18 +34,23 @@ const nameSchema = z
 export async function createGroup(
   rawName: string,
 ): Promise<ActionResult & { groupId?: string }> {
+  const text = await getErrorText();
+
   const viewer = await getViewer();
-  if (!viewer) return { ok: false, error: "Najprv sa prihlás." };
+  if (!viewer) return { ok: false, error: text("signInFirst") };
 
   const name = nameSchema.safeParse(rawName);
-  if (!name.success) return { ok: false, error: name.error.issues[0].message };
+  if (!name.success) {
+    const issue = firstIssue(name.error);
+    return { ok: false, error: text(issue.key, issue.params) };
+  }
 
   // Counted on groups.created_by, so leaving a group does not give the budget
   // back. docs/decisions/groups-and-invites.md#the-creation-cap
   if ((await countGroupsCreatedBy(viewer)) >= MAX_GROUPS_PER_ACCOUNT) {
     return {
       ok: false,
-      error: `Vytvoriť môžeš najviac ${MAX_GROUPS_PER_ACCOUNT} skupín.`,
+      error: text("groupCap", { count: MAX_GROUPS_PER_ACCOUNT }),
       final: true,
     };
   }
@@ -62,7 +69,7 @@ export async function createGroup(
 
   if (error) return { ok: false, error: error.message };
   if (!data || data.length === 0) {
-    return { ok: false, error: "Skupinu sa nepodarilo vytvoriť." };
+    return { ok: false, error: text("groupCreateFailed") };
   }
 
   const groupId = (data[0] as { id: string }).id;
@@ -86,7 +93,7 @@ export async function createGroup(
       .eq("id", groupId)
       .eq("created_by", viewer.userId);
 
-    return { ok: false, error: "Skupinu sa nepodarilo vytvoriť." };
+    return { ok: false, error: text("groupCreateFailed") };
   }
 
   revalidatePath("/", "layout");
@@ -104,10 +111,7 @@ export async function createGroup(
  * docs/decisions/groups-and-invites.md#deleting-a-group
  */
 export async function deleteGroup(groupId: string): Promise<ActionResult> {
-  const permitted = await requireGroupAdmin(
-    groupId,
-    "Skupinu môže vymazať len jej správca.",
-  );
+  const permitted = await requireGroupAdmin(groupId, "adminOnlyDeleteGroup");
   if (!permitted.ok) return permitted;
 
   // Scoped by `ctx.groupId` — the id the membership row proved, not the one the
@@ -120,7 +124,8 @@ export async function deleteGroup(groupId: string): Promise<ActionResult> {
 
   if (error) return { ok: false, error: error.message };
   if (!data || data.length === 0) {
-    return { ok: false, error: "Táto skupina už neexistuje.", final: true };
+    const text = await getErrorText();
+    return { ok: false, error: text("groupGone"), final: true };
   }
 
   revalidatePath("/", "layout");

@@ -3,19 +3,22 @@
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 
+import { firstIssue, getErrorText } from "@/i18n/errors";
 import { requireGroupAdmin } from "@/lib/data/access";
 import { countGroupAdmins, getMembershipRole } from "@/lib/data/members";
 import { notifyChanged } from "@/lib/realtime";
 import { getSupabase } from "@/lib/supabase";
 import type { ActionResult } from "@/lib/types";
 
+// Message keys under the `errors` namespace, not sentences: a schema is built
+// before any request has a language. docs/decisions/language.md
 const nameSchema = z
   .string()
   .trim()
-  .min(1, "Meno je povinné.")
-  .max(50, "Meno môže mať najviac 50 znakov.");
+  .min(1, "nameRequired")
+  .max(50, "nameTooLong");
 
-const idSchema = z.uuid("Neplatný člen.");
+const idSchema = z.uuid("invalidMember");
 const roleSchema = z.enum(["admin", "member"]);
 
 export async function renameMember(
@@ -26,11 +29,16 @@ export async function renameMember(
   const permitted = await requireGroupAdmin(groupId);
   if (!permitted.ok) return permitted;
 
+  const text = await getErrorText();
+
   const id = idSchema.safeParse(membershipId);
-  if (!id.success) return { ok: false, error: "Neplatný člen." };
+  if (!id.success) return { ok: false, error: text("invalidMember") };
 
   const name = nameSchema.safeParse(newName);
-  if (!name.success) return { ok: false, error: name.error.issues[0].message };
+  if (!name.success) {
+    const issue = firstIssue(name.error);
+    return { ok: false, error: text(issue.key, issue.params) };
+  }
 
   const supabase = getSupabase();
   // Names are not unique: identity is the membership row, this is a label on
@@ -44,7 +52,7 @@ export async function renameMember(
 
   if (error) return { ok: false, error: error.message };
   if (!data || data.length === 0) {
-    return { ok: false, error: "Tento člen už neexistuje." };
+    return { ok: false, error: text("memberGone") };
   }
 
   revalidatePath("/", "layout");
@@ -60,11 +68,13 @@ export async function setMemberRole(
   const permitted = await requireGroupAdmin(groupId);
   if (!permitted.ok) return permitted;
 
+  const text = await getErrorText();
+
   const id = idSchema.safeParse(membershipId);
-  if (!id.success) return { ok: false, error: "Neplatný člen." };
+  if (!id.success) return { ok: false, error: text("invalidMember") };
 
   const parsedRole = roleSchema.safeParse(role);
-  if (!parsedRole.success) return { ok: false, error: "Neplatná rola." };
+  if (!parsedRole.success) return { ok: false, error: text("invalidRole") };
 
   const supabase = getSupabase();
 
@@ -74,7 +84,7 @@ export async function setMemberRole(
     parsedRole.data === "member" &&
     (await countGroupAdmins(permitted.ctx)) <= 1
   ) {
-    return { ok: false, error: "Musí existovať aspoň jeden správca." };
+    return { ok: false, error: text("lastAdmin") };
   }
 
   const { data, error } = await supabase
@@ -86,7 +96,7 @@ export async function setMemberRole(
 
   if (error) return { ok: false, error: error.message };
   if (!data || data.length === 0) {
-    return { ok: false, error: "Tento člen už neexistuje." };
+    return { ok: false, error: text("memberGone") };
   }
 
   revalidatePath("/", "layout");
@@ -101,19 +111,21 @@ export async function removeMember(
   const permitted = await requireGroupAdmin(groupId);
   if (!permitted.ok) return permitted;
 
+  const text = await getErrorText();
+
   const id = idSchema.safeParse(membershipId);
-  if (!id.success) return { ok: false, error: "Neplatný člen." };
+  if (!id.success) return { ok: false, error: text("invalidMember") };
 
   const supabase = getSupabase();
 
   // Same reasoning as above: never remove the last admin.
   const role = await getMembershipRole(permitted.ctx, id.data);
-  if (!role) return { ok: false, error: "Tento člen už neexistuje." };
+  if (!role) return { ok: false, error: text("memberGone") };
 
   if (role === "admin" && (await countGroupAdmins(permitted.ctx)) <= 1) {
     return {
       ok: false,
-      error: "Musí existovať aspoň jeden správca. Najprv povýš niekoho iného.",
+      error: text("lastAdminPromoteFirst"),
     };
   }
 
@@ -131,7 +143,7 @@ export async function removeMember(
 
   if (error) return { ok: false, error: error.message };
   if (!data || data.length === 0) {
-    return { ok: false, error: "Tento člen už neexistuje." };
+    return { ok: false, error: text("memberGone") };
   }
 
   revalidatePath("/", "layout");

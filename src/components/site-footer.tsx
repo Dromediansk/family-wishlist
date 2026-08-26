@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 
 /**
  * The bar at the bottom of every page, signed in or not. Mounted by the root
@@ -10,18 +11,19 @@ import Link from "next/link";
  * Component and costs the document nothing.
  */
 export function SiteFooter() {
+  const t = useTranslations("footer");
   return (
     <footer className="text-muted-foreground mt-10 flex flex-wrap items-center gap-x-4 gap-y-2 border-t pt-6 text-sm">
       {/*
        * The year is read per render, which the root layout's force-dynamic
        * already guarantees — nothing here can be baked into a stale build.
        */}
-      <p>Prajem si.. · © {new Date().getFullYear()}</p>
+      <p>{t("copyright", { year: new Date().getFullYear() })}</p>
 
       {/* Named, because two bare links in a landmark tell a screen reader
           nothing about what they are for. */}
       <nav
-        aria-label="Právne informácie"
+        aria-label={t("legalNav")}
         className="flex flex-wrap gap-x-4 gap-y-2"
       >
         {/* The `link` variant's classes from ui/button.tsx, without its sizing:
@@ -30,13 +32,13 @@ export function SiteFooter() {
           href="/privacy"
           className="text-primary underline-offset-4 hover:underline"
         >
-          Ochrana osobných údajov
+          {t("privacy")}
         </Link>
         <Link
           href="/terms"
           className="text-primary underline-offset-4 hover:underline"
         >
-          Podmienky používania
+          {t("terms")}
         </Link>
       </nav>
     </footer>

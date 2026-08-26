@@ -11,6 +11,7 @@ what you are touching; these are linked from the code they explain.
 | [Identity and sessions](identity-and-sessions.md) | Sign-in, the identity trigger and its repair, the proxy, and the OAuth exchange |
 | [Live updates](live-updates.md) | The empty ping, per-group channels, keeping the socket alive, and the client cache |
 | [UI patterns](ui-patterns.md) | Dialogs, busy state, refusals, photos, group tags, layout, typography and the PWA |
+| [Language](language.md) | Why the locale is a cookie rather than a URL, how a first visit is guessed, what happens to error messages and plurals, and why the legal pages are messages |
 
 ## Adding one
 

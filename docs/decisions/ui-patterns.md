@@ -5,9 +5,28 @@ follows is downstream of it.
 
 ## Language
 
-Slovak counts take three forms — 1 želanie, 2–4 želania, 0 and 5+ želaní.
-`wishCount()` is the only place that decides which. Names are collated with
-`Intl.Collator("sk")`, so Č sorts after C rather than after Z.
+The app is read in Slovak and in English, and which one is a cookie rather than
+a URL — the reasoning, the plural forms and what happens to error messages are
+all in [Language](language.md).
+
+What belongs here is the switcher. It is **one item in the avatar menu**, not a
+pair of them and not a submenu: with two languages the only useful offer is the
+other one, and an item that says what it will do needs no state to read.
+
+Its label is written **in the language it selects** — "Use English" while the
+app is Slovak, "Použiť slovenčinu" while it is English. Somebody who opens that
+menu is quite likely doing it because they cannot read the rest of it, so a
+label in the current language would be the one thing on screen that had to be
+legible and was not.
+
+It submits a hidden form mounted *outside* `DropdownMenu`, the same trick
+**Odhlásiť sa** uses and for the same reason: Radix unmounts menu content on
+select, so a form inside it would be torn down mid-submit. It also keeps the
+switch working with JavaScript off.
+
+Names are collated with `Intl.Collator("sk")` in both languages, so Č sorts
+after C rather than after Z — and a list does not reshuffle itself when somebody
+switches language.
 
 ## Dialogs
 

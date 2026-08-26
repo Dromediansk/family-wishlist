@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { ShieldIcon, Trash2Icon, UserRoundIcon } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 import {
   removeMember,
@@ -11,7 +12,6 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import type { GroupId } from "@/lib/ids";
-import { wishCount } from "@/lib/utils";
 import type { ActionResult, MemberWithCount } from "@/lib/types";
 
 /**
@@ -94,6 +94,8 @@ function MemberAdminRow({
   pending: boolean;
   busy: Busy;
 }) {
+  const t = useTranslations("members");
+  const common = useTranslations("common");
   const [name, setName] = useState(member.name);
   const [confirmingRemove, setConfirmingRemove] = useState(false);
 
@@ -101,9 +103,7 @@ function MemberAdminRow({
 
   // Below sm: the role button is its icon alone, so this carries the name.
   const roleHint =
-    member.role === "admin"
-      ? "Zmeniť na bežného člena"
-      : "Umožniť spravovať členov skupiny";
+    member.role === "admin" ? t("demoteHint") : t("promoteHint");
 
   return (
     <li className="flex flex-col gap-2 py-4">
@@ -112,14 +112,14 @@ function MemberAdminRow({
           which is what lets them fit a quarter of a phone. Nothing wraps:
           `min-w-0` beats an input's ~20-character intrinsic minimum, so the
           field is what yields the few pixels the two 44px targets need on a
-          narrow phone, and the wider yield when `Uložiť` appears mid-rename. */}
+          narrow phone, and the wider yield when Save appears mid-rename. */}
       <div className="flex items-center gap-2">
         <Input
           className="w-3/4 min-w-0"
           value={name}
           onChange={(event) => setName(event.target.value)}
           maxLength={50}
-          aria-label={`Meno pre ${member.name}`}
+          aria-label={t("nameFor", { name: member.name })}
         />
         <div className="flex flex-1 items-center justify-end gap-2">
           {renamed ? (
@@ -128,7 +128,7 @@ function MemberAdminRow({
                 renameMember(groupId, member.id, name),
               )}
             >
-              Uložiť
+              {t("save")}
             </Button>
           ) : null}
           <Button
@@ -146,14 +146,14 @@ function MemberAdminRow({
           >
             {member.role === "admin" ? <ShieldIcon /> : <UserRoundIcon />}
             <span className="hidden sm:inline">
-              {member.role === "admin" ? "Správca" : "Člen"}
+              {member.role === "admin" ? t("roleAdmin") : t("roleMember")}
             </span>
           </Button>
           <Button
             variant="ghost"
             size="icon"
             className="text-muted-foreground hover:text-destructive"
-            aria-label={`Odstrániť ${member.name}`}
+            aria-label={t("removeFor", { name: member.name })}
             disabled={pending}
             onClick={() => setConfirmingRemove((previous) => !previous)}
           >
@@ -165,10 +165,11 @@ function MemberAdminRow({
       {confirmingRemove ? (
         <div className="bg-muted flex flex-col gap-3 rounded-md p-4">
           <p>
-            Odstrániť <strong>{member.name}</strong> zo skupiny? Ich zoznam (
-            {wishCount(member.wishCount)}) im zostane. Rezervácie, ktoré
-            existovali len vďaka členstvu v tejto skupine sa uvoľnia. Vrátiť sa
-            môžu len cez novú pozvánku.
+            {t.rich("removeQuestion", {
+              name: member.name,
+              wishes: common("wishCount", { count: member.wishCount }),
+              strong: (chunks) => <strong>{chunks}</strong>,
+            })}
           </p>
           <div className="flex gap-2">
             <Button
@@ -179,13 +180,13 @@ function MemberAdminRow({
                 () => setConfirmingRemove(false),
               )}
             >
-              Odstrániť
+              {t("remove")}
             </Button>
             <Button
               variant="outline"
               onClick={() => setConfirmingRemove(false)}
             >
-              Zrušiť
+              {common("cancel")}
             </Button>
           </div>
         </div>

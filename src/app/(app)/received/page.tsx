@@ -28,17 +28,13 @@ export default async function ReceivedPage() {
 
   return (
     <HistoryPage
+      namespace="received"
       // Own list, read through the first group by join date — the same order the
       // switcher shows. This page spans every group, so no one of them is
       // current here.
       backHref={`/g/${viewer.groups[0].id}/member/${viewer.userId}`}
-      backLabel="Môj zoznam"
-      title="Čo som dostal"
-      description="Splnené želania a kto ti ich daroval."
-      emptyText="Zatiaľ si nedostal žiadny darček."
       items={received}
-      personLabel="od:"
-      personName={(wish) => wish.giverName}
+      personKey="giverName"
       groups={viewer.groups}
     />
   );

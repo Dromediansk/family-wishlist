@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useSyncExternalStore } from "react";
 import { DownloadIcon, ShareIcon } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 import { Button } from "@/components/ui/button";
 
@@ -28,6 +29,7 @@ function useBrowserFlag(read: () => boolean) {
  * nothing and the only way in is the share sheet.
  */
 export function InstallPrompt() {
+  const t = useTranslations("install");
   const [installEvent, setInstallEvent] =
     useState<BeforeInstallPromptEvent | null>(null);
   const [dismissed, setDismissed] = useState(false);
@@ -72,15 +74,12 @@ export function InstallPrompt() {
     <div className="mt-10 flex flex-wrap items-center gap-3 rounded-lg border p-4 text-sm">
       {installEvent ? (
         <p className="text-muted-foreground min-w-[14rem] flex-1">
-          Nainštaluj si appku na plochu, otvorí sa ti ako každá iná.
+          {t("prompt")}
         </p>
       ) : (
         <p className="text-muted-foreground flex min-w-[14rem] flex-1 items-center gap-2">
           <ShareIcon className="size-5 shrink-0" />
-          <span>
-            Pridaj si appku na plochu: ťukni na ikonu zdieľania a zvoľ „Add to
-            Home Screen“.
-          </span>
+          <span>{t("iosPrompt")}</span>
         </p>
       )}
 
@@ -88,11 +87,11 @@ export function InstallPrompt() {
         {installEvent ? (
           <Button size="sm" onClick={install}>
             <DownloadIcon />
-            Nainštalovať
+            {t("install")}
           </Button>
         ) : null}
         <Button variant="ghost" size="sm" onClick={dismiss}>
-          Teraz nie
+          {t("dismiss")}
         </Button>
       </div>
     </div>

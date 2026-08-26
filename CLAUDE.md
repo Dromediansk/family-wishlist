@@ -2,7 +2,7 @@
 
 Next.js 16 (App Router) · React 19 · TypeScript · Tailwind 4 · Radix · Supabase.
 One account, many groups — a family, a team, a circle of friends — each with its
-own names and roles. UI language is **Slovak**.
+own names and roles. UI is **Slovak and English**; Slovak is the default.
 
 ## Read these
 
@@ -11,6 +11,7 @@ own names and roles. UI language is **Slovak**.
 | Any change | [`docs/project-context.md`](docs/project-context.md) — purpose, entities, business rules |
 | Writing code | [`docs/technical-context.md`](docs/technical-context.md) — patterns, standards, practices |
 | Touching an area | the matching file in [`docs/decisions/`](docs/decisions/README.md) |
+| Writing any user-facing string | [`docs/decisions/language.md`](docs/decisions/language.md) — two locales, one catalogue |
 | Running or deploying | [`docs/setup/`](docs/setup/local-development.md) |
 
 **Do not restate those documents here or in code comments — link to them.**
@@ -101,12 +102,20 @@ Reachable by direct POST, so each one must, in order:
 Return `ActionResult`, never throw for expected failures. Set `final: true` only
 when repeating the call cannot change the outcome.
 
-`syncFromLive` (`src/app/actions/live.ts`) is the one exception to all five.
+Two exceptions: `syncFromLive` (`src/app/actions/live.ts`) skips all five, and
+`setLocale` (`src/app/actions/locale.ts`) keeps only 3 and 5 — the choice is a
+browser's, not an account's, so there is no caller to re-derive, no row to write
+and deliberately **no `notifyChanged`**.
 
 ## Conventions
 
-- **All user-facing strings are Slovak**, including validation messages.
-  `wishCount()` (`src/lib/utils.ts`) handles 1 / 2–4 / 5+ plural forms.
+- **No user-facing string is written in a component.** Both languages live in
+  `messages/sk.json` and `messages/en.json`; Slovak is the reference, and the
+  `Messages` type makes a key missing from English a compile error. Zod messages
+  and `ActionResult.error` are **keys**, worded by `getErrorText()`
+  (`src/i18n/errors.ts`) inside the action. Counts are ICU plurals — Slovak
+  needs `one`/`few`/`other`. `Intl.Collator("sk")` deliberately does *not*
+  follow the reader; `formatDate` does.
 - Path alias `@/*` → `./src/*`.
 - Tests cover **pure functions only** — no mocks, no DB. Keep new logic pure
   enough to test that way.

@@ -18,14 +18,10 @@ export default async function GivenPage() {
 
   return (
     <HistoryPage
+      namespace="given"
       backHref="/buying"
-      backLabel="Čo kupujem"
-      title="Čo som daroval"
-      description="Darčeky, ktoré si už odovzdal. Zostávajú tu natrvalo."
-      emptyText="Zatiaľ si nič nedaroval."
       items={given}
-      personLabel="pre:"
-      personName={(wish) => wish.ownerName}
+      personKey="ownerName"
       groups={access.viewer.groups}
     />
   );

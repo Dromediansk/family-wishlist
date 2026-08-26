@@ -8,6 +8,7 @@ import {
   PlusIcon,
   UsersRoundIcon,
 } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 import { buttonVariants } from "@/components/ui/button";
 import {
@@ -40,6 +41,8 @@ export function GroupSwitcher({
   groups: readonly GroupRef[];
   canCreate: boolean;
 }) {
+  const t = useTranslations("groups.switcher");
+  const create = useTranslations("groups.create");
   const pathname = usePathname();
   const current = groupInPath(pathname, groups);
 
@@ -54,17 +57,19 @@ export function GroupSwitcher({
           buttonVariants({ variant: "ghost", size: "sm" }),
           "min-w-0",
         )}
-        aria-label={current ? `Skupina – ${current.name}` : "Skupiny"}
+        aria-label={
+          current ? t("current", { name: current.name }) : t("heading")
+        }
       >
         <UsersRoundIcon />
         <span className="hidden max-w-40 truncate sm:inline">
-          {current ? current.name : "Skupiny"}
+          {current ? current.name : t("heading")}
         </span>
         <ChevronDownIcon className="opacity-60" />
       </DropdownMenuTrigger>
 
       <DropdownMenuContent align="end">
-        <DropdownMenuLabel>Skupiny</DropdownMenuLabel>
+        <DropdownMenuLabel>{t("heading")}</DropdownMenuLabel>
 
         {groups.map((group) => (
           <DropdownMenuItem key={group.id} asChild>
@@ -85,7 +90,7 @@ export function GroupSwitcher({
         <DropdownMenuItem asChild>
           <Link href="/start">
             <PlusIcon />
-            Vytvoriť skupinu
+            {create("action")}
           </Link>
         </DropdownMenuItem>
       </DropdownMenuContent>

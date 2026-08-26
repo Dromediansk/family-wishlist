@@ -18,6 +18,7 @@ For what the app is for, see [Project context](project-context.md).
 | Files | Supabase Storage, one private `wish-photos` bucket |
 | Live updates | Supabase Realtime broadcast |
 | Validation | Zod 4 |
+| Languages | next-intl 4, Slovak and English, locale in a cookie |
 | Tests | Vitest, node environment |
 | Hosting | Vercel. Nothing needs a long-running process, so any Next.js host would do |
 
@@ -87,7 +88,8 @@ Reachable by direct POST, so each one must, in order:
 2. **Admin work re-checks:** `requireGroupAdmin(groupId)`. An admin is an admin
    *of one group*. An admin-only page re-checks with `isGroupAdmin(ctx)` in its
    own body and redirects; a hidden menu item is not a guard.
-3. **Validate with Zod.** Messages are Slovak.
+3. **Validate with Zod.** Messages are **keys**, not sentences — a schema is
+   built before any request has a language. `getErrorText()` words them.
 4. **Put every precondition in the `WHERE` clause** and check
    `data.length === 0`. Ownership, group scope and `.is("claimed_by_user_id",
    null)` all live there. Never pre-check with a separate read.
@@ -95,8 +97,13 @@ Reachable by direct POST, so each one must, in order:
    `notifyOwnerChanged(ownerId)` when a wish or a claim changed, since the owner
    is who every interested viewer has in common.
 
-`syncFromLive` (`src/app/actions/live.ts`) is the one exception to all five: it
-takes no input, reads no table and writes no row.
+Two exceptions. `syncFromLive` (`src/app/actions/live.ts`) skips all five: it
+takes no input, reads no table and writes no row. `setLocale`
+(`src/app/actions/locale.ts`) keeps only 3 and 5: the language belongs to a
+browser rather than an account — it has to work on `/login` — so there is no
+caller to re-derive and no row to write, and it deliberately does not notify,
+because nothing changed for anybody else.
+[decisions/language.md](decisions/language.md)
 
 ### Conditional writes, never read-then-write
 
@@ -141,9 +148,14 @@ to swap the way forward for the way out.
 
 ## Coding standards
 
-- **All user-facing strings are Slovak**, including validation messages.
-  `wishCount()` (`src/lib/utils.ts`) is the only place that picks between the
-  1 / 2–4 / 5+ forms. Names collate with `Intl.Collator("sk")`.
+- **No user-facing string is written in a component.** Both languages live in
+  `messages/sk.json` and `messages/en.json`, Slovak being the reference; the
+  `Messages` declaration in `src/i18n/types.d.ts` turns a key missing from
+  English into a compile error rather than a silent fallback. Counts are ICU
+  plurals, because Slovak needs `one`/`few`/`other` where English needs two.
+  Names still collate with `Intl.Collator("sk")` whichever language is on
+  screen — that is a fact about the names, not the reader.
+  [decisions/language.md](decisions/language.md)
 - **Path alias** `@/*` → `./src/*`.
 - **Comments explain what the code cannot say for itself**, in a line or two.
   Longer reasoning goes in `docs/decisions/`, linked from the comment.
@@ -218,3 +230,5 @@ Where an obvious alternative exists, this is which one and why.
 | A component library | Radix primitives + local shadcn forks | Two dialog forks are deliberate; shared values live in one file between them |
 | Hashing invite tokens | Plaintext | A link already sent must be copyable again, and the database it would protect already holds every wish the token grants |
 | `router.refresh()` | `revalidatePath("/", "layout")` | `refresh()` clears the Client Cache for the current route only |
+| next-intl with a `[locale]` URL segment | next-intl with a cookie | `next/root-params` does not reach a Server Action, which is where a third of the sentences are raised — and a prefix would mean rewriting the proxy and every redirect |
+| `negotiator` + `@formatjs/intl-localematcher` | A pure `pickLocale` | Two locales do not pay for two dependencies, and a pure function is testable |

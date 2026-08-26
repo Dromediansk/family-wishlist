@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { ArrowLeftIcon, MailOpenIcon } from "lucide-react";
+import { getTranslations } from "next-intl/server";
 
 import { CreateGroupDialog } from "@/components/create-group-dialog";
 import { SetupRequired } from "@/components/setup-required";
@@ -37,6 +38,7 @@ export default async function StartPage({
   }
 
   const hasGroup = access.kind === "member";
+  const t = await getTranslations("start");
 
   return (
     <div className="space-y-6">
@@ -45,7 +47,7 @@ export default async function StartPage({
           <Button variant="ghost" size="sm" asChild className="-ml-4">
             <Link href="/">
               <ArrowLeftIcon />
-              Späť
+              {t("back")}
             </Link>
           </Button>
         </div>
@@ -53,11 +55,10 @@ export default async function StartPage({
 
       <div>
         <h1 className="text-2xl font-semibold text-balance">
-          {hasGroup ? "Ďalšia skupina" : "Vitaj!"}
+          {hasGroup ? t("anotherGroup") : t("welcome")}
         </h1>
         <p className="text-muted-foreground mt-1 max-w-[62ch]">
-          Skupina je rodina alebo partia, ktorá si navzájom vidí zoznamy želaní.
-          Založ si vlastnú alebo sa pridaj do cudzej.
+          {t("intro")}
         </p>
       </div>
 
@@ -70,11 +71,8 @@ export default async function StartPage({
       <div className="grid gap-4 sm:grid-cols-2">
         <Card>
           <CardHeader>
-            <CardTitle>Vytvoriť skupinu</CardTitle>
-            <CardDescription>
-              Založ novú skupinu. Budeš jej správca a ostatných do nej pozveš
-              odkazom.
-            </CardDescription>
+            <CardTitle>{t("createTitle")}</CardTitle>
+            <CardDescription>{t("createDescription")}</CardDescription>
           </CardHeader>
           <CardFooter className="mt-auto">
             <CreateGroupDialog />
@@ -83,15 +81,13 @@ export default async function StartPage({
 
         <Card>
           <CardHeader>
-            <CardTitle>Pridať sa do skupiny</CardTitle>
-            {/* No field to fill in: a pozvánka is a link, not a code. */}
-            <CardDescription>
-              Otvor pozvánku, ktorú ti niekto poslal.
-            </CardDescription>
+            <CardTitle>{t("joinTitle")}</CardTitle>
+            {/* No field to fill in: an invite is a link, not a code. */}
+            <CardDescription>{t("joinDescription")}</CardDescription>
           </CardHeader>
           <CardFooter className="text-muted-foreground mt-auto gap-2">
             <MailOpenIcon className="size-5 shrink-0" aria-hidden />
-            <span>Odkaz ťa pridá do skupiny sám.</span>
+            <span>{t("joinHint")}</span>
           </CardFooter>
         </Card>
       </div>

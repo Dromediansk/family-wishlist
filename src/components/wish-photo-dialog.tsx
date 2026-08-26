@@ -1,5 +1,7 @@
 "use client";
 
+import { useTranslations } from "next-intl";
+
 import {
   Dialog,
   DialogBody,
@@ -30,11 +32,13 @@ export function WishPhotoDialog({
   src: string;
   title: string;
 }) {
+  const t = useTranslations("wishes.photo");
+  const common = useTranslations("common");
   return (
     <Dialog>
       <DialogTrigger
         className="shrink-0 cursor-pointer rounded-lg"
-        aria-label={`Zobraziť fotku: ${title}`}
+        aria-label={t("open", { title })}
       >
         {/*
          * A plain <img>, as in the photo field: the optimizer would fetch
@@ -58,7 +62,7 @@ export function WishPhotoDialog({
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src={src}
-            alt={`Fotka: ${title}`}
+            alt={t("alt", { title })}
             /*
              * Full width and as tall as it likes, scrolling in the body — the
              * reason a thumbnail opens at all is to read a screenshot of a
@@ -74,7 +78,7 @@ export function WishPhotoDialog({
          */}
         <DialogFooter>
           <DialogClose asChild>
-            <Button variant="outline">Zavrieť</Button>
+            <Button variant="outline">{common("close")}</Button>
           </DialogClose>
         </DialogFooter>
       </DialogContent>

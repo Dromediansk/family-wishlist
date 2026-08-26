@@ -150,17 +150,30 @@ export function wishPhotoUrl(wish: {
   return version ? `/wish-photo/${wish.id}?v=${version}` : null;
 }
 
-/** Every way an owner's delete or edit can be turned down, in one place. */
+/** The two writes an owner can be turned down for, and the two reasons each. */
+type Operation = "delete" | "update";
+type RefusalReason = "reserved" | "notYours";
+
+/**
+ * Every way an owner's delete or edit can be turned down, in one place.
+ *
+ * These are message keys under the `errors` namespace, not sentences. Wording a
+ * refusal needs the request's locale, which this file cannot see and does not
+ * want to: keeping the decision here and the wording in the action is what lets
+ * the choice stay a pure, tested function in two languages.
+ */
 const REFUSALS = {
-  delete: {
-    reserved: "Toto želanie už má niekto rezervované, preto ho nemôžeš vymazať.",
-    notYours: "Mazať môžeš len vlastné želania.",
-  },
-  update: {
-    reserved: "Toto želanie už má niekto rezervované, preto ho nemôžeš upraviť.",
-    notYours: "Upravovať môžeš len vlastné želania.",
-  },
-} as const;
+  delete: { reserved: "deleteReserved", notYours: "deleteNotYours" },
+  update: { reserved: "updateReserved", notYours: "updateNotYours" },
+} as const satisfies Record<Operation, Record<RefusalReason, string>>;
+
+/*
+ * That these are keys the catalogue actually defines is checked where they are
+ * worded: the action passes one to `text()`, which takes an `ErrorKey`. Naming
+ * `ErrorKey` here as well would only couple this pure file to the i18n layer to
+ * repeat a guarantee it already has.
+ */
+export type RefusalKey = (typeof REFUSALS)[Operation][RefusalReason];
 
 /**
  * Why an owner's delete or edit matched no rows: it isn't theirs, or it is
@@ -172,12 +185,11 @@ const REFUSALS = {
  */
 export function refusalFor(
   row: { claimed_by_user_id: string | null } | null,
-  operation: "delete" | "update",
-): { error: string; final: true } {
-  const messages = REFUSALS[operation];
+  operation: Operation,
+): { key: RefusalKey; final: true } {
+  const keys = REFUSALS[operation];
   return {
-    error:
-      row?.claimed_by_user_id != null ? messages.reserved : messages.notYours,
+    key: row?.claimed_by_user_id != null ? keys.reserved : keys.notYours,
     final: true,
   };
 }

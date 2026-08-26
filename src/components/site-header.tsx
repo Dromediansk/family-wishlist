@@ -1,6 +1,7 @@
 import { Suspense } from "react";
 import Link from "next/link";
 import { ShoppingBagIcon } from "lucide-react";
+import { getTranslations } from "next-intl/server";
 
 import { AccountMenu } from "@/components/account-menu";
 import { GroupSwitcher } from "@/components/group-switcher";
@@ -43,6 +44,10 @@ async function HeaderAccount() {
   const access = await getAccess();
   if (access.kind === "anonymous") return null;
 
+  // Below the guards, not above them: an anonymous visitor renders nothing here,
+  // and this is what first resolves the request's catalogue.
+  const t = await getTranslations("header");
+
   const viewer = access.viewer;
 
   /*
@@ -74,9 +79,9 @@ async function HeaderAccount() {
       {groupless ? null : (
         <>
           <Button variant="ghost" size="sm" asChild>
-            <Link href="/buying" aria-label="Čo kupujem">
+            <Link href="/buying" aria-label={t("buying")}>
               <ShoppingBagIcon />
-              <span className="hidden sm:inline">Čo kupujem</span>
+              <span className="hidden sm:inline">{t("buying")}</span>
             </Link>
           </Button>
           <GroupSwitcher

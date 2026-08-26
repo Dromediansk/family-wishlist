@@ -19,7 +19,10 @@ told.
 
 - **Private circles, invite-only.** No directory, no search, no join request. A
   group you have not been given a link to is not addressable.
-- **Slovak.** Every user-facing string, including validation messages.
+- **Slovak and English.** Slovak is what it was written in and what an
+  unrecognised browser gets; English is chosen from the avatar menu, or by a
+  browser that asks for it. Every user-facing string is in both, validation
+  messages included.
 - **Grandparents on phones.** The primary reader has low vision and a small
   screen. That drives the typeface, the tap targets and the dialog behaviour.
 - **One person's side project.** It runs on free tiers and is administered by
