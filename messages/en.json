@@ -291,7 +291,7 @@
   "list": {
     "everyone": "Everyone",
     "ownTitle": "My wish list",
-    "peerTitle": "{name} would like",
+    "peerTitle": "{name} wishes",
     "ownIntro": "Add anything you'd like. You won't find out who picked what.",
     "peerIntro": "Reserve it, so nobody else buys it too.",
     "received": "What I've received",

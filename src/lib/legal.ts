@@ -23,7 +23,7 @@ export const LEGAL_DETAILS = {
   /** The data controller. A person's name is fine; this is a side project. */
   operatorName: "Miroslav Pillár",
 
-  operatorAddress: "Košice, Slovensko",
+  operatorAddress: "Košice, Slovakia",
 
   /**
    * Quoted three times, and the one value that has to be real: it is the only
