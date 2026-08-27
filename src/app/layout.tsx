@@ -9,6 +9,7 @@ import { LiveRefresh } from "@/components/live-refresh";
 import { OfflineBanner } from "@/components/offline-banner";
 import { SiteFooter } from "@/components/site-footer";
 import { getViewer } from "@/lib/data/access";
+import { siteUrl } from "@/lib/site-url";
 import { isConfigured } from "@/lib/supabase";
 import { THEME_COLORS } from "@/lib/theme-colors";
 
@@ -31,13 +32,25 @@ const atkinson = localFont({
  * The name is the same in both languages — it is what the app is called, not a
  * description of it — so only the description is translated. `manifest.ts`
  * repeats the name and stays static for the same reason.
+ *
+ * `metadataBase` is what makes every relative URL below resolvable: without it
+ * Next raises a build error for the canonical and hreflang paths the public
+ * pages declare, and the Open Graph image would have nothing to hang off.
+ *
+ * The title `template` is why the pages under it name only themselves —
+ * `legal.privacy.metaTitle` is "Ochrana osobných údajov" and gets the rest from
+ * here, in one place, in both languages.
  */
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations("metadata");
   const name = t("name");
+  const description = t("description");
+  const locale = await getLocale();
+
   return {
-    title: name,
-    description: t("description"),
+    metadataBase: new URL(siteUrl()),
+    title: { default: name, template: `%s · ${name}` },
+    description,
     applicationName: name,
     appleWebApp: {
       capable: true,
@@ -45,6 +58,19 @@ export async function generateMetadata(): Promise<Metadata> {
       title: name,
       statusBarStyle: "default",
     },
+    /*
+     * `opengraph-image.tsx` is picked up by file convention, so neither block
+     * names an image. Both carry the same words, because a shared link is read
+     * the same way whichever service unfurls it.
+     */
+    openGraph: {
+      type: "website",
+      siteName: name,
+      title: name,
+      description,
+      locale,
+    },
+    twitter: { card: "summary_large_image", title: name, description },
   };
 }
 

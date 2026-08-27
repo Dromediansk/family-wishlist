@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { GiftIcon } from "lucide-react";
 import { getTranslations } from "next-intl/server";
@@ -9,6 +10,18 @@ import { SubmitButton } from "@/components/submit-button";
 import { getAccess } from "@/lib/data/access";
 import { safeReturnTo } from "@/lib/invites";
 import { isConfigured } from "@/lib/supabase";
+
+/**
+ * Kept out of the index. This page is a Google button and forty words, and the
+ * thing a searcher is looking for — what the app is — is now answered properly
+ * at `/`. Two pages competing for one intent split the authority between them.
+ *
+ * `follow`, though: the footer's links to the policy pages are worth walking,
+ * and this URL is still reached from `/join/{token}`.
+ */
+export const metadata: Metadata = {
+  robots: { index: false, follow: true },
+};
 
 export default async function LoginPage({
   searchParams,

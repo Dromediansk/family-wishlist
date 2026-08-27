@@ -21,6 +21,9 @@ export default function manifest(): MetadataRoute.Manifest {
     lang: "sk",
     name: "Prajem si",
     short_name: "Prajem si",
+    // The same sentence as `metadata.description` in messages/sk.json. They
+    // describe one app and used to disagree; keep them in step by hand, for the
+    // same reason THEME_COLORS is kept in step with globals.css.
     description: "Čo by si kto želal a kto potichu kupuje čo.",
     start_url: "/",
     scope: "/",

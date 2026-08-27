@@ -16,6 +16,19 @@ export const DEFAULT_LOCALE: Locale = "sk";
 
 export const LOCALE_COOKIE = "wishlist-locale";
 
+/**
+ * Set by `src/proxy.ts` on the public pages, whose language is part of their
+ * URL rather than the reader's standing choice, and preferred over the cookie
+ * by `src/i18n/request.ts`.
+ *
+ * A request header rather than a route param because `next/root-params` does
+ * not reach a Server Action or a Route Handler, which is the same reason the
+ * cookie exists at all. The proxy strips any inbound copy, so this is never
+ * something a visitor can say about themselves.
+ * docs/decisions/language.md#the-public-pages-pin-their-locale
+ */
+export const LOCALE_HEADER = "x-locale";
+
 /** A year. The choice is a preference, not a session. */
 export const LOCALE_COOKIE_MAX_AGE = 60 * 60 * 24 * 365;
 

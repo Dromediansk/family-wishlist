@@ -23,15 +23,54 @@ no argument.
 lives.** Moving the tree under `[locale]` means rewriting `isPublic()` and the
 matcher regex in `src/proxy.ts`, every `redirect()`, `groupInPath()` and
 `home-link.tsx`. That is a lot of risk to take on around access control in
-exchange for per-locale URLs, and this app has no use for them: it is
-invite-only, there is no directory, no search and nothing for a crawler to
-index. An invite link would also start carrying its sender's language and
-imposing it on whoever opened it.
+exchange for per-locale URLs, and the app's own screens have no use for them:
+they are invite-only, there is no directory and no search. An invite link would
+also start carrying its sender's language and imposing it on whoever opened it.
 
 The cost is that a locale is not linkable. Nobody has ever needed to send
-somebody else a link to this app *in a particular language*.
+somebody else a link to a *group* in a particular language.
 
-`src/proxy.ts` therefore needs no change at all, and neither does any URL.
+No URL inside the app changed, and neither did any `redirect()`.
+
+## The public pages pin their locale
+
+This section revises the one above. It used to give a third reason for the
+cookie — that there was "nothing for a crawler to index" — and that stopped
+being true the day `/` grew a landing page. The four public pages now come in
+pairs: `/`, `/privacy`, `/terms` in Slovak, and `/en`, `/en/privacy`,
+`/en/terms` in English.
+
+They have to, because **hreflang needs two URLs.** One address serving two
+languages off a cookie cannot tell Google that the other language exists:
+Googlebot arrives with no cookie and no `Accept-Language`, sees Slovak, and the
+English half of the app is invisible to search and to every answer engine. A
+crawl also has to be reproducible, and a page that reads a cookie is not.
+
+Neither objection above applies here. These pages run no Server Action and no
+Route Handler, so nothing needs telling what language it is in; and they sit
+outside the group tree, so no access-control code was touched to add them.
+
+The mechanism is one request header, not a route param:
+
+- `src/proxy.ts` asks `publicPageLocale()` (`src/lib/site-url.ts`) what language
+  the path is written in, and sets `LOCALE_HEADER` when it has an answer. It
+  strips any inbound copy, so this is never something a visitor can claim.
+- `src/i18n/request.ts` prefers that header over the cookie.
+
+Everything else already reads `getRequestConfig`, so `<html lang>`, the footer,
+`generateMetadata` and every page body come out right at once — which is the
+same property that made the cookie worth having.
+
+The list lives in `PUBLIC_PATHS`, and `isPublic()` answers from it, so opening a
+page to crawlers and giving it a language are one edit rather than two.
+
+**A reader's cookie does not win on these pages**, and that is the point:
+`/en/privacy` is the English policy for everybody. The footer and the terms'
+cross-link are localised so nobody is walked from an English page onto a Slovak
+one, and the landing page offers the other language as a plain link to its twin.
+
+Slovak is `sk`. `sl` is Slovenian, and Google accepts it without a word — there
+is a test for that in `src/lib/site-url.test.ts`.
 
 ## Nobody is redirected, and a first visit sets no cookie
 

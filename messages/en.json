@@ -148,7 +148,7 @@
       "courtVenue": "the city whose courts have jurisdiction over disputes"
     },
     "privacy": {
-      "metaTitle": "Privacy policy · Prajem si",
+      "metaTitle": "Privacy policy",
       "metaDescription": "What the app stores about you, why, who can see it and for how long.",
       "title": "Privacy policy",
       "controller": {
@@ -219,7 +219,7 @@
       }
     },
     "terms": {
-      "metaTitle": "Terms of use · Prajem si",
+      "metaTitle": "Terms of use",
       "metaDescription": "The terms the app can be used under, what to expect from it and what not to.",
       "title": "Terms of use",
       "about": {
@@ -303,6 +303,53 @@
     "signIn": "Sign in",
     "footnote": "Signing in gives you your own account. After that, start a group or open an invite somebody sent you.",
     "footnoteInvite": "Once you sign in, the invite will add you to the group."
+  },
+  "marketing": {
+    "metaTitle": "A wish list for a family, a team or a circle of friends",
+    "metaDescription": "Everyone writes down what they'd like. The others quietly reserve a gift and the owner of the list never finds out. No ads, no tracking.",
+    "lead": "“Prajem si” is a wish-list app for a family, a team or a circle of friends. Everyone writes down what they'd like; everyone else can quietly pick out a gift, and the owner of the list never finds out.",
+    "start": "Get started",
+    "howItWorks": {
+      "title": "How it works",
+      "step1Title": "Start a group",
+      "step1": "A group is the family or the circle whose lists you can see and who can see yours. You invite them with a single link.",
+      "step2Title": "Write down what you'd like",
+      "step2": "Anything — with a description, a shop link or a photo. One wish can appear on more than one group's list at once.",
+      "step3Title": "The others quietly reserve",
+      "step3": "When somebody picks one out, everybody else sees it. You do not. That way two people never buy the same thing."
+    },
+    "secret": {
+      "title": "A surprise the app does not spoil",
+      "p1": "Who reserved one of your wishes is something the app never tells you — nowhere, at no point. Your own list simply does not show reservations.",
+      "p2": "The secret ends when the person who bought the gift marks it as handed over, and only then. No date and no group admin does it on their behalf."
+    },
+    "trust": {
+      "title": "Nothing else going on",
+      "noAds": "No ads and nothing for sale — it is one person's non-commercial project.",
+      "noTracking": "No analytics and no tracking cookies. Traffic is not measured.",
+      "noEmails": "No e-mail. The app will never write to you.",
+      "photos": "Photos are resized in your own browser, which throws away the location data along the way.",
+      "private": "Groups cannot be searched for. An invite link is the only way into one."
+    },
+    "faq": {
+      "title": "Common questions",
+      "q1": "What does it cost?",
+      "a1": "Nothing. The app is free and non-commercial — there are no ads and no paid features.",
+      "q2": "Will I see who bought me what?",
+      "a2": "No. Your own list shows no reservations at all. You find out when somebody hands you the gift and marks it themselves.",
+      "q3": "Does the whole family have to sign up?",
+      "a3": "Yes, every member needs their own account. Signing in goes through Google, so nobody has another password to remember.",
+      "q4": "How do I get into a group?",
+      "a4": "Through an invite link from a group admin; it lasts 24 hours. Groups cannot be searched for or asked to join.",
+      "q5": "Is it only useful at Christmas?",
+      "a5": "No. Birthdays, name days, a wedding — a wish list runs all year, and the history of gifts stays in it for good.",
+      "q6": "Do I have to install anything?",
+      "a6": "No, it runs in the browser. If you like, it can be added to your phone's home screen and opens like any other app."
+    },
+    "cta": {
+      "title": "Start your own list",
+      "body": "Sign in with Google, start a group and send the link to your family. The rest takes care of itself."
+    }
   },
   "members": {
     "adminBadge": "admin",

@@ -5,22 +5,18 @@ import { PrivacyDocument } from "@/components/privacy-document";
 import { alternatesFor } from "@/lib/site-url";
 
 /**
- * Public on purpose — see `isPublic` in src/proxy.ts. Google's OAuth review
- * fetches this URL while signed out, and so does anybody deciding whether to
- * sign in at all.
- *
- * The document itself is `PrivacyDocument`, shared with `/en/privacy`. All this
- * file adds is the Slovak half of the hreflang pair.
+ * The English privacy policy — the same document as `/privacy`, in the language
+ * this URL names. `src/proxy.ts` pins it, so nothing here passes a locale.
  */
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations("legal.privacy");
   return {
     title: t("metaTitle"),
     description: t("metaDescription"),
-    alternates: alternatesFor("/privacy", "sk"),
+    alternates: alternatesFor("/privacy", "en"),
   };
 }
 
-export default function PrivacyPage() {
+export default function EnglishPrivacyPage() {
   return <PrivacyDocument />;
 }

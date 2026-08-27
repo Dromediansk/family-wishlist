@@ -1,7 +1,7 @@
 import { cookies, headers } from "next/headers";
 import { getRequestConfig } from "next-intl/server";
 
-import { isLocale, LOCALE_COOKIE, pickLocale } from "./config";
+import { isLocale, LOCALE_COOKIE, LOCALE_HEADER, pickLocale } from "./config";
 
 /**
  * Resolves the language for one request, and is the reason the locale is a
@@ -15,12 +15,28 @@ import { isLocale, LOCALE_COOKIE, pickLocale } from "./config";
  * and stays that way until somebody actually picks a language, so nobody is
  * redirected and no visitor is given a cookie they did not ask for.
  * docs/decisions/language.md
+ *
+ * The one thing that outranks the cookie is a public page's own language, which
+ * `src/proxy.ts` puts in `LOCALE_HEADER`. `/en/privacy` is the English policy
+ * for everybody, including a reader whose cookie says Slovak — otherwise the
+ * URL and the page would disagree, and hreflang would be describing something
+ * that is not reliably there.
  */
 export default getRequestConfig(async () => {
+  const requestHeaders = await headers();
+
+  const pinned = requestHeaders.get(LOCALE_HEADER);
+  if (isLocale(pinned)) {
+    return {
+      locale: pinned,
+      messages: (await import(`../../messages/${pinned}.json`)).default,
+    };
+  }
+
   const chosen = (await cookies()).get(LOCALE_COOKIE)?.value;
   const locale = isLocale(chosen)
     ? chosen
-    : pickLocale((await headers()).get("accept-language"));
+    : pickLocale(requestHeaders.get("accept-language"));
 
   return {
     locale,

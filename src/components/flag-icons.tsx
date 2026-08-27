@@ -11,7 +11,8 @@ import type { Locale } from "@/i18n/config";
  * Union Jack's counterchanged saltire are below the resolution that could show
  * them. What has to survive is which flag it is.
  *
- * No size class: the menu item sizes bare svg children via `[&_svg]:size-5`.
+ * No size class: whoever places one sizes it, with `[&_svg]:size-5` — the menu
+ * item does, and so does the landing page's link to the other language.
  */
 
 export function FlagEn() {

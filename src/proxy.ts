@@ -1,6 +1,9 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
+import { LOCALE_HEADER } from "@/i18n/config";
+import { publicPageLocale } from "@/lib/site-url";
+
 /**
  * Session refresh, plus a cheap early redirect for signed-out visitors.
  *
@@ -20,23 +23,42 @@ import { NextResponse, type NextRequest } from "next/server";
  * signed-out visitor on to /login?returnTo=..., and it never gets the chance
  * if this redirect fires first.
  *
- * /privacy and /terms are read by people deciding whether to sign in at all —
- * and by Google's OAuth review, which fetches them signed out. Listing them
- * here rather than excluding them from the matcher keeps their session refresh,
- * which is the only reason the matcher exists.
+ * The rest is the public surface a crawler reads — `/`, `/privacy`, `/terms`
+ * and their English twins, all of which `publicPageLocale` names. They are also
+ * what Google's OAuth review fetches while signed out. Listing them here rather
+ * than excluding them from the matcher keeps their session refresh, which is
+ * the only reason the matcher exists.
  */
 function isPublic(pathname: string): boolean {
   return (
+    publicPageLocale(pathname) !== null ||
     pathname === "/login" ||
     pathname.startsWith("/login/") ||
-    pathname.startsWith("/join/") ||
-    pathname === "/privacy" ||
-    pathname === "/terms"
+    pathname.startsWith("/join/")
   );
 }
 
 export async function proxy(request: NextRequest) {
-  let response = NextResponse.next({ request });
+  /**
+   * A public page says which language it is in — Slovak at `/privacy`, English
+   * at `/en/privacy` — so the URL answers, not the reader's cookie. Everywhere
+   * else the cookie still decides and this header is absent.
+   *
+   * Always rebuilt from `request.headers`, never snapshotted: `setAll` below
+   * writes refreshed session cookies onto the request, and those have to reach
+   * the render too. An inbound copy is dropped, so a visitor cannot claim a
+   * language for a page that has one of its own.
+   * docs/decisions/language.md#the-public-pages-pin-their-locale
+   */
+  const pageLocale = publicPageLocale(request.nextUrl.pathname);
+  const forwarded = () => {
+    const headers = new Headers(request.headers);
+    if (pageLocale) headers.set(LOCALE_HEADER, pageLocale);
+    else headers.delete(LOCALE_HEADER);
+    return { headers };
+  };
+
+  let response = NextResponse.next({ request: forwarded() });
 
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
@@ -54,7 +76,7 @@ export async function proxy(request: NextRequest) {
         for (const { name, value } of cookiesToSet) {
           request.cookies.set(name, value);
         }
-        response = NextResponse.next({ request });
+        response = NextResponse.next({ request: forwarded() });
         for (const { name, value, options } of cookiesToSet) {
           response.cookies.set(name, value, options);
         }
@@ -83,8 +105,16 @@ export const config = {
     /**
      * Everything except Next's static output, static images, /auth/* (the
      * callback sets its own cookies and holds a one-shot PKCE verifier) and the
-     * PWA metadata routes (redirecting those to HTML breaks installing).
+     * metadata routes.
+     *
+     * The metadata routes are excluded rather than listed in `isPublic()`
+     * because none of them is HTML and none has a session to refresh: bouncing
+     * them to a login page breaks installing the app (`manifest.webmanifest`,
+     * `icon`, `apple-icon`) and hides the site from every crawler there is
+     * (`robots.txt`, `sitemap.xml`, `opengraph-image`). A redirected robots.txt
+     * fails silently — it answers 307, which reads as "no rules" — so this line
+     * is the whole of what makes the public pages findable.
      */
-    "/((?!_next/static|_next/image|auth/|manifest.webmanifest|icon|apple-icon|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico)$).*)",
+    "/((?!_next/static|_next/image|auth/|manifest.webmanifest|icon|apple-icon|opengraph-image|robots\\.txt|sitemap\\.xml|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico)$).*)",
   ],
 };

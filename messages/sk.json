@@ -148,7 +148,7 @@
       "courtVenue": "mesto, ktorého súdy sú príslušné na spory"
     },
     "privacy": {
-      "metaTitle": "Ochrana osobných údajov · Prajem si",
+      "metaTitle": "Ochrana osobných údajov",
       "metaDescription": "Aké údaje o tebe appka ukladá, prečo, kto ich vidí a ako dlho.",
       "title": "Ochrana osobných údajov",
       "controller": {
@@ -219,7 +219,7 @@
       }
     },
     "terms": {
-      "metaTitle": "Podmienky používania · Prajem si",
+      "metaTitle": "Podmienky používania",
       "metaDescription": "Za akých podmienok sa dá appka používať, čo od nej čakať a čo nie.",
       "title": "Podmienky používania",
       "about": {
@@ -304,6 +304,53 @@
     "footnote": "Prihlásením získaš vlastný účet. Potom si založ skupinu alebo otvor pozvánku, ktorú ti niekto poslal.",
     "footnoteInvite": "Po prihlásení ťa pozvánka pridá do skupiny."
   },
+  "marketing": {
+    "metaTitle": "Zoznam želaní pre rodinu, tím alebo partiu",
+    "metaDescription": "Každý si zapíše, čo by chcel. Ostatní potichu rezervujú darček a majiteľ zoznamu sa to nedozvie. Bez reklám, bez sledovania, po slovensky.",
+    "lead": "„Prajem si“ je appka na zoznamy želaní pre rodinu, tím alebo partiu priateľov. Každý si zapíše, čo by chcel; ostatní môžu potichu vybrať darček a majiteľ zoznamu sa to nedozvie.",
+    "start": "Začať",
+    "howItWorks": {
+      "title": "Ako to funguje",
+      "step1Title": "Založ skupinu",
+      "step1": "Skupina je rodina alebo partia, ktorá si navzájom vidí zoznamy želaní. Pozveš ju jediným odkazom.",
+      "step2Title": "Zapíš si, čo by si chcel",
+      "step2": "Čokoľvek — s popisom, odkazom do e-shopu alebo fotkou. Jedno želanie môžeš ukázať viacerým skupinám naraz.",
+      "step3Title": "Ostatní potichu rezervujú",
+      "step3": "Keď si niekto niečo vyberie, vidia to všetci ostatní. Ty nie. Dvaja tak nekúpia to isté."
+    },
+    "secret": {
+      "title": "Tajomstvo, ktoré appka nepokazí",
+      "p1": "Kto ti rezervoval želanie, sa z appky nedozvieš — nikdy a nikde. Vo svojom vlastnom zozname rezervácie jednoducho nevidíš.",
+      "p2": "Tajomstvo skončí až vo chvíli, keď ten, kto darček kúpil, sám označí, že ti ho odovzdal. Neurobí to zaňho žiadny dátum ani správca skupiny."
+    },
+    "trust": {
+      "title": "Nič navyše",
+      "noAds": "Žiadne reklamy a nič na predaj — je to nekomerčný projekt jedného človeka.",
+      "noTracking": "Žiadna analytika a žiadne sledovacie cookies. Návštevnosť sa nemeria.",
+      "noEmails": "Žiadne e-maily. Appka ti nikdy nenapíše.",
+      "photos": "Fotky sa zmenšujú priamo v tvojom prehliadači, čím sa z nich zahodia aj údaje o polohe.",
+      "private": "Skupiny sa nedajú vyhľadať. Dostaneš sa do nich jedine cez pozvánkový odkaz."
+    },
+    "faq": {
+      "title": "Časté otázky",
+      "q1": "Koľko to stojí?",
+      "a1": "Nič. Appka je zadarmo a nekomerčná — nie sú v nej reklamy ani platené funkcie.",
+      "q2": "Uvidím, kto mi čo kúpil?",
+      "a2": "Nie. Vo vlastnom zozname rezervácie nevidíš vôbec. Dozvieš sa to až vtedy, keď ti darček niekto odovzdá a sám to v appke označí.",
+      "q3": "Musí sa registrovať celá rodina?",
+      "a3": "Áno, každý člen potrebuje vlastný účet. Prihlasuje sa cez Google, takže si nikto nemusí pamätať ďalšie heslo.",
+      "q4": "Ako sa dostanem do skupiny?",
+      "a4": "Cez pozvánkový odkaz od správcu skupiny; platí 24 hodín. Skupiny sa nedajú vyhľadať ani do nich požiadať o vstup.",
+      "q5": "Dá sa to používať aj mimo Vianoc?",
+      "a5": "Áno. Narodeniny, meniny, svadba — zoznam želaní je celoročný a história darčekov v ňom zostáva natrvalo.",
+      "q6": "Musím si niečo inštalovať?",
+      "a6": "Nie, beží v prehliadači. Ak chceš, dá sa pridať na plochu telefónu a otvára sa ako každá iná appka."
+    },
+    "cta": {
+      "title": "Začni s vlastným zoznamom",
+      "body": "Prihlásiš sa cez Google, založíš skupinu a pošleš odkaz rodine. Ostatné sa už spraví samo."
+    }
+  },
   "members": {
     "adminBadge": "správca",
     "canManageMembers": "Môže spravovať členov skupiny",
@@ -319,7 +366,7 @@
   },
   "metadata": {
     "name": "Prajem si",
-    "description": "Čo by si kto prial a kto splní prianie komu."
+    "description": "Čo by si kto želal a kto potichu kupuje čo."
   },
   "notFound": {
     "title": "Takáto stránka tu nie je",

@@ -1,5 +1,7 @@
 import Link from "next/link";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
+
+import { localisedPath } from "@/lib/site-url";
 
 /**
  * The bar at the bottom of every page, signed in or not. Mounted by the root
@@ -12,6 +14,12 @@ import { useTranslations } from "next-intl";
  */
 export function SiteFooter() {
   const t = useTranslations("footer");
+  /*
+   * The legal pages pin their language to their URL, so linking to `/privacy`
+   * from an English page would hand the reader a Slovak policy. The locale here
+   * is whatever this document is already being read in.
+   */
+  const locale = useLocale();
   return (
     <footer className="text-muted-foreground mt-10 flex flex-wrap items-center gap-x-4 gap-y-2 border-t pt-6 text-sm">
       {/*
@@ -29,13 +37,13 @@ export function SiteFooter() {
         {/* The `link` variant's classes from ui/button.tsx, without its sizing:
             these are labels in a row of text, not controls. */}
         <Link
-          href="/privacy"
+          href={localisedPath("/privacy", locale)}
           className="text-primary underline-offset-4 hover:underline"
         >
           {t("privacy")}
         </Link>
         <Link
-          href="/terms"
+          href={localisedPath("/terms", locale)}
           className="text-primary underline-offset-4 hover:underline"
         >
           {t("terms")}

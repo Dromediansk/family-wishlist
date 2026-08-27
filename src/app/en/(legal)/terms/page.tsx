@@ -5,22 +5,18 @@ import { TermsDocument } from "@/components/terms-document";
 import { alternatesFor } from "@/lib/site-url";
 
 /**
- * Public on purpose — see `isPublic` in src/proxy.ts.
- *
- * The limits stated in the document are the ones the code actually has,
- * including the three ways the surprise can be spoiled. `TermsDocument` is
- * shared with `/en/terms`; all this file adds is the Slovak half of the
- * hreflang pair.
+ * The English terms — the same document as `/terms`, in the language this URL
+ * names. `src/proxy.ts` pins it, so nothing here passes a locale.
  */
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations("legal.terms");
   return {
     title: t("metaTitle"),
     description: t("metaDescription"),
-    alternates: alternatesFor("/terms", "sk"),
+    alternates: alternatesFor("/terms", "en"),
   };
 }
 
-export default function TermsPage() {
+export default function EnglishTermsPage() {
   return <TermsDocument />;
 }
