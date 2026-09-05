@@ -18,7 +18,7 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 /**
- * Public on purpose — see `isPublic` in src/proxy.ts. Google's OAuth review
+ * Public on purpose — see `isPublic` in src/lib/routes.ts. Google's OAuth review
  * fetches this URL while signed out, and so does anybody deciding whether to
  * sign in at all.
  *

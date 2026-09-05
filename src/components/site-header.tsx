@@ -30,7 +30,8 @@ export async function SiteHeader() {
       <HomeLink />
       {/*
        * Without this boundary the account half's round trip sits in front of the
-       * whole document. The fallback reserves the avatar's box.
+       * whole document. The fallback reserves the tallest thing that can resolve
+       * there — the avatar, for the signed-in majority of renders.
        */}
       <Suspense fallback={<div className="size-11 shrink-0" />}>
         <HeaderRight />

@@ -38,11 +38,11 @@ reaching for that control is quite likely doing it because they cannot read the
 rest of the screen, so a label in the current language would be the one thing on
 screen that had to be legible and was not.
 
-That is also why the standalone button never hides its label on a narrow
-viewport the way the header's other labels do. The flags are `aria-hidden`, so
-the label *is* the button's accessible name — and a flag on its own is a poor
-sign for a language. It carries `lang` instead, or a screen reader voices
-"Použiť slovenčinu" in an English accent.
+Both therefore carry `lang`, or a screen reader voices "Použiť slovenčinu" in an
+English accent. And that is also why the standalone button never hides its label
+on a narrow viewport the way the header's other labels do: the flags are
+`aria-hidden`, so the label *is* the button's accessible name — and a flag on
+its own is a poor sign for a language.
 
 In the menu the form is mounted *outside* `DropdownMenu` and reached by id — the
 same trick **Odhlásiť sa** uses, and for the same reason: Radix unmounts menu

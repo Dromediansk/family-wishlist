@@ -127,8 +127,9 @@ and deliberately **no `notifyChanged`**.
   be `sm:`-qualified. Seams are 12 + 4.
 - `src/proxy.ts`, not `middleware.ts` — Next 16 renamed the convention.
 - Root layout is `export const dynamic = "force-dynamic"`; metadata routes that
-  never vary pin themselves back to `force-static`. Each child of the root
-  layout supplies its own `<main className="flex-1">`.
+  never vary pin themselves back to `force-static`. It also owns the whole
+  shell — header, the one `<main className="flex-1">`, footer — so no page
+  brings its own. [`docs/decisions/ui-patterns.md`](docs/decisions/ui-patterns.md#layout-contract)
 - `AGENTS.md` is written by `next dev`, not by you. Commit it with your work.
 
 ## Documentation

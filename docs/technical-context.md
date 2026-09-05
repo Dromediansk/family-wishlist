@@ -171,8 +171,9 @@ to swap the way forward for the way out.
   `max-w-*` on `DialogContent` must be `sm:`-qualified.
   [decisions/ui-patterns.md](decisions/ui-patterns.md#dialogs)
 - **Busy state is `Button`'s `loading` prop.** The label never changes.
-- **Each child of the root layout supplies its own `<main className="flex-1">`.**
-  The root layout has none.
+- **The root layout owns the shell** — header, the one
+  `<main className="flex-1">`, footer. No page brings its own.
+  [decisions/ui-patterns.md](decisions/ui-patterns.md#layout-contract)
 - `src/proxy.ts`, not `middleware.ts` — Next 16 renamed the convention.
 - Root layout is `force-dynamic`. Metadata routes that never vary pin themselves
   back to `force-static`.

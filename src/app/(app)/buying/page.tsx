@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { getAccess } from "@/lib/data/access";
 import { getClaimedBy } from "@/lib/data/wishes";
+import { SIGNED_OUT_HOME } from "@/lib/routes";
 import { isConfigured } from "@/lib/supabase";
 
 export default async function BuyingPage() {
@@ -18,7 +19,7 @@ export default async function BuyingPage() {
 
   const access = await getAccess();
 
-  if (access.kind === "anonymous") redirect("/");
+  if (access.kind === "anonymous") redirect(SIGNED_OUT_HOME);
   if (access.kind === "groupless") redirect("/start");
 
   const viewer = access.viewer;

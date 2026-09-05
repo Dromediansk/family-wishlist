@@ -34,3 +34,27 @@ export function isPublic(pathname: string): boolean {
     pathname === "/terms"
   );
 }
+
+/**
+ * The sign-in page's URL, with the two query parameters it reads.
+ *
+ * Four places send somebody there — a failed OAuth start, the callback, a
+ * signed-out invite and `/start` — and `src/app/page.tsx` is the only thing
+ * that reads them back. Built here so that contract has one owner rather than
+ * four template literals that must agree, and so each of them names
+ * `SIGNED_OUT_HOME` instead of spelling it out.
+ *
+ * Values arrive raw: the encoding is this function's job, and a caller doing it
+ * as well would escape twice.
+ */
+export function signInPath(params?: {
+  error?: string;
+  returnTo?: string;
+}): string {
+  const query = new URLSearchParams();
+  if (params?.error) query.set("error", params.error);
+  if (params?.returnTo) query.set("returnTo", params.returnTo);
+
+  const search = query.toString();
+  return search ? `${SIGNED_OUT_HOME}?${search}` : SIGNED_OUT_HOME;
+}

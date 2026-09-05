@@ -32,7 +32,7 @@ import type { GroupRef } from "@/lib/types";
  * is not something a menu item can start: the link does that on its own.
  *
  * Which group is current comes from the path, because the header is rendered by
- * `(app)/layout.tsx`, above the segment that names one.
+ * the root layout, above the segment that names one.
  */
 export function GroupSwitcher({
   groups,

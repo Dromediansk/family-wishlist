@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 
 import { getErrorText } from "@/i18n/errors";
 import { RETURN_TO_COOKIE, safeReturnTo } from "@/lib/invites";
+import { SIGNED_OUT_HOME, signInPath } from "@/lib/routes";
 import { createAuthClient } from "@/lib/supabase-auth";
 
 /**
@@ -75,15 +76,10 @@ export async function signInWithGoogle(formData?: FormData) {
   if (error || !data.url) {
     // Google's own message comes through untranslated when there is one — it
     // says more than a generic sentence, even in the wrong language.
-    const message = encodeURIComponent(
-      error?.message ?? (await getErrorText())("signInFailed"),
-    );
-    // Carries the invite along, so pressing the button again still lands in the
-    // group rather than losing the link to a failed first attempt.
-    const again = returnTo
-      ? `&returnTo=${encodeURIComponent(returnTo)}`
-      : "";
-    redirect(`/?error=${message}${again}`);
+    const message = error?.message ?? (await getErrorText())("signInFailed");
+    // `returnTo` carries the invite along, so pressing the button again still
+    // lands in the group rather than losing the link to a failed first attempt.
+    redirect(signInPath({ error: message, returnTo: returnTo ?? undefined }));
   }
 
   redirect(data.url);
@@ -92,5 +88,5 @@ export async function signInWithGoogle(formData?: FormData) {
 export async function signOut() {
   const supabase = await createAuthClient();
   await supabase.auth.signOut();
-  redirect("/");
+  redirect(SIGNED_OUT_HOME);
 }

@@ -11,10 +11,8 @@ import { LOCALE_LABELS, otherLocale } from "@/i18n/config";
  * gets — and the reason `setLocale` was built to need no caller.
  *
  * The same offer as the avatar menu's item in `account-menu.tsx`, in the shape a
- * menu cannot use: there the form must be mounted outside `DropdownMenu` and
- * reached by id, because Radix unmounts menu content on select. Everything that
- * could drift between the two — the label, the flag, the "other language" rule —
- * is shared. docs/decisions/ui-patterns.md#language
+ * menu cannot use. Why they are two components rather than one, and what is
+ * shared so nothing drifts: docs/decisions/ui-patterns.md#language
  */
 export async function LocaleSwitcher() {
   const other = otherLocale(await getLocale());

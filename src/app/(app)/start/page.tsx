@@ -14,6 +14,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { getAccess } from "@/lib/data/access";
+import { signInPath } from "@/lib/routes";
 import { isConfigured } from "@/lib/supabase";
 
 /**
@@ -33,9 +34,7 @@ export default async function StartPage({
   // A signed-out visitor lands here with a refusal already in hand — from a
   // dead invite link, for instance — and the sign-in page shows the same
   // "error" param, so it carries over rather than being dropped on the way.
-  if (access.kind === "anonymous") {
-    redirect(error ? `/?error=${encodeURIComponent(error)}` : "/");
-  }
+  if (access.kind === "anonymous") redirect(signInPath({ error }));
 
   const hasGroup = access.kind === "member";
   const t = await getTranslations("start");

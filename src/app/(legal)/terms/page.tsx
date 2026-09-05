@@ -19,7 +19,7 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 /**
- * Public on purpose — see `isPublic` in src/proxy.ts.
+ * Public on purpose — see `isPublic` in src/lib/routes.ts.
  *
  * The limits stated here are the ones the code actually has, including the three
  * ways the surprise can be spoiled. Naming them is deliberate: a promise this

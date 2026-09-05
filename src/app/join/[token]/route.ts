@@ -5,6 +5,7 @@ import { getErrorText } from "@/i18n/errors";
 import { getViewer } from "@/lib/data/access";
 import { findInviteByToken } from "@/lib/data/invites";
 import { INVITE_EXPIRED_KEY, inviteUsable } from "@/lib/invites";
+import { signInPath } from "@/lib/routes";
 
 /**
  * The door into a group. A route handler, not a page, so every outcome can
@@ -35,9 +36,7 @@ export async function GET(
 
   const viewer = await getViewer();
   if (!viewer) {
-    return redirectTo(
-      `/?returnTo=${encodeURIComponent(`/join/${token}`)}`,
-    );
+    return redirectTo(signInPath({ returnTo: `/join/${token}` }));
   }
 
   const result = await joinWithInvite(token);

@@ -16,13 +16,8 @@ import {
  * deliberate; see docs/decisions/ui-patterns.md#the-404.
  *
  * It keeps a labelled way back of its own even though the header above carries
- * one: this is the page's whole action, and a bare glyph in the corner is not
- * the same offer.
- *
- * Nothing is fetched here and nobody is redirected from here — but do not read
- * that as "a wrong address always shows this page". proxy.ts bounces a
- * signed-out visitor off any path that is not public, so in practice this is a
- * screen for people who already have a session.
+ * one, and nothing here is fetched or redirected — which is not the same as
+ * "a wrong address always shows this page". Both are argued at that anchor.
  */
 export default function NotFound() {
   const t = useTranslations("notFound");

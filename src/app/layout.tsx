@@ -144,10 +144,9 @@ export const dynamic = "force-dynamic";
  * kind of reason — the person most likely to install this has just landed on
  * `/`.
  *
- * `<main>` wraps only `{children}`: the header has to stay outside it, or a
- * `<header>` nested inside `<main>` stops being the `banner` landmark. `flex-1`
- * is what fills the `min-h-dvh` column, lets a short page centre itself, and
- * pushes the nudge and the footer to the bottom edge.
+ * The `<header>` is a sibling of `<main>` and not a child, or it stops being
+ * the `banner` landmark; `flex-1` is load-bearing too. Both are spelled out at
+ * the anchor above — do not move either without reading it.
  */
 export default async function RootLayout({
   children,

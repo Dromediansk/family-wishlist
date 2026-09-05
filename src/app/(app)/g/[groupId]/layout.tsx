@@ -2,6 +2,7 @@ import { notFound, redirect } from "next/navigation";
 
 import { SetupRequired } from "@/components/setup-required";
 import { enterGroup, getAccess } from "@/lib/data/access";
+import { SIGNED_OUT_HOME } from "@/lib/routes";
 import { isConfigured } from "@/lib/supabase";
 
 /**
@@ -24,7 +25,7 @@ export default async function GroupLayout({
   if (!isConfigured()) return <SetupRequired />;
 
   const access = await getAccess();
-  if (access.kind === "anonymous") redirect("/");
+  if (access.kind === "anonymous") redirect(SIGNED_OUT_HOME);
   if (access.kind === "groupless") redirect("/start");
 
   const { groupId } = await params;
