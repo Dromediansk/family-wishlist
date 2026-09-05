@@ -1,6 +1,8 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
+import { SIGNED_OUT_HOME, isPublic } from "@/lib/routes";
+
 /**
  * Session refresh, plus a cheap early redirect for signed-out visitors.
  *
@@ -11,30 +13,11 @@ import { NextResponse, type NextRequest } from "next/server";
  * The redirect is an optimisation, never the defence: every page resolves access
  * again and every Server Action re-derives its caller. Deleting this file would
  * cost speed, not safety. docs/decisions/identity-and-sessions.md#sessions
- */
-
-/**
- * Reachable without a session. /auth/* is excluded by the matcher instead.
  *
- * /join/* has to be here too: the route handler behind it is what sends a
- * signed-out visitor on to /login?returnTo=..., and it never gets the chance
- * if this redirect fires first.
- *
- * /privacy and /terms are read by people deciding whether to sign in at all —
- * and by Google's OAuth review, which fetches them signed out. Listing them
- * here rather than excluding them from the matcher keeps their session refresh,
- * which is the only reason the matcher exists.
+ * Which paths a stranger may reach, and where the rest are sent, live in
+ * `@/lib/routes` — pure, so the one invariant holding the two together can be
+ * tested without any of this.
  */
-function isPublic(pathname: string): boolean {
-  return (
-    pathname === "/login" ||
-    pathname.startsWith("/login/") ||
-    pathname.startsWith("/join/") ||
-    pathname === "/privacy" ||
-    pathname === "/terms"
-  );
-}
-
 export async function proxy(request: NextRequest) {
   let response = NextResponse.next({ request });
 
@@ -69,10 +52,18 @@ export async function proxy(request: NextRequest) {
   } = await supabase.auth.getUser();
 
   if (!user && !isPublic(request.nextUrl.pathname)) {
-    const loginUrl = request.nextUrl.clone();
-    loginUrl.pathname = "/login";
-    loginUrl.search = "";
-    return NextResponse.redirect(loginUrl);
+    const signInUrl = request.nextUrl.clone();
+    signInUrl.pathname = SIGNED_OUT_HOME;
+    /*
+     * The query goes with the path. The sign-in page renders `?error=` in an
+     * alert, so carrying a deep link's query across would let any URL of the
+     * form /anything?error=<text> paint that text onto the sign-in screen.
+     * Losing a dead invite's refusal here is the known cost —
+     * docs/decisions/groups-and-invites.md. Do not synthesise a `returnTo`
+     * either: `safeReturnTo` admits /join/{token} and nothing else, by design.
+     */
+    signInUrl.search = "";
+    return NextResponse.redirect(signInUrl);
   }
 
   return response;

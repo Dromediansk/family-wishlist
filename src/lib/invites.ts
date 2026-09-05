@@ -40,12 +40,13 @@ export const INVITE_EXPIRED_KEY = "inviteExpired" as const;
  * it across the OAuth round trip.
  *
  * The value arrives in a query string, so it is attacker-controlled: a naive
- * redirect to it turns `/login` into an open redirect that launders somebody
- * else's URL through a page the visitor trusts. So this is an allow-list of one
- * shape — `/join/{token}`, the only path anything in the app ever asks to
- * return to — and everything else falls back to `/`. A protocol-relative
- * `//evil.com`, an absolute URL and a scheme are all refused by not matching,
- * rather than by a list of things to look out for.
+ * redirect to it turns the sign-in page at `/` into an open redirect that
+ * launders somebody else's URL through a page the visitor trusts. So this is an
+ * allow-list of one shape — `/join/{token}`, the only path anything in the app
+ * ever asks to return to — and everything else falls back to `/`, which is the
+ * sign-in page itself. A protocol-relative `//evil.com`, an absolute URL and a
+ * scheme are all refused by not matching, rather than by a list of things to
+ * look out for.
  *
  * The token itself never leaves this origin: it rides in an httpOnly cookie
  * rather than in the OAuth `redirect_to`, because an invite token *is*

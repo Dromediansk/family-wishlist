@@ -9,20 +9,46 @@ The app is read in Slovak and in English, and which one is a cookie rather than
 a URL — the reasoning, the plural forms and what happens to error messages are
 all in [Language](language.md).
 
-What belongs here is the switcher. It is **one item in the avatar menu**, not a
-pair of them and not a submenu: with two languages the only useful offer is the
-other one, and an item that says what it will do needs no state to read.
+What belongs here is the switcher. Whichever form it takes, the offer is **the
+other language and nothing else** — with two languages a pair of options or a
+submenu says the same thing at more length, and an item that states what it will
+do needs no state to read.
 
-Its label is written **in the language it selects** — "Use English" while the
-app is Slovak, "Použiť slovenčinu" while it is English. Somebody who opens that
-menu is quite likely doing it because they cannot read the rest of it, so a
-label in the current language would be the one thing on screen that had to be
-legible and was not.
+It takes two forms, because there are two places to put it:
 
-It submits a hidden form mounted *outside* `DropdownMenu`, the same trick
-**Odhlásiť sa** uses and for the same reason: Radix unmounts menu content on
-select, so a form inside it would be torn down mid-submit. It also keeps the
-switch working with JavaScript off.
+- **Signed in, one item in the avatar menu.** The menu is already where account
+  things live.
+- **Signed out, a button in the header** (`locale-switcher.tsx`). This is what
+  `setLocale` was always built for — it takes no caller precisely so it can work
+  where nobody has signed in — and for a long time nothing reached it. The
+  switcher lived inside the avatar menu, the menu inside the header, and the
+  header was mounted below the sign-in page, so `/`, `/privacy`, `/terms` and
+  the 404 had no way to change language at all.
+
+They are deliberately **not one component**. Inside Radix the form has to be
+mounted outside `DropdownMenu` and reached by `form={id}`; standalone, the form
+wraps its button. One component covering both would need a prop that switches
+its whole structure. Everything that could actually drift — `otherLocale`,
+`LOCALE_LABELS`, `LOCALE_FLAGS`, `setLocale` — is shared already; what is
+duplicated is four lines of markup.
+
+Either way the label is written **in the language it selects** — "Use English"
+while the app is Slovak, "Použiť slovenčinu" while it is English. Somebody
+reaching for that control is quite likely doing it because they cannot read the
+rest of the screen, so a label in the current language would be the one thing on
+screen that had to be legible and was not.
+
+Both therefore carry `lang`, or a screen reader voices "Použiť slovenčinu" in an
+English accent. And that is also why the standalone button never hides its label
+on a narrow viewport the way the header's other labels do: the flags are
+`aria-hidden`, so the label *is* the button's accessible name — and a flag on
+its own is a poor sign for a language.
+
+In the menu the form is mounted *outside* `DropdownMenu` and reached by id — the
+same trick **Odhlásiť sa** uses, and for the same reason: Radix unmounts menu
+content on select, so a form inside it would be torn down mid-submit. Standalone
+the form simply wraps its button. Both are plain `<form action={serverAction}>`,
+so the switch still works with JavaScript off.
 
 Names are collated with `Intl.Collator("sk")` in both languages, so Č sorts
 after C rather than after Z — and a list does not reshuffle itself when somebody
@@ -126,8 +152,9 @@ Two places need more than the prop:
 
 - **A plain `<form action={serverAction}>`** has no transition to read, so its
   button is `SubmitButton` — one `useFormStatus` call and nothing else. It is
-  the only client component `/login` is allowed; the form still posts with
-  JavaScript off.
+  the only client component the sign-in card is allowed, and it is what the
+  header's language switcher uses too; either form still posts with JavaScript
+  off.
 - **`ManageMembers`** drives every control from a single `useTransition`, which
   cannot say which button was pressed. `busy()` takes a `verb:id` key and hands
   back `disabled`, `loading` and `onClick` together. Six spinners at once says
@@ -239,59 +266,73 @@ because a wrapper around something that renders `null` still takes a row of
 
 ## Layout contract
 
-The root layout deliberately has **no `<main>`**. Each child supplies its own
-`<main className="flex-1">`, and both halves are load-bearing:
+The root layout owns the whole shell: the header, then
+`<main className="flex-1">` around the page, then the install nudge and the
+footer. Two details are load-bearing:
 
-- the **element**, because a `<header>` nested inside `<main>` stops being the
-  `banner` landmark;
-- the **class**, because `flex-1` fills the `min-h-dvh` column, lets a short
-  page centre itself, and pushes the install nudge and the footer down to the
-  bottom edge.
+- the header is a **sibling** of `<main>`, never inside it — a `<header>` nested
+  in `<main>` stops being the `banner` landmark;
+- `flex-1` on the `<main>` fills the `min-h-dvh` column, lets a short page
+  centre itself, and pushes the nudge and the footer down to the bottom edge.
 
-The footer *is* in the root layout, unlike the header. It has to be: the legal
-pages it links to are the ones a stranger needs before signing in, so a footer
-mounted in `(app)` would hide them from exactly the person looking.
+**The header used to sit in `(app)` and every page had to bring its own
+`<main>`.** Both followed from one rule — the header was chrome for members
+only, so it could not be a root-layout sibling, so a root `<main>` would have
+swallowed it. Once the header became everyone's, that rule went, and with it the
+five copies of an identical wrapper it had forced.
 
-### The `(app)` route group
+### Chrome is for strangers too
 
-`(app)` adds nothing to any URL. Its only job is to draw a line between routes
-that have a session behind them and the four surfaces a stranger can reach —
-`/login`, the 404, `/privacy` and `/terms` — so the header is never chrome for a
-stranger.
+The header and the footer are both unconditional, for the same reason. The
+surfaces somebody reaches before they have an account — `/`, `/privacy`,
+`/terms`, the 404 — are exactly the ones that need a way back and a way to
+change language, and Google's OAuth reviewer reads two of them signed out.
+Mounting either below sign-in would hide it from precisely the person looking.
 
-`(legal)` is the same idea from the other side, and adds nothing to a URL either.
-It holds the two pages that must stay readable with no session at all, and gives
-them the one piece of chrome they need in place of the header: a link back in.
+What changes is the header's right-hand half, not its presence: the language
+switch alone for a stranger, the account menu for somebody with no group yet
+(that menu holds the only way to sign out), the full cluster for a member. Its
+left half is the same gift mark everywhere, linking to the current group or to
+`/`.
 
-The line is "has a session", not "belongs to a group": `/start` sits inside the
-group and wears the same chrome. The header's right-hand half thins out instead
-of disappearing — an account with no group keeps its menu, because that menu
-holds the only way to sign out.
+The sign-in card keeps its own large gift tile under that. The two are not a
+repetition: one is 24px of chrome in a corner, the other is the 64px hero of a
+front door.
 
-The group has no `loading.tsx` of its own — it would become the fallback for
-every route beneath it and flash in front of each route's own skeleton. Each
-route brings its own instead. Skeletons are not only loading states: Next
-prefetches them as each route's shell, so they are also what renders when
-someone taps through with no signal.
+### `(app)` and `(legal)`
+
+Both add nothing to any URL and neither carries a layout any more. They survive
+as file organisation — one directory for the routes that need a session, one for
+the two pages that must stay readable without one. Flattening them would move
+ten page files and change nothing.
+
+Neither has a `loading.tsx`, and `(app)` must not gain one: it would become the
+fallback for every route beneath it and flash in front of each route's own
+skeleton. Skeletons are not only loading states — Next prefetches them as each
+route's shell, so they are also what renders when someone taps through with no
+signal.
 
 ### The 404
 
 One `not-found.tsx`, at the root. It catches both the `notFound()` thrown from
-anywhere under `/g/[groupId]` and any unmatched URL. The boundary sits inside
-the root layout but above `(app)/layout.tsx`, so a typed-in wrong address
-arrives with no header above it — hence the file bringing its own `<main>`.
+anywhere under `/g/[groupId]` and any unmatched URL, and it wears the header
+like everything else.
 
-**It does not follow that a 404 never has a header.** On a segment that owns a
-`loading.tsx`, the response has already begun: the root layout is
-`force-dynamic`, the shell flushes with the skeleton, and the `notFound()` that
-follows is streamed into a response whose status is already `200`. That is why
-`HomeLink` reads the group from the path rather than from a server prop — the
-header it sits in may already be on screen above a page that turned out not to
-exist.
+It keeps a **labelled** way back of its own all the same. That is the page's
+whole action, and `HomeLink` is a bare glyph in the corner with an `aria-label`
+— for a reader with low vision those are not the same offer.
 
-Nothing is fetched and nobody is redirected: a signed-out visitor who guesses a
-URL sees the 404 rather than the login page, because bouncing them would hide
-the fact that the address is simply wrong.
+`HomeLink` reads the group from the path rather than from a server prop, because
+the header it sits in may already be on screen above a page that turned out not
+to exist: on a segment owning a `loading.tsx` the root layout is `force-dynamic`,
+the shell flushes with the skeleton, and the `notFound()` that follows is
+streamed into a response whose status is already `200`.
+
+Nothing is fetched here and nobody is redirected *from* here — but that is a
+fact about the file, not about the app. `proxy.ts` bounces a signed-out visitor
+off any path that is not public, so in practice a wrong address shows this page
+only to somebody who already has a session. Anyone else lands on the sign-in
+card instead, and never learns the address was wrong.
 
 ## Typography
 
@@ -327,7 +368,7 @@ the share sheet. A dismissal is remembered in `localStorage`.
 
 The prompt and the offline banner both live in the **root** layout, not behind
 sign-in. The person most likely to install this is someone who has just landed
-on `/login` on a phone.
+on `/` on a phone.
 
 **There is deliberately no service worker.** Cached HTML could show an owner
 their own claims. `experimental.useOffline` covers offline instead: it holds

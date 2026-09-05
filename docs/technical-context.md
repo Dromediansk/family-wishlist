@@ -100,7 +100,7 @@ Reachable by direct POST, so each one must, in order:
 Two exceptions. `syncFromLive` (`src/app/actions/live.ts`) skips all five: it
 takes no input, reads no table and writes no row. `setLocale`
 (`src/app/actions/locale.ts`) keeps only 3 and 5: the language belongs to a
-browser rather than an account — it has to work on `/login` — so there is no
+browser rather than an account — it has to work on `/` — so there is no
 caller to re-derive and no row to write, and it deliberately does not notify,
 because nothing changed for anybody else.
 [decisions/language.md](decisions/language.md)
@@ -171,8 +171,9 @@ to swap the way forward for the way out.
   `max-w-*` on `DialogContent` must be `sm:`-qualified.
   [decisions/ui-patterns.md](decisions/ui-patterns.md#dialogs)
 - **Busy state is `Button`'s `loading` prop.** The label never changes.
-- **Each child of the root layout supplies its own `<main className="flex-1">`.**
-  The root layout has none.
+- **The root layout owns the shell** — header, the one
+  `<main className="flex-1">`, footer. No page brings its own.
+  [decisions/ui-patterns.md](decisions/ui-patterns.md#layout-contract)
 - `src/proxy.ts`, not `middleware.ts` — Next 16 renamed the convention.
 - Root layout is `force-dynamic`. Metadata routes that never vary pin themselves
   back to `force-static`.

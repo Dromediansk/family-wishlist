@@ -136,7 +136,6 @@
     "revokeRefused": "Pozvánku sa nedá zrušiť"
   },
   "legal": {
-    "backToApp": "Späť do appky",
     "effectiveFrom": "Účinné od <effectiveFrom></effectiveFrom>",
     "missing": "[DOPLNIŤ: {hint}]",
     "hints": {
@@ -324,7 +323,7 @@
   "notFound": {
     "title": "Takáto stránka tu nie je",
     "description": "Možno je odkaz zastaraný, alebo sa v adrese stratilo písmenko. Skús to od začiatku.",
-    "back": "Späť na zoznam rodiny"
+    "back": "Späť na zoznam skupiny"
   },
   "received": {
     "back": "Môj zoznam",

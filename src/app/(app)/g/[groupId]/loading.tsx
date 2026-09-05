@@ -5,7 +5,7 @@ import { Skeleton } from "@/components/ui/skeleton";
  * Also the shell Next prefetches, so it is what renders when someone taps
  * through with no signal. The member and family pages under here bring their
  * own, so this one is the grid's alone.
- * docs/decisions/ui-patterns.md#the-app-route-group
+ * docs/decisions/ui-patterns.md#app-and-legal
  */
 export default function GroupLoading() {
   return (

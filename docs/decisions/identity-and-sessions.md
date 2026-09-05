@@ -14,7 +14,7 @@ That is a legal place to stand. An account belonging to no group is
 
 | State | Means | Sees |
 |---|---|---|
-| `anonymous` | no session, or a session with no `app_users` row | `/login` |
+| `anonymous` | no session, or a session with no `app_users` row | `/`, the sign-in card |
 | `groupless` | signed in, in no group | `/start` |
 | `member` | in at least one group | the app |
 
@@ -40,7 +40,8 @@ then the local part of the email, then `Bez mena`.
 cannot: an `auth.users` row that already exists whose `app_users` row is
 missing. The trigger only fires on insert, so signing in again would create
 nothing, and without the repair that account holds a valid session with no
-identity — read as signed out, sent to `/login`, and sent back again.
+identity — read as signed out, shown the sign-in card, and shown it again after
+signing in. Merging `/login` into `/` shortened that loop; it did not close it.
 
 It is the one data-layer function that takes no `Viewer`, because the row it
 writes is what a `Viewer` is built from. It is scoped all the same: `authUserId`
@@ -54,7 +55,7 @@ does two things per request:
 1. **Refreshes the access token** and writes the rotated cookies onto the
    response. Server Components cannot set cookies, so without this every session
    would quietly expire mid-visit.
-2. **Bounces visitors with no session** to `/login` before a render starts.
+2. **Bounces visitors with no session** to `/` before a render starts.
 
 The second is a convenience, not the defence. Every page resolves access again
 and every Server Action re-derives its caller. **Deleting `proxy.ts` would cost
@@ -64,12 +65,25 @@ It also cannot do the whole job: which groups somebody is in lives in
 `memberships`, which only `service_role` can read, and that key has no business
 in an edge proxy.
 
-`/login`, `/join/*`, `/privacy` and `/terms` are exempt from the bounce. The
-join route has to be — it is what sends a signed-out visitor on to `/login`, and
-it never gets the chance if the redirect fires first. The two legal pages have
-to be because they are read *before* anybody signs in, Google's OAuth review
-among them. Both stay inside the matcher, so a session that happens to be there
-is still refreshed. `/auth/*` is excluded from the matcher instead: the callback
+`/`, `/join/*`, `/privacy` and `/terms` are exempt from the bounce.
+
+**`/` is exempt because it is the target.** Bounce a signed-out visitor from the
+sign-in page to the sign-in page and the browser loops until it gives up, which
+takes the app down for every new visitor at once. While the two were different
+paths that mistake could not be made; now that they are one, the target and the
+exempt list both read `SIGNED_OUT_HOME` from `src/lib/routes.ts` rather than
+agreeing by coincidence, and a test pins it.
+
+The same fact has a quieter second half. A Server Action is a POST to the route
+it renders on, so `signInWithGoogle` and `setLocale` both post to `/`: were `/`
+not public, the page would still look perfect and its buttons would silently do
+nothing. Loading the page is not the test — pressing something is.
+
+The join route has to be exempt too — it is what sends a signed-out visitor on
+to the sign-in page, and it never gets the chance if the redirect fires first.
+The two legal pages have to be because they are read *before* anybody signs in,
+Google's OAuth review among them. All stay inside the matcher, so a session that
+happens to be there is still refreshed. `/auth/*` is excluded from the matcher instead: the callback
 sets the session cookies itself and holds a one-shot PKCE verifier while it
 does. The PWA metadata routes are excluded too, since redirecting them to an
 HTML login page breaks installing the app.

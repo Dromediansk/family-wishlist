@@ -4,6 +4,7 @@ import { NextResponse } from "next/server";
 import { getErrorText } from "@/i18n/errors";
 import { ensureAppUser } from "@/lib/data/access";
 import { RETURN_TO_COOKIE, safeReturnTo } from "@/lib/invites";
+import { signInPath } from "@/lib/routes";
 import { createAuthClient } from "@/lib/supabase-auth";
 
 /**
@@ -29,7 +30,7 @@ export async function GET(request: Request) {
 
   const failed = (message: string) =>
     NextResponse.redirect(
-      `${redirectBase(request, origin)}/login?error=${encodeURIComponent(message)}`,
+      `${redirectBase(request, origin)}${signInPath({ error: message })}`,
     );
 
   if (oauthError) return failed(oauthError);

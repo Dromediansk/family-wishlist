@@ -215,7 +215,10 @@ export async function getAccountName(viewer: Viewer): Promise<string> {
 /**
  * Make sure a signed-in Google account has a row in the app's identity table,
  * and do nothing when it already does. Without this, an account whose row is
- * missing loops between /login and / forever.
+ * missing holds a valid session that every page reads as signed out: `/` shows
+ * it the sign-in card, signing in creates nothing because the trigger only
+ * fires on insert, and it arrives back at the same card forever. The two paths
+ * this used to bounce between are one page now; the trap is not.
  *
  * The one function here that takes no `Viewer`: it runs before one can exist,
  * because the row it writes is what a `Viewer` is built from. It is scoped all

@@ -8,6 +8,7 @@ import { InstallPrompt } from "@/components/install-prompt";
 import { LiveRefresh } from "@/components/live-refresh";
 import { OfflineBanner } from "@/components/offline-banner";
 import { SiteFooter } from "@/components/site-footer";
+import { SiteHeader } from "@/components/site-header";
 import { getViewer } from "@/lib/data/access";
 import { isConfigured } from "@/lib/supabase";
 import { THEME_COLORS } from "@/lib/theme-colors";
@@ -132,16 +133,20 @@ function clientMessages(
 export const dynamic = "force-dynamic";
 
 /**
- * Everything for every visitor, signed in or not. The header is not here — it
- * lives in `(app)/layout.tsx`, so `/login` and the 404 render without it. The
- * footer is, though: the legal pages it links to have to be reachable from
- * `/login`. The install nudge and the offline notice stay document-level for the
- * same kind of reason — the person most likely to install this has just landed
- * on `/login`.
+ * Everything for every visitor, signed in or not — chrome included. The header
+ * is here for the same reason the footer is: the surfaces a stranger reaches
+ * first are `/`, the legal pages and the 404, and each of them needs the way
+ * back and the language switch as much as any signed-in page does. The header
+ * thins itself out rather than disappearing.
+ * docs/decisions/ui-patterns.md#layout-contract
  *
- * **There is deliberately no `<main>` here.** Every child owes its own
- * `<main className="flex-1">`, and both the element and the class are
- * load-bearing. docs/decisions/ui-patterns.md#layout-contract
+ * The install nudge and the offline notice stay document-level for the same
+ * kind of reason — the person most likely to install this has just landed on
+ * `/`.
+ *
+ * The `<header>` is a sibling of `<main>` and not a child, or it stops being
+ * the `banner` landmark; `flex-1` is load-bearing too. Both are spelled out at
+ * the anchor above — do not move either without reading it.
  */
 export default async function RootLayout({
   children,
@@ -164,7 +169,8 @@ export default async function RootLayout({
         <NextIntlClientProvider messages={messages}>
           <div className="mx-auto flex min-h-dvh w-full max-w-5xl flex-col px-4 pt-[max(1.5rem,env(safe-area-inset-top))] pb-[max(1.5rem,env(safe-area-inset-bottom))] sm:px-6 sm:pt-10 sm:pb-10">
             <OfflineBanner />
-            {children}
+            <SiteHeader />
+            <main className="flex-1">{children}</main>
             <InstallPrompt />
             <SiteFooter />
           </div>

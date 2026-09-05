@@ -84,11 +84,11 @@ the branded types are what keep them apart.
 
 **Opening a valid link while signed in joins immediately.** Opening one for a
 group you are already in is a no-op that does not spend a use. Somebody not
-signed in yet — the normal case for a first invite — is sent to `/login` with
+signed in yet — the normal case for a first invite — is sent to `/` with
 the path they were trying to reach. Two things make that safe to carry:
 
 - An allow-list accepts `/join/{token}` and nothing else. The value comes off a
-  query string, so without one `/login` would be an open redirect. It is checked
+  query string, so without one the sign-in page would be an open redirect. It is checked
   again inside the sign-in action, because a form field is a claim, not proof.
 - **The path rides in an httpOnly cookie, not in the OAuth `redirect_to`.** The
   token in it *is* permission to join, and it has no business in Google's URL,
@@ -164,7 +164,7 @@ named by the group id and not by the row.
   member cannot remove themselves. The plumbing is already there —
   `memberships_release_claims` fires on any membership delete, whoever caused
   it — so this is a small later change rather than a design problem.
-- **A signed-out visitor who opens a dead link lands on a bare `/login`.** The
+- **A signed-out visitor who opens a dead link lands on a bare `/`.** The
   join route sends them to `/start` with the refusal in the query string, but
   `src/proxy.ts` strips the query when it bounces a visitor with no session, so
   the sentence never reaches a screen. A *valid* link does resume; only the

@@ -26,7 +26,11 @@ import type { GroupRef } from "@/lib/types";
 /** Links the menu item to the form below it, which lives outside the menu. */
 const SIGN_OUT_FORM = "sign-out";
 
-/** The same trick again, for the same reason. */
+/**
+ * The same trick again, for the same reason. The same offer as
+ * `locale-switcher.tsx`, which a stranger gets instead of this menu — kept
+ * separate because there the form wraps its button, and here it cannot.
+ */
 const SET_LOCALE_FORM = "set-locale";
 
 /**
@@ -87,10 +91,12 @@ export function AccountMenu({
           {/*
            * The label is written in the language it selects rather than in the
            * one on screen, so it can be read by somebody who opened this menu
-           * precisely because they cannot read the rest of it.
+           * precisely because they cannot read the rest of it — hence `lang`,
+           * or a screen reader voices it in the document's language instead of
+           * its own. The standalone switcher carries both for the same reason.
            */}
           <DropdownMenuItem asChild>
-            <button type="submit" form={SET_LOCALE_FORM}>
+            <button type="submit" form={SET_LOCALE_FORM} lang={other}>
               <Flag />
               {LOCALE_LABELS[other]}
             </button>

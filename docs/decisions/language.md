@@ -55,7 +55,7 @@ A per-account locale would follow somebody between devices, which is the better
 property. It loses on everything else: migrations reach production by hand, so
 a column is a deployment step; RLS is on with no policies, so nothing would
 guard it; it would be a database read on every request; and it would still need
-a cookie underneath it, because `/login`, `/privacy` and `/terms` are read by
+a cookie underneath it, because `/`, `/privacy` and `/terms` are read by
 people who have no account yet — including Google's OAuth reviewer.
 
 ## `ActionResult.error` stays a sentence
@@ -138,11 +138,16 @@ says so the first time it renders.
 ## `setLocale` is the second exception to the Server Action rules
 
 Alongside `syncFromLive`. There is no caller to re-derive — the choice belongs
-to a browser, not an account, and has to work on `/login` where nobody is signed
-in yet. There is no group to enter and no row to write, so no `WHERE` clause.
-And deliberately **no `notifyChanged`**: nothing changed for anybody else, and
-pinging the group would re-render every other member's tab because one person
-opened a menu.
+to a browser, not an account, and has to work on `/`, `/privacy`, `/terms` and
+the 404, where nobody is signed in yet. There is no group to enter and no row to
+write, so no `WHERE` clause. And deliberately **no `notifyChanged`**: nothing
+changed for anybody else, and pinging the group would re-render every other
+member's tab because one person opened a menu.
+
+That last property went unused for a long time. The switcher was one item in the
+avatar menu and the menu only rendered for a signed-in visitor, so nowhere a
+stranger could reach offered it at all — see
+[UI patterns](ui-patterns.md#language) for the button that now does.
 
 Steps 3 and 5 do apply — the input is validated against `LOCALES`, and
 `revalidatePath("/", "layout")` is what brings the whole page back in the new

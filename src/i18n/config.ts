@@ -29,8 +29,8 @@ export const LOCALE_COOKIE_MAX_AGE = 60 * 60 * 24 * 365;
  * translate it and break the one property that makes it useful.
  */
 export const LOCALE_LABELS: Record<Locale, string> = {
-  en: "Use English",
-  sk: "Použiť slovenčinu",
+  en: "English",
+  sk: "Slovensky",
 };
 
 export function isLocale(value: unknown): value is Locale {
@@ -56,9 +56,7 @@ export function otherLocale(locale: Locale): Locale {
  * within one quality band — `sort` has been stable since ES2019, so nothing
  * here has to carry an index to hold that.
  */
-export function pickLocale(
-  acceptLanguage: string | null | undefined,
-): Locale {
+export function pickLocale(acceptLanguage: string | null | undefined): Locale {
   if (!acceptLanguage) return DEFAULT_LOCALE;
 
   const ranked = acceptLanguage
