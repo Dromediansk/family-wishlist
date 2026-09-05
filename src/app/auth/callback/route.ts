@@ -29,7 +29,7 @@ export async function GET(request: Request) {
 
   const failed = (message: string) =>
     NextResponse.redirect(
-      `${redirectBase(request, origin)}/login?error=${encodeURIComponent(message)}`,
+      `${redirectBase(request, origin)}/?error=${encodeURIComponent(message)}`,
     );
 
   if (oauthError) return failed(oauthError);

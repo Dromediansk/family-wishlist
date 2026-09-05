@@ -83,7 +83,7 @@ export async function signInWithGoogle(formData?: FormData) {
     const again = returnTo
       ? `&returnTo=${encodeURIComponent(returnTo)}`
       : "";
-    redirect(`/login?error=${message}${again}`);
+    redirect(`/?error=${message}${again}`);
   }
 
   redirect(data.url);
@@ -92,5 +92,5 @@ export async function signInWithGoogle(formData?: FormData) {
 export async function signOut() {
   const supabase = await createAuthClient();
   await supabase.auth.signOut();
-  redirect("/login");
+  redirect("/");
 }

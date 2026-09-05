@@ -11,7 +11,7 @@ export default async function GivenPage() {
 
   const access = await getAccess();
 
-  if (access.kind === "anonymous") redirect("/login");
+  if (access.kind === "anonymous") redirect("/");
   if (access.kind === "groupless") redirect("/start");
 
   const given = await getGivenBy(access.viewer);

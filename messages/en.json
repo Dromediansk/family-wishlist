@@ -136,7 +136,6 @@
     "revokeRefused": "The invite cannot be revoked"
   },
   "legal": {
-    "backToApp": "Back to the app",
     "effectiveFrom": "Effective from <effectiveFrom></effectiveFrom>",
     "missing": "[TO FILL IN: {hint}]",
     "hints": {

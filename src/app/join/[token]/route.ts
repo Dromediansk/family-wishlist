@@ -36,7 +36,7 @@ export async function GET(
   const viewer = await getViewer();
   if (!viewer) {
     return redirectTo(
-      `/login?returnTo=${encodeURIComponent(`/join/${token}`)}`,
+      `/?returnTo=${encodeURIComponent(`/join/${token}`)}`,
     );
   }
 

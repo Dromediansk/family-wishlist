@@ -6,6 +6,7 @@ import { getTranslations } from "next-intl/server";
 import { AccountMenu } from "@/components/account-menu";
 import { GroupSwitcher } from "@/components/group-switcher";
 import { HomeLink } from "@/components/home-link";
+import { LocaleSwitcher } from "@/components/locale-switcher";
 import { Button } from "@/components/ui/button";
 import { getAccess, getAccountName } from "@/lib/data/access";
 import { countGroupsCreatedBy } from "@/lib/data/groups";
@@ -14,13 +15,14 @@ import { MAX_GROUPS_PER_ACCOUNT } from "@/lib/groups";
 import { isConfigured } from "@/lib/supabase";
 
 /**
- * The bar at the top of every signed-in page. Mounted by `(app)/layout.tsx`, so
- * `/login` and the 404 never get it.
+ * The bar at the top of every page. Mounted by the root layout, so a stranger
+ * wears it too — that is what puts the language switch within reach of somebody
+ * who has not signed in yet. docs/decisions/ui-patterns.md#layout-contract
  *
- * The right-hand half is empty for a stranger, and cut down to the account menu
- * for somebody with no group yet: nothing to switch between, but still an account
- * to sign out of. `getAccess` is memoised per render, so asking here costs
- * nothing.
+ * The right-hand half is the language switch alone for a stranger, and cut down
+ * to the account menu for somebody with no group yet: nothing to switch between,
+ * but still an account to sign out of. `getAccess` is memoised per render, so
+ * asking here costs nothing.
  */
 export async function SiteHeader() {
   return (
@@ -31,21 +33,24 @@ export async function SiteHeader() {
        * whole document. The fallback reserves the avatar's box.
        */}
       <Suspense fallback={<div className="size-11 shrink-0" />}>
-        <HeaderAccount />
+        <HeaderRight />
       </Suspense>
     </header>
   );
 }
 
-async function HeaderAccount() {
+async function HeaderRight() {
   // Without configuration there is no database to ask — getSupabase() throws.
-  if (!isConfigured()) return null;
+  // The language still belongs to this browser, so that control stays.
+  if (!isConfigured()) return <LocaleSwitcher />;
 
   const access = await getAccess();
-  if (access.kind === "anonymous") return null;
+  // The one control that is a stranger's to use before they sign in.
+  if (access.kind === "anonymous") return <LocaleSwitcher />;
 
-  // Below the guards, not above them: an anonymous visitor renders nothing here,
-  // and this is what first resolves the request's catalogue.
+  // Below the guards, not above them: neither arm above needs a catalogue —
+  // `LOCALE_LABELS` is code, on purpose — so this is what first resolves the
+  // request's own.
   const t = await getTranslations("header");
 
   const viewer = access.viewer;

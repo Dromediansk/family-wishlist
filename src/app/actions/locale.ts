@@ -15,8 +15,10 @@ import {
  *
  * The second deliberate exception to the Server Action rules, alongside
  * `syncFromLive`: there is no caller to re-derive, because the choice belongs to
- * a browser rather than to an account and has to work on `/login` where nobody
- * is signed in yet; no group to enter; no row to write, so no `WHERE` clause;
+ * a browser rather than to an account and has to work on `/`, the legal pages
+ * and the 404, where nobody is signed in yet — the header's `LocaleSwitcher` is
+ * what finally reaches it there; no group to enter; no row to write, so no
+ * `WHERE` clause;
  * and no `notifyChanged`, because nothing changed for anybody else — pinging
  * the group would re-render every other member's tab over one person's menu.
  *

@@ -2,10 +2,10 @@ import Link from "next/link";
 import { useTranslations } from "next-intl";
 
 /**
- * The bar at the bottom of every page, signed in or not. Mounted by the root
- * layout rather than `(app)/layout.tsx` on purpose: the two legal pages have to
- * be reachable from `/login`, the surface a stranger — or Google's OAuth
- * reviewer — reaches first.
+ * The bar at the bottom of every page, signed in or not: the two legal pages
+ * have to be reachable from `/`, the surface a stranger — or Google's OAuth
+ * reviewer — reaches first. The header is mounted alongside it in the root
+ * layout for the same reason.
  *
  * Nothing here is fetched and nothing is interactive, so it stays a Server
  * Component and costs the document nothing.

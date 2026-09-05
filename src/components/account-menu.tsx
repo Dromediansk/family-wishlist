@@ -26,7 +26,11 @@ import type { GroupRef } from "@/lib/types";
 /** Links the menu item to the form below it, which lives outside the menu. */
 const SIGN_OUT_FORM = "sign-out";
 
-/** The same trick again, for the same reason. */
+/**
+ * The same trick again, for the same reason. The same offer as
+ * `locale-switcher.tsx`, which a stranger gets instead of this menu — kept
+ * separate because there the form wraps its button, and here it cannot.
+ */
 const SET_LOCALE_FORM = "set-locale";
 
 /**

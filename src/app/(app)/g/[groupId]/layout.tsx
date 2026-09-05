@@ -24,7 +24,7 @@ export default async function GroupLayout({
   if (!isConfigured()) return <SetupRequired />;
 
   const access = await getAccess();
-  if (access.kind === "anonymous") redirect("/login");
+  if (access.kind === "anonymous") redirect("/");
   if (access.kind === "groupless") redirect("/start");
 
   const { groupId } = await params;

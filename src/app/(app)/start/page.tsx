@@ -31,10 +31,10 @@ export default async function StartPage({
 
   const [{ error }, access] = await Promise.all([searchParams, getAccess()]);
   // A signed-out visitor lands here with a refusal already in hand — from a
-  // dead invite link, for instance — and /login shows the same "error" param,
-  // so it carries over rather than being dropped on the way to signing in.
+  // dead invite link, for instance — and the sign-in page shows the same
+  // "error" param, so it carries over rather than being dropped on the way.
   if (access.kind === "anonymous") {
-    redirect(error ? `/login?error=${encodeURIComponent(error)}` : "/login");
+    redirect(error ? `/?error=${encodeURIComponent(error)}` : "/");
   }
 
   const hasGroup = access.kind === "member";
