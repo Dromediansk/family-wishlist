@@ -1,5 +1,3 @@
-import { cn } from "@/lib/utils";
-
 /**
  * The illustrations on the landing page.
  *
@@ -18,6 +16,8 @@ import { cn } from "@/lib/utils";
  * Nothing in here may be focusable. A screenshot's buttons are not controls,
  * and a tab stop that does nothing is worse than no tab stop.
  */
+
+import { cn } from "@/lib/utils";
 
 /** The white panel a fake screen sits on. */
 export function MockCard({

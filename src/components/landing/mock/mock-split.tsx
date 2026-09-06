@@ -2,9 +2,8 @@ import { getTranslations } from "next-intl/server";
 
 import { MockCard } from "@/components/landing/mock/mock-card";
 import { Badge } from "@/components/ui/badge";
-import { CLAIMED_MOCK_ID, MOCK_WISHES, toMockDisplayable } from "@/lib/landing";
 import { WishRow } from "@/components/wish-row";
-import { cn } from "@/lib/utils";
+import { CLAIMED_MOCK_ID, MOCK_WISHES, toMockDisplayable } from "@/lib/landing";
 
 /**
  * Beat three: one wish, both viewpoints, side by side. The claim is visibly
@@ -13,7 +12,7 @@ import { cn } from "@/lib/utils";
  * Two columns from `sm:` up and two stacked cards below it. Side by side on a
  * 360px screen, each half would be ~150px wide and neither would be readable.
  */
-export async function MockSplit({ className }: Readonly<{ className?: string }>) {
+export async function MockSplit() {
   const t = await getTranslations("landing.mock");
   const tWishes = await getTranslations("wishes");
   const spec = MOCK_WISHES.find((wish) => wish.id === CLAIMED_MOCK_ID);
@@ -23,7 +22,7 @@ export async function MockSplit({ className }: Readonly<{ className?: string }>)
   const wish = toMockDisplayable(spec, t(`wishes.${spec.key}`));
 
   return (
-    <div className={cn("grid gap-3 sm:grid-cols-2", className)}>
+    <div className="grid gap-3 sm:grid-cols-2">
       <MockCard caption={t("familySees")}>
         <ul>
           <WishRow

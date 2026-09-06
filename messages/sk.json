@@ -124,17 +124,17 @@
   },
   "landing": {
     "eyebrow": "Pre rodinu, tím aj partiu priateľov",
-    "headline": "Darčeky bez duplikátov. <hl>Prekvapenie zostáva.</hl>",
-    "sub": "Každý si napíše, čo by chcel. Ostatní potichu rezervujú. Ty sa nedozvieš nič.",
+    "headline": "Darčeky podľa želania. <hl>Prekvapenie zostáva.</hl>",
+    "sub": "Napíš si, čo by si chcel. Ostatní tajne rezervujú. Ty sa nedozvieš nič.",
     "trust": "Zadarmo · bez reklám · súkromné skupiny, len na pozvánku",
-    "closingTitle": "Založ skupinu a pozvi svojich",
+    "closingTitle": "Založ skupinu a pozvi členov",
     "beats": {
       "write": {
         "title": "Napíš, čo by si chcel",
-        "body": "Názov stačí. Môžeš pridať fotku, odkaz aj poznámku. Zoznam patrí tebe, nie skupine — ty vyberáš, kto ho uvidí."
+        "body": "Názov stačí. Môžeš pridať fotku, odkaz aj poznámku. Zoznam patrí tebe, nie skupine — ty vyberáš, aká skupina ho uvidí."
       },
       "reserve": {
-        "title": "Ostatní potichu rezervujú",
+        "title": "Ostatní tajne rezervujú",
         "body": "Ktokoľvek zo skupiny si darček rezervuje. Ostatní to vidia, takže nikto nekúpi to isté dvakrát."
       },
       "secret": {

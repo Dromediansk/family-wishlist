@@ -4,7 +4,12 @@ import { MockCard } from "@/components/landing/mock/mock-card";
 import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
 import { WishRow } from "@/components/wish-row";
-import { CLAIMED_MOCK_ID, MOCK_WISHES, toMockDisplayable } from "@/lib/landing";
+import {
+  CLAIMED_MOCK_ID,
+  MOCK_WISHES,
+  toMockDisplayable,
+  type MockVariant,
+} from "@/lib/landing";
 import { cn } from "@/lib/utils";
 
 /**
@@ -14,16 +19,19 @@ import { cn } from "@/lib/utils";
  * - `family`  — what everybody else sees: one wish taken, the rest offered.
  * - `vanishing` — `family`, but the reservation fades out. The hero only.
  *
- * PRIVACY-RULE: no tag, because there is no rule to enforce here — these rows
- * come from `src/lib/landing.ts` and no query was made. The variant names are
- * a picture of the rule, not a site of it.
+ * These rows never reach a query — they come straight from `src/lib/landing.ts`
+ * — so the variant names are a picture of the rule the rest of the app
+ * enforces, not a site that enforces it in its own right.
  */
 export async function MockList({
   variant,
   className,
   staggerRows = false,
 }: Readonly<{
-  variant: "owner" | "family" | "vanishing";
+  /** `split` never reaches here — that beat renders `MockSplit` instead —
+      and `vanishing` is a hero-only refinement of `family` that only this
+      component understands, so it is not in `MockVariant` itself. */
+  variant: Exclude<MockVariant, "split"> | "vanishing";
   className?: string;
   /** The hero's rows dealt in one at a time, via `.landing-row-stagger` in
       landing.css. The hero only — the story beats already animate as a whole
