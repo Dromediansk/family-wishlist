@@ -108,7 +108,13 @@
 }
 
 /* A pointer can hover; a thumb cannot, and on a touch device the lift would
-   stick after a tap. */
+   stick after a tap.
+
+   The hover trigger is `.landing-lift-zone`, not `.landing-lift` itself:
+   `.landing-lift` sits on a MockCard, and MockCard is `inert`, which removes
+   an element from hit-testing entirely — a real pointer can move over an
+   inert element without ever entering `:hover`. `.landing-lift-zone` is the
+   plain, non-inert wrapper one level up. */
 @media (hover: hover) {
   .landing-lift {
     transition:
@@ -116,7 +122,7 @@
       box-shadow 0.3s cubic-bezier(0.2, 0.7, 0.3, 1);
   }
 
-  .landing-lift:hover {
+  .landing-lift-zone:hover .landing-lift {
     translate: 0 -5px;
     box-shadow: 0 26px 50px -18px rgb(0 0 0 / 0.28);
   }

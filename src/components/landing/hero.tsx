@@ -60,7 +60,7 @@ export async function Hero({
         caption={tMock("figures.hero")}
         className="landing-enter landing-enter-5"
       >
-        <div className="relative">
+        <div className="relative landing-lift-zone">
           {/*
            * The fan. `sm:` only: below it the columns have already collapsed,
            * and a 3.5° card cannot overflow a 360px viewport without clipping.
