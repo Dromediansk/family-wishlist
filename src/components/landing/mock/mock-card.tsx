@@ -28,6 +28,11 @@ export function MockCard({
 }>) {
   return (
     <div
+      /* An illustration must not be reachable by tab: `WishRow` renders a
+         real anchor for a wish that carries a url, and `inert` takes that —
+         and anything else focusable added here later — out of both the tab
+         order and the accessibility tree in one place. */
+      inert
       className={cn(
         "bg-card text-card-foreground rounded-xl border p-4 shadow-lg sm:p-5",
         className,
