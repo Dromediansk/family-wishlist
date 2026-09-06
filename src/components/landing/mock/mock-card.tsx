@@ -9,8 +9,11 @@ import { cn } from "@/lib/utils";
  * captured at desktop width and scaled to a phone is unreadable, which is the
  * one reader this app exists for.
  *
- * What that buys: these can drift in *data*, never in *structure*. Restyle
- * `WishRow` and the landing page restyles with it.
+ * What that buys, and only this: `WishRow`'s own interior — the title, the
+ * description, the link — can drift in *data*, never in *structure*, because
+ * it is the same component the real list uses. The card shell around it, the
+ * badge styling and the fake action are stand-ins for the real app's chrome,
+ * not the chrome itself, and can drift from it like any other piece of UI.
  *
  * Nothing in here may be focusable. A screenshot's buttons are not controls,
  * and a tab stop that does nothing is worse than no tab stop.
