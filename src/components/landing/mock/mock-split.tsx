@@ -15,6 +15,7 @@ import { cn } from "@/lib/utils";
  */
 export async function MockSplit({ className }: Readonly<{ className?: string }>) {
   const t = await getTranslations("landing.mock");
+  const tWishes = await getTranslations("wishes");
   const spec = MOCK_WISHES.find((wish) => wish.id === CLAIMED_MOCK_ID);
   // `CLAIMED_MOCK_ID` naming a wish on the list is pinned by a test; this
   // narrows the type for the compiler rather than guarding against anything.
@@ -28,7 +29,11 @@ export async function MockSplit({ className }: Readonly<{ className?: string }>)
           <WishRow
             wish={wish}
             actionBeside
-            action={<Badge variant="accent">{t("claimedBy")}</Badge>}
+            action={
+              <Badge variant="accent">
+                {tWishes("claimedBy", { name: t("claimerName") })}
+              </Badge>
+            }
           />
         </ul>
       </MockCard>

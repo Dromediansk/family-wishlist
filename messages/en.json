@@ -147,8 +147,7 @@
       "historyCaption": "Gift history",
       "familySees": "The family sees",
       "ownerSees": "Zuzana sees",
-      "claimedBy": "Reserved by Peter",
-      "claimAction": "I'll buy this",
+      "claimerName": "Peter",
       "wishes": {
         "book": "A book about gardening",
         "socks": "Wool socks, size 39",

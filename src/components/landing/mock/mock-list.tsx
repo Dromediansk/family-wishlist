@@ -26,6 +26,7 @@ export async function MockList({
   className?: string;
 }>) {
   const t = await getTranslations("landing.mock");
+  const tWishes = await getTranslations("wishes");
   const titles = MOCK_WISHES.map((spec) => t(`wishes.${spec.key}`));
 
   return (
@@ -47,7 +48,7 @@ export async function MockList({
                   aria-hidden={variant === "vanishing"}
                   className={cn(variant === "vanishing" && "landing-vanish")}
                 >
-                  {t("claimedBy")}
+                  {tWishes("claimedBy", { name: t("claimerName") })}
                 </Badge>
               ) : (
                 /* A span, not a button: an illustration must not be a tab stop. */
@@ -57,7 +58,7 @@ export async function MockList({
                     "pointer-events-none",
                   )}
                 >
-                  {t("claimAction")}
+                  {tWishes("claim")}
                 </span>
               )
             }
