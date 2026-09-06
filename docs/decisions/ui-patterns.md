@@ -295,9 +295,11 @@ switch alone for a stranger, the account menu for somebody with no group yet
 left half is the same gift mark everywhere, linking to the current group or to
 `/`.
 
-The sign-in card keeps its own large gift tile under that. The two are not a
-repetition: one is 24px of chrome in a corner, the other is the 64px hero of a
-front door.
+`/` no longer repeats the mark. It is a landing page now: the header's small
+gift is the only one on it, and the work the 64px tile used to do is done by the
+headline and the illustration beside it. The 36/64 recipe survives where it
+started, in `/icon` and `/apple-icon`, which is also where the 56% rule is
+stated.
 
 ### `(app)` and `(legal)`
 

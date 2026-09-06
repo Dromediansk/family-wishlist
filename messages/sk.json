@@ -338,7 +338,6 @@
   },
   "login": {
     "name": "Prajem si",
-    "pitch": "Zapíš si, čo by si chcel.<break></break> Ostatní potichu vyberú darček a ty sa do poslednej chvíle nič nedozvieš.",
     "signIn": "Prihlásiť sa",
     "footnote": "Prihlásením získaš vlastný účet. Potom si založ skupinu alebo otvor pozvánku, ktorú ti niekto poslal.",
     "footnoteInvite": "Po prihlásení ťa pozvánka pridá do skupiny."

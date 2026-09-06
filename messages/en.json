@@ -338,7 +338,6 @@
   },
   "login": {
     "name": "Prajem si",
-    "pitch": "Write down what you'd like.<break></break> Everyone else quietly picks a gift, and you find out nothing until the last moment.",
     "signIn": "Sign in",
     "footnote": "Signing in gives you your own account. After that, start a group or open an invite somebody sent you.",
     "footnoteInvite": "Once you sign in, the invite will add you to the group."
