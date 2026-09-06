@@ -1,9 +1,11 @@
 import { getTranslations } from "next-intl/server";
 
-import { MockCard } from "@/components/landing/mock/mock-card";
-import { Badge } from "@/components/ui/badge";
+import {
+  MockCard,
+  MockClaimedBadge,
+} from "@/components/landing/mock/mock-card";
 import { WishRow } from "@/components/wish-row";
-import { CLAIMED_MOCK_ID, MOCK_WISHES, toMockDisplayable } from "@/lib/landing";
+import { CLAIMED_MOCK_KEY, toMockDisplayable } from "@/lib/landing";
 
 /**
  * Beat three: one wish, both viewpoints, side by side. The claim is visibly
@@ -14,30 +16,20 @@ import { CLAIMED_MOCK_ID, MOCK_WISHES, toMockDisplayable } from "@/lib/landing";
  */
 export async function MockSplit() {
   const t = await getTranslations("landing.mock");
-  const tWishes = await getTranslations("wishes");
-  const spec = MOCK_WISHES.find((wish) => wish.id === CLAIMED_MOCK_ID);
-  // `CLAIMED_MOCK_ID` naming a wish on the list is pinned by a test; this
-  // narrows the type for the compiler rather than guarding against anything.
-  if (!spec) return null;
-  const wish = toMockDisplayable(spec, t(`wishes.${spec.key}`));
+  const wish = toMockDisplayable(
+    CLAIMED_MOCK_KEY,
+    t(`wishes.${CLAIMED_MOCK_KEY}`),
+  );
 
   return (
     <div className="grid gap-3 sm:grid-cols-2">
       <MockCard caption={t("familySees")}>
-        <ul>
-          <WishRow
-            wish={wish}
-            actionBeside
-            action={
-              <Badge variant="accent">
-                {tWishes("claimedBy", { name: t("claimerName") })}
-              </Badge>
-            }
-          />
+        <ul className="flex flex-col">
+          <WishRow wish={wish} actionBeside action={<MockClaimedBadge />} />
         </ul>
       </MockCard>
       <MockCard caption={t("ownerSees")}>
-        <ul>
+        <ul className="flex flex-col">
           <WishRow wish={wish} />
         </ul>
       </MockCard>

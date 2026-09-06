@@ -268,24 +268,27 @@ because a wrapper around something that renders `null` still takes a row of
 
 The root layout owns the whole shell: the header, then
 `<main className="flex-1">` around the page, then the install nudge and the
-footer. Three details are load-bearing:
+footer. Two details are load-bearing:
 
 - the header is a **sibling** of `<main>`, never inside it — a `<header>` nested
   in `<main>` stops being the `banner` landmark;
 - `flex-1` on the `<main>` fills the `min-h-dvh` column, lets a short page
-  centre itself, and pushes the nudge and the footer down to the bottom edge;
-- nothing in the shell may establish a containing block for absolutely
-  positioned descendants — `/`'s full-bleed gradient (`.landing-wash` in
-  `landing.css`) is positioned with no relative ancestor of its own, so it
-  resolves against the initial containing block. `position`, `transform`,
-  `filter`, `backdrop-filter`, `contain: paint` or `will-change` on anything
-  between it and `<body>` would clip or shift it instead.
+  centre itself, and pushes the nudge and the footer down to the bottom edge.
 
 **The header used to sit in `(app)` and every page had to bring its own
 `<main>`.** Both followed from one rule — the header was chrome for members
 only, so it could not be a root-layout sibling, so a root `<main>` would have
 swallowed it. Once the header became everyone's, that rule went, and with it the
 five copies of an identical wrapper it had forced.
+
+**The ground under all of it is one gradient on `body`** — `--primary` at 12%
+over `--background`, fading out by 42rem — in `globals.css`, not in any page.
+It arrived with the landing page and stayed for every route: it is the app's
+paper, not that page's decoration. On `body` rather than on a positioned layer
+because a background propagates to the canvas, so it is full-bleed and
+width-exact without `w-screen` (a hair wider than the page whenever a scrollbar
+is showing, which is how a page gains a horizontal one) and without obliging
+anything in the shell to stay unpositioned.
 
 ### Chrome is for strangers too
 

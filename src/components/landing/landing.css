@@ -1,8 +1,10 @@
 /*
- * Landing-page motion and the gradient behind it.
+ * Landing-page motion.
  *
  * A colocated stylesheet rather than a block in globals.css: none of this is
- * app-wide, and it changes when the components beside it change.
+ * app-wide, and it changes when the components beside it change. The gradient
+ * these entrances play over is the app's own ground and lives on `body` in
+ * globals.css.
  *
  * Motion is opt-in, not opt-out. Everything is drawn in its finished state and
  * the entrances exist only inside `prefers-reduced-motion: no-preference`.
@@ -15,35 +17,6 @@
  *
  * docs/superpowers/specs/2026-09-06-landing-page-design.md
  */
-
-.landing-wash {
-  /*
-   * Full-bleed with no positioned ancestor, so the containing block is the
-   * initial containing block: the whole document's width, scrolling normally.
-   * `w-screen` would be a hair wider than that whenever a scrollbar is on
-   * screen, and the page would gain a horizontal one.
-   *
-   * NOTHING BETWEEN THIS ELEMENT AND <body> MAY ESTABLISH A CONTAINING BLOCK
-   * FOR ABSOLUTELY POSITIONED DESCENDANTS. `position` is the obvious way to do
-   * that — `relative` on the root layout's <main> or the hero <section> clips
-   * this to that box instead — but `transform`, `filter`, `backdrop-filter`,
-   * `contain: paint` and `will-change` on an ancestor create one too.
-   * src/components/landing/landing.tsx and src/app/layout.tsx say so too.
-   */
-  position: absolute;
-  inset-inline: 0;
-  top: 0;
-  z-index: -10;
-  height: 42rem;
-  pointer-events: none;
-  /* --primary at low alpha over the page's own ground, so the wash follows the
-     theme instead of being a hard-coded green that glows in the dark. */
-  background: linear-gradient(
-    168deg,
-    color-mix(in oklab, var(--primary) 12%, var(--background)) 0%,
-    var(--background) 46%
-  );
-}
 
 /* The reservation that fades out of the hero.
    Its resting state is gone: that is the honest picture of an owner's list, and
@@ -130,22 +103,20 @@
 }
 
 /* A pointer can hover; a thumb cannot, and on a touch device the lift would
-   stick after a tap. */
+   stick after a tap. The state change itself is unconditional — a reduced-motion
+   reader still gets the lift, just arrived at rather than travelled to — and
+   only the transition is opt-in, like every other piece of motion in this file. */
 @media (hover: hover) {
-  .landing-lift {
-    transition:
-      translate 0.3s cubic-bezier(0.2, 0.7, 0.3, 1),
-      box-shadow 0.3s cubic-bezier(0.2, 0.7, 0.3, 1);
-  }
-
   .landing-lift:hover {
     translate: 0 -5px;
     box-shadow: 0 26px 50px -18px rgb(0 0 0 / 0.28);
   }
 }
 
-@media (hover: hover) and (prefers-reduced-motion: reduce) {
+@media (hover: hover) and (prefers-reduced-motion: no-preference) {
   .landing-lift {
-    transition: none;
+    transition:
+      translate 0.3s cubic-bezier(0.2, 0.7, 0.3, 1),
+      box-shadow 0.3s cubic-bezier(0.2, 0.7, 0.3, 1);
   }
 }

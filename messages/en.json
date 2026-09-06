@@ -336,7 +336,6 @@
     "peerEmpty": "There are no wishes on this list yet."
   },
   "login": {
-    "name": "Prajem si",
     "signIn": "Sign in",
     "footnote": "Signing in gives you your own account. After that, start a group or open an invite somebody sent you.",
     "footnoteInvite": "Once you sign in, the invite will add you to the group."

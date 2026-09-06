@@ -15,29 +15,23 @@
 
 import type { Displayable } from "@/lib/types";
 
-/** Names a title under `landing.mock.wishes`. A union, not a string, so the
-    catalogue lookup that reads it is checked against `Messages`. */
+/** Names a title under `landing.mock.wishes`, and is the wish's whole identity:
+    the row id derives from it in `toMockDisplayable`. A union, not a string, so
+    both the catalogue lookup and `CLAIMED_MOCK_KEY` are checked by the
+    compiler. */
 export type MockWishKey = "book" | "socks" | "mug";
 
-/** One wish in an illustration. `key` names its title under `landing.mock.wishes`. */
-export type MockWishSpec = {
-  id: string;
-  key: MockWishKey;
-};
-
-export const MOCK_WISHES: readonly MockWishSpec[] = [
-  { id: "mock-book", key: "book" },
-  { id: "mock-socks", key: "socks" },
-  { id: "mock-mug", key: "mug" },
-];
+export const MOCK_WISHES: readonly MockWishKey[] = ["book", "socks", "mug"];
 
 /**
  * The wish the whole story is told through: reserved in beat two, absent from
  * the owner's side in beat three, and the badge that fades out of the hero. One
- * id rather than a flag on each row, so the illustrations cannot come to
- * disagree about which wish is taken.
+ * key rather than a flag on each row, so the illustrations cannot come to
+ * disagree about which wish is taken. Typed as `MockWishKey`, so naming a wish
+ * that is not on the list is a compile error rather than something a test has
+ * to catch.
  */
-export const CLAIMED_MOCK_ID = "mock-socks";
+export const CLAIMED_MOCK_KEY: MockWishKey = "socks";
 
 /** Which of the three fake screens a beat shows. */
 export type MockVariant = "owner" | "family" | "split";
@@ -69,7 +63,7 @@ export const STORY_BEATS: readonly BeatSpec[] = [
 ];
 
 /**
- * A spec plus its translated title, in the shape `WishRow` takes.
+ * A wish key plus its translated title, in the shape `WishRow` takes.
  *
  * `photo` is always null, and that is load-bearing rather than lazy:
  * `wishPhotoUrl` would turn a non-null value into `/wish-photo/mock-…`, and
@@ -81,11 +75,11 @@ export const STORY_BEATS: readonly BeatSpec[] = [
  * forced here rather than left to the data.
  */
 export function toMockDisplayable(
-  spec: MockWishSpec,
+  key: MockWishKey,
   title: string,
 ): Displayable {
   return {
-    id: spec.id,
+    id: `mock-${key}`,
     title,
     description: null,
     url: null,

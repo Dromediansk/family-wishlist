@@ -1,50 +1,29 @@
 import { describe, expect, it } from "vitest";
 
-import {
-  CLAIMED_MOCK_ID,
-  MOCK_WISHES,
-  STORY_BEATS,
-  toMockDisplayable,
-} from "@/lib/landing";
+import { MOCK_WISHES, STORY_BEATS, toMockDisplayable } from "@/lib/landing";
 
 import en from "../../messages/en.json";
 import sk from "../../messages/sk.json";
 
 describe("toMockDisplayable", () => {
-  it("takes its title from the catalogue", () => {
-    expect(toMockDisplayable({ id: "mock-x", key: "book" }, "Kniha")).toEqual({
-      id: "mock-x",
+  it("takes its title from the catalogue, and never a url or a photo — an illustration must not link out of the page, and /wish-photo serves somebody's real file", () => {
+    expect(toMockDisplayable("book", "Kniha")).toEqual({
+      id: "mock-book",
       title: "Kniha",
       description: null,
       url: null,
       photo: null,
     });
   });
-
-  it("never carries a url or a photo — an illustration must not link out of the page, and /wish-photo serves somebody's real file", () => {
-    const displayable = toMockDisplayable({ id: "mock-x", key: "book" }, "Kniha");
-    expect(displayable.url).toBeNull();
-    expect(displayable.photo).toBeNull();
-  });
 });
 
 describe("MOCK_WISHES", () => {
-  it("gives every wish a distinct id — they are React keys in a list", () => {
-    expect(new Set(MOCK_WISHES.map((wish) => wish.id)).size).toBe(
-      MOCK_WISHES.length,
-    );
-  });
-
-  it("reserves a wish that is actually on the list", () => {
-    expect(MOCK_WISHES.some((wish) => wish.id === CLAIMED_MOCK_ID)).toBe(true);
-  });
-
   it("names a title for every wish, in both languages", () => {
     for (const [locale, titles] of [
       ["sk", sk.landing.mock.wishes],
       ["en", en.landing.mock.wishes],
     ] as const) {
-      for (const { key } of MOCK_WISHES) {
+      for (const key of MOCK_WISHES) {
         const title = (titles as Record<string, string>)[key];
         expect(title, `${locale}: ${key}`).toBeDefined();
         expect(title.trim(), `${locale}: ${key}`).not.toBe("");

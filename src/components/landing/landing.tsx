@@ -27,13 +27,6 @@ export async function Landing({
 
   return (
     <>
-      {/*
-       * First, and outside every section, because it is positioned against the
-       * initial containing block. Nothing between it and <body> may be
-       * `relative` — see the comment on `.landing-wash`.
-       */}
-      <div aria-hidden className="landing-wash" />
-
       <Hero returnTo={returnTo} error={error} />
 
       {STORY_BEATS.map((beat) => (

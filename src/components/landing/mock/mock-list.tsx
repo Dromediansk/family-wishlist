@@ -1,23 +1,31 @@
 import { getTranslations } from "next-intl/server";
 
-import { MockCard } from "@/components/landing/mock/mock-card";
-import { Badge } from "@/components/ui/badge";
+import {
+  MockCard,
+  MockClaimedBadge,
+} from "@/components/landing/mock/mock-card";
 import { buttonVariants } from "@/components/ui/button";
 import { WishRow } from "@/components/wish-row";
 import {
-  CLAIMED_MOCK_ID,
+  CLAIMED_MOCK_KEY,
   MOCK_WISHES,
   toMockDisplayable,
   type MockVariant,
 } from "@/lib/landing";
 import { cn } from "@/lib/utils";
 
+/* A span, not a button: an illustration must not be a tab stop. Constant, so
+   it is built once rather than per row on a `force-dynamic` route. */
+const MOCK_ACTION_CLASS = cn(
+  buttonVariants({ variant: "outline", size: "sm" }),
+  "pointer-events-none",
+);
+
 /**
- * Zuzana's list, from one of three angles:
+ * Zuzana's list, from one of two angles:
  *
- * - `owner`   — her own view. No claim state at all, which is the whole rule.
- * - `family`  — what everybody else sees: one wish taken, the rest offered.
- * - `vanishing` — `family`, but the reservation fades out. The hero only.
+ * - `owner`  — her own view. No claim state at all, which is the whole rule.
+ * - `family` — what everybody else sees: one wish taken, the rest offered.
  *
  * These rows never reach a query — they come straight from `src/lib/landing.ts`
  * — so the variant names are a picture of the rule the rest of the app
@@ -27,52 +35,36 @@ export async function MockList({
   variant,
   className,
   staggerRows = false,
+  vanishClaim = false,
 }: Readonly<{
-  /** `split` never reaches here — that beat renders `MockSplit` instead —
-      and `vanishing` is a hero-only refinement of `family` that only this
-      component understands, so it is not in `MockVariant` itself. */
-  variant: Exclude<MockVariant, "split"> | "vanishing";
+  /** `split` never reaches here — that beat renders `MockSplit` instead. */
+  variant: Exclude<MockVariant, "split">;
   className?: string;
   /** The hero's rows dealt in one at a time, via `.landing-row-stagger` in
       landing.css. The hero only — the story beats already animate as a whole
       on scroll, and doubling up would look nervous. */
   staggerRows?: boolean;
+  /** The reservation fades out of the hero. A motion knob beside `staggerRows`
+      rather than a fourth `variant`: which viewpoint the list shows and how it
+      animates are independent. */
+  vanishClaim?: boolean;
 }>) {
   const t = await getTranslations("landing.mock");
   const tWishes = await getTranslations("wishes");
-  const titles = MOCK_WISHES.map((spec) => t(`wishes.${spec.key}`));
 
   return (
     <MockCard caption={t("ownerCaption")} className={className}>
-      <ul className={cn(staggerRows && "landing-row-stagger")}>
-        {MOCK_WISHES.map((spec, index) => (
+      <ul className={cn("flex flex-col", staggerRows && "landing-row-stagger")}>
+        {MOCK_WISHES.map((key) => (
           <WishRow
-            key={spec.id}
-            wish={toMockDisplayable(spec, titles[index])}
+            key={key}
+            wish={toMockDisplayable(key, t(`wishes.${key}`))}
             actionBeside
             action={
-              variant === "owner" ? null : spec.id === CLAIMED_MOCK_ID ? (
-                <Badge
-                  variant="accent"
-                  /* It ends invisible in both the animated and the still case —
-                     announcing who reserved it on the owner's own list is
-                     precisely what this illustration exists to say never
-                     happens. */
-                  aria-hidden={variant === "vanishing"}
-                  className={cn(variant === "vanishing" && "landing-vanish")}
-                >
-                  {tWishes("claimedBy", { name: t("claimerName") })}
-                </Badge>
+              variant === "owner" ? null : key === CLAIMED_MOCK_KEY ? (
+                <MockClaimedBadge vanishing={vanishClaim} />
               ) : (
-                /* A span, not a button: an illustration must not be a tab stop. */
-                <span
-                  className={cn(
-                    buttonVariants({ variant: "outline", size: "sm" }),
-                    "pointer-events-none",
-                  )}
-                >
-                  {tWishes("claim")}
-                </span>
+                <span className={MOCK_ACTION_CLASS}>{tWishes("claim")}</span>
               )
             }
           />

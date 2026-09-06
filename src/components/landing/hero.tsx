@@ -3,14 +3,11 @@ import { getTranslations } from "next-intl/server";
 import { MockCard, MockFigure } from "@/components/landing/mock/mock-card";
 import { MockList } from "@/components/landing/mock/mock-list";
 import { SignIn } from "@/components/landing/sign-in";
+import { Badge } from "@/components/ui/badge";
 
 /**
  * The top of the page: what this is, the way in, and a picture of the app with
  * the reservation quietly leaving it.
- *
- * NOT `relative`. The gradient behind the page is an absolutely positioned
- * element with no positioned ancestor — see `.landing-wash` in landing.css —
- * and a `relative` here would clip it to this section.
  */
 export async function Hero({
   returnTo,
@@ -22,9 +19,12 @@ export async function Hero({
   return (
     <section className="grid items-center gap-10 pt-2 pb-16 sm:grid-cols-2 sm:gap-12 sm:pt-8 sm:pb-24">
       <div>
-        <p className="landing-enter landing-enter-1 bg-accent text-accent-foreground inline-block rounded-full px-3 py-1 text-xs font-semibold tracking-wide uppercase">
+        <Badge
+          variant="accent"
+          className="landing-enter landing-enter-1 text-xs font-semibold tracking-wide uppercase"
+        >
           {t("eyebrow")}
-        </p>
+        </Badge>
 
         {/* The page's only h1. The app's name is in the header mark and the
             document title; a landing page leads with what it does. */}
@@ -78,7 +78,8 @@ export async function Hero({
             className="text-muted-foreground absolute inset-x-0 top-8 hidden opacity-50 sm:block sm:rotate-3"
           />
           <MockList
-            variant="vanishing"
+            variant="family"
+            vanishClaim
             staggerRows
             className="landing-lift relative sm:-rotate-2"
           />
