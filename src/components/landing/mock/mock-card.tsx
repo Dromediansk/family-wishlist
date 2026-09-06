@@ -24,7 +24,7 @@ export function MockCard({
 }: Readonly<{
   caption?: string;
   className?: string;
-  children: React.ReactNode;
+  children?: React.ReactNode;
 }>) {
   return (
     <div
