@@ -96,6 +96,25 @@
     animation: landing-vanish 2.4s 1.3s both;
   }
 
+  /* The hero's rows, dealt in one at a time rather than rising as one card:
+     after the figure itself has landed (0.37s delay + its own 0.55s run) and
+     before the badge starts to fade (1.3s delay, fully visible to 55% of
+     2.4s, i.e. ~2.62s) — comfortably inside that window, spaced to read as a
+     deal rather than a stutter.
+
+     `WishRow` takes no `className`, so there is no per-row class to hang an
+     `animation-delay` on directly; `:nth-child` on `MockList`'s `<ul>` reaches
+     the same three `<li>`s without touching the real component. `MockList`'s
+     `staggerRows` prop is what adds `.landing-row-stagger`; see
+     `mock-list.tsx`. Three children, matching the three `MOCK_WISHES` — a
+     fourth wish would need a fourth rule here. */
+  .landing-row-stagger > li {
+    animation: landing-rise 0.55s cubic-bezier(0.2, 0.7, 0.3, 1) both;
+  }
+  .landing-row-stagger > li:nth-child(1) { animation-delay: 0.6s; }
+  .landing-row-stagger > li:nth-child(2) { animation-delay: 0.72s; }
+  .landing-row-stagger > li:nth-child(3) { animation-delay: 0.84s; }
+
   /*
    * Scroll-driven, so the beats need no JavaScript at all. A browser without
    * support falls out of the @supports and simply shows the content — which is

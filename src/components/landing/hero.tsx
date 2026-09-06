@@ -79,6 +79,7 @@ export async function Hero({
           />
           <MockList
             variant="vanishing"
+            staggerRows
             className="landing-lift relative sm:-rotate-2"
           />
         </div>

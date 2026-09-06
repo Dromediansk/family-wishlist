@@ -21,9 +21,14 @@ import { cn } from "@/lib/utils";
 export async function MockList({
   variant,
   className,
+  staggerRows = false,
 }: Readonly<{
   variant: "owner" | "family" | "vanishing";
   className?: string;
+  /** The hero's rows dealt in one at a time, via `.landing-row-stagger` in
+      landing.css. The hero only — the story beats already animate as a whole
+      on scroll, and doubling up would look nervous. */
+  staggerRows?: boolean;
 }>) {
   const t = await getTranslations("landing.mock");
   const tWishes = await getTranslations("wishes");
@@ -31,7 +36,7 @@ export async function MockList({
 
   return (
     <MockCard caption={t("ownerCaption")} className={className}>
-      <ul>
+      <ul className={cn(staggerRows && "landing-row-stagger")}>
         {MOCK_WISHES.map((spec, index) => (
           <WishRow
             key={spec.id}
