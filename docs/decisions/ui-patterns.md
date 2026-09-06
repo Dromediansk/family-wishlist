@@ -297,9 +297,8 @@ left half is the same gift mark everywhere, linking to the current group or to
 
 `/` no longer repeats the mark. It is a landing page now: the header's small
 gift is the only one on it, and the work the 64px tile used to do is done by the
-headline and the illustration beside it. The 36/64 recipe survives where it
-started, in `/icon` and `/apple-icon`, which is also where the 56% rule is
-stated.
+headline and the illustration beside it. The 56% rule survives where it
+started, in `/icon` and `/apple-icon`.
 
 ### `(app)` and `(legal)`
 
@@ -387,8 +386,8 @@ One drawing serves `/icon` (512px, both `any` and `maskable`) and `/apple-icon`
   rasterise through Satori, which draws plain SVG but does not render React
   components, so `<GiftIcon />` would come out blank.
 - The background is full-bleed and the glyph sits at **56%** of the canvas,
-  inside Android's inner-80% adaptive-icon safe zone. That ratio is the rule —
-  the login tile repeats it at 36/64 — and any rescale has to keep it.
+  inside Android's inner-80% adaptive-icon safe zone. That ratio is the rule,
+  and any rescale has to keep it.
 - Both metadata routes are `force-static`, or the root layout's `force-dynamic`
   would leak down and rasterise a PNG on every request.
 - There is deliberately no `favicon.ico`. One would emit a second
