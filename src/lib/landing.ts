@@ -23,13 +23,12 @@ export type MockWishKey = "book" | "socks" | "mug";
 export type MockWishSpec = {
   id: string;
   key: MockWishKey;
-  url: string | null;
 };
 
 export const MOCK_WISHES: readonly MockWishSpec[] = [
-  { id: "mock-book", key: "book", url: "https://www.martinus.sk" },
-  { id: "mock-socks", key: "socks", url: null },
-  { id: "mock-mug", key: "mug", url: null },
+  { id: "mock-book", key: "book" },
+  { id: "mock-socks", key: "socks" },
+  { id: "mock-mug", key: "mug" },
 ];
 
 /**
@@ -65,6 +64,11 @@ export const STORY_BEATS: readonly BeatSpec[] = [
  * `photo` is always null, and that is load-bearing rather than lazy:
  * `wishPhotoUrl` would turn a non-null value into `/wish-photo/mock-…`, and
  * that route serves real files belonging to real people.
+ *
+ * `url` is always null for the same kind of reason: an illustration must not
+ * contain a live link out of the page — `WishRow` renders a real focusable
+ * `<a href target="_blank">` for a wish that carries one — so the field is
+ * forced here rather than left to the data.
  */
 export function toMockDisplayable(
   spec: MockWishSpec,
@@ -74,7 +78,7 @@ export function toMockDisplayable(
     id: spec.id,
     title,
     description: null,
-    url: spec.url,
+    url: null,
     photo: null,
   };
 }

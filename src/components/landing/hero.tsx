@@ -60,7 +60,7 @@ export async function Hero({
         caption={tMock("figures.hero")}
         className="landing-enter landing-enter-5"
       >
-        <div className="relative landing-lift-zone">
+        <div className="relative">
           {/*
            * The fan. `sm:` only: below it the columns have already collapsed,
            * and a 3.5° card cannot overflow a 360px viewport without clipping.
@@ -69,10 +69,9 @@ export async function Hero({
            * is confined to an illustration nobody has to read.
            * docs/superpowers/specs/2026-09-06-landing-page-design.md
            *
-           * No `aria-hidden`, no sr-only echo of the caption: `MockCard` is
-           * already `inert`, which takes it out of the accessibility tree, and
-           * the enclosing `MockFigure`'s caption is the one description of the
-           * whole illustration.
+           * No `aria-hidden`, no sr-only echo of the caption: the enclosing
+           * `MockFigure`'s caption is the one description of the whole
+           * illustration.
            */}
           <MockCard
             caption={tMock("historyCaption")}

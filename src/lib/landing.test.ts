@@ -11,22 +11,20 @@ import en from "../../messages/en.json";
 import sk from "../../messages/sk.json";
 
 describe("toMockDisplayable", () => {
-  it("takes its title from the catalogue and keeps the link", () => {
-    expect(
-      toMockDisplayable({ id: "mock-x", key: "book", url: "https://e.sk" }, "Kniha"),
-    ).toEqual({
+  it("takes its title from the catalogue", () => {
+    expect(toMockDisplayable({ id: "mock-x", key: "book" }, "Kniha")).toEqual({
       id: "mock-x",
       title: "Kniha",
       description: null,
-      url: "https://e.sk",
+      url: null,
       photo: null,
     });
   });
 
-  it("never carries a photo — /wish-photo serves somebody's real file", () => {
-    expect(
-      toMockDisplayable({ id: "mock-x", key: "book", url: null }, "Kniha").photo,
-    ).toBeNull();
+  it("never carries a url or a photo — an illustration must not link out of the page, and /wish-photo serves somebody's real file", () => {
+    const displayable = toMockDisplayable({ id: "mock-x", key: "book" }, "Kniha");
+    expect(displayable.url).toBeNull();
+    expect(displayable.photo).toBeNull();
   });
 });
 

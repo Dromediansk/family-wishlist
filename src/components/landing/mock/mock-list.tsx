@@ -40,9 +40,10 @@ export async function MockList({
               variant === "owner" ? null : spec.id === CLAIMED_MOCK_ID ? (
                 <Badge
                   variant="accent"
-                  /* It ends invisible in both the animated and the still case,
-                     so announcing it would tell the owner exactly the thing the
-                     picture is about not telling them. */
+                  /* It ends invisible in both the animated and the still case —
+                     announcing who reserved it on the owner's own list is
+                     precisely what this illustration exists to say never
+                     happens. */
                   aria-hidden={variant === "vanishing"}
                   className={cn(variant === "vanishing" && "landing-vanish")}
                 >
