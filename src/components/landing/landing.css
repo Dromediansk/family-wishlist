@@ -1,0 +1,122 @@
+/*
+ * Landing-page motion.
+ *
+ * A colocated stylesheet rather than a block in globals.css: none of this is
+ * app-wide, and it changes when the components beside it change. The gradient
+ * these entrances play over is the app's own ground and lives on `body` in
+ * globals.css.
+ *
+ * Motion is opt-in, not opt-out. Everything is drawn in its finished state and
+ * the entrances exist only inside `prefers-reduced-motion: no-preference`.
+ * Written the other way round — hide, then reveal, then disable the reveal — a
+ * reader who asks for stillness gets a blank page.
+ *
+ * Keyframes move `translate` rather than `transform`, because Tailwind 4 writes
+ * `rotate-*` to the `rotate` property: a `transform` here would silently
+ * flatten the tilt on the stacked cards.
+ *
+ * docs/superpowers/specs/2026-09-06-landing-page-design.md
+ */
+
+/* The reservation that fades out of the hero.
+   Its resting state is gone: that is the honest picture of an owner's list, and
+   it is what a reduced-motion reader and a browser mid-load both get. */
+.landing-vanish {
+  opacity: 0;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  @keyframes landing-rise {
+    from {
+      opacity: 0;
+      translate: 0 1rem;
+    }
+    to {
+      opacity: 1;
+      translate: 0 0;
+    }
+  }
+
+  /* 55% of the way through, the badge is still fully there — the pause is what
+     makes it read as "and then it was gone" rather than as a slow fade-in of
+     the page. Opacity and filter only: the badge keeps its box, so the row it
+     sits in never reflows. */
+  @keyframes landing-vanish {
+    0%,
+    55% {
+      opacity: 1;
+      filter: blur(0);
+    }
+    100% {
+      opacity: 0;
+      filter: blur(6px);
+    }
+  }
+
+  .landing-enter {
+    animation: landing-rise 0.55s cubic-bezier(0.2, 0.7, 0.3, 1) both;
+  }
+
+  /* The hero's stagger. Five slots is what the hero uses; a sixth means the
+     hero grew and this list should grow with it. */
+  .landing-enter-1 { animation-delay: 0.05s; }
+  .landing-enter-2 { animation-delay: 0.13s; }
+  .landing-enter-3 { animation-delay: 0.21s; }
+  .landing-enter-4 { animation-delay: 0.29s; }
+  .landing-enter-5 { animation-delay: 0.37s; }
+
+  .landing-vanish {
+    animation: landing-vanish 2.4s 1.3s both;
+  }
+
+  /* The hero's rows, dealt in one at a time rather than rising as one card:
+     after the figure itself has landed (0.37s delay + its own 0.55s run) and
+     before the badge starts to fade (1.3s delay, fully visible to 55% of
+     2.4s, i.e. ~2.62s) — comfortably inside that window, spaced to read as a
+     deal rather than a stutter.
+
+     `WishRow` takes no `className`, so there is no per-row class to hang an
+     `animation-delay` on directly; `:nth-child` on `MockList`'s `<ul>` reaches
+     the same three `<li>`s without touching the real component. `MockList`'s
+     `staggerRows` prop is what adds `.landing-row-stagger`; see
+     `mock-list.tsx`. Three children, matching the three `MOCK_WISHES` — a
+     fourth wish would need a fourth rule here. */
+  .landing-row-stagger > li {
+    animation: landing-rise 0.55s cubic-bezier(0.2, 0.7, 0.3, 1) both;
+  }
+  .landing-row-stagger > li:nth-child(1) { animation-delay: 0.6s; }
+  .landing-row-stagger > li:nth-child(2) { animation-delay: 0.72s; }
+  .landing-row-stagger > li:nth-child(3) { animation-delay: 0.84s; }
+
+  /*
+   * Scroll-driven, so the beats need no JavaScript at all. A browser without
+   * support falls out of the @supports and simply shows the content — which is
+   * why the rule adds the entrance rather than removing a hidden state.
+   */
+  @supports (animation-timeline: view()) {
+    .landing-reveal {
+      animation: landing-rise 0.6s cubic-bezier(0.2, 0.7, 0.3, 1) both;
+      animation-timeline: view();
+      animation-range: entry 10% cover 28%;
+    }
+  }
+}
+
+/* A pointer can hover; a thumb cannot, and on a touch device the lift would
+   stick after a tap. The state change itself is unconditional — a reduced-motion
+   reader still gets the lift, just arrived at rather than travelled to — and
+   only the transition is opt-in, like every other piece of motion in this file. */
+@media (hover: hover) {
+  .landing-lift:hover {
+    translate: 0 -5px;
+    box-shadow: 0 26px 50px -18px rgb(0 0 0 / 0.28);
+  }
+}
+
+@media (hover: hover) and (prefers-reduced-motion: no-preference) {
+  .landing-lift {
+    transition:
+      translate 0.3s cubic-bezier(0.2, 0.7, 0.3, 1),
+      box-shadow 0.3s cubic-bezier(0.2, 0.7, 0.3, 1);
+  }
+}

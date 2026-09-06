@@ -122,6 +122,45 @@
     "install": "Nainštalovať",
     "dismiss": "Teraz nie"
   },
+  "landing": {
+    "eyebrow": "Pre rodinu, tím aj partiu priateľov",
+    "headline": "Darčeky podľa želania. <hl>Prekvapenie zostáva.</hl>",
+    "sub": "Napíš si, čo by si chcel. Ostatní tajne rezervujú. Ty sa nedozvieš nič.",
+    "trust": "Zadarmo · bez reklám · súkromné skupiny, len na pozvánku",
+    "closingTitle": "Založ skupinu a pozvi členov",
+    "beats": {
+      "write": {
+        "title": "Napíš, čo by si chcel",
+        "body": "Názov stačí. Môžeš pridať fotku, odkaz aj poznámku. Zoznam patrí tebe, nie skupine — ty vyberáš, aká skupina ho uvidí."
+      },
+      "reserve": {
+        "title": "Ostatní tajne rezervujú",
+        "body": "Ktokoľvek zo skupiny si darček rezervuje. Ostatní to vidia, takže nikto nekúpi to isté dvakrát."
+      },
+      "secret": {
+        "title": "Ty sa to nedozvieš",
+        "body": "Ten istý zoznam z tvojej strany: žiadne značky, žiadne nápovedy. Tajomstvo skončí, až keď darca povie, že darček odovzdal."
+      }
+    },
+    "mock": {
+      "ownerCaption": "Zoznam — Zuzana",
+      "historyCaption": "História darčekov",
+      "familySees": "Rodina vidí",
+      "ownerSees": "Zuzana vidí",
+      "claimerName": "Peter",
+      "wishes": {
+        "book": "Kniha o záhradkárstve",
+        "socks": "Vlnené ponožky, veľkosť 39",
+        "mug": "Hrnček s menom"
+      },
+      "figures": {
+        "hero": "Ukážka zoznamu prianí. Rezervácia z neho zmizne — majiteľka zoznamu ju nikdy nevidí.",
+        "owner": "Ukážka zoznamu prianí s tromi položkami.",
+        "family": "Ukážka zoznamu tak, ako ho vidí rodina: jedno prianie je už rezervované.",
+        "split": "Ukážka toho istého priania vedľa seba: rodina vidí, že je rezervované, majiteľka nevidí nič."
+      }
+    }
+  },
   "invites": {
     "create": "Vytvoriť pozvánku",
     "empty": "Zatiaľ žiadne pozvánky.",
@@ -297,8 +336,6 @@
     "peerEmpty": "V tomto zozname zatiaľ nie sú žiadne želania."
   },
   "login": {
-    "name": "Prajem si",
-    "pitch": "Zapíš si, čo by si chcel.<break></break> Ostatní potichu vyberú darček a ty sa do poslednej chvíle nič nedozvieš.",
     "signIn": "Prihlásiť sa",
     "footnote": "Prihlásením získaš vlastný účet. Potom si založ skupinu alebo otvor pozvánku, ktorú ti niekto poslal.",
     "footnoteInvite": "Po prihlásení ťa pozvánka pridá do skupiny."

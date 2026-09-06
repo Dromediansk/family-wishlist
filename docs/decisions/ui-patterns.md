@@ -281,6 +281,15 @@ only, so it could not be a root-layout sibling, so a root `<main>` would have
 swallowed it. Once the header became everyone's, that rule went, and with it the
 five copies of an identical wrapper it had forced.
 
+**The ground under all of it is one gradient on `body`** — `--primary` at 12%
+over `--background`, fading out by 42rem — in `globals.css`, not in any page.
+It arrived with the landing page and stayed for every route: it is the app's
+paper, not that page's decoration. On `body` rather than on a positioned layer
+because a background propagates to the canvas, so it is full-bleed and
+width-exact without `w-screen` (a hair wider than the page whenever a scrollbar
+is showing, which is how a page gains a horizontal one) and without obliging
+anything in the shell to stay unpositioned.
+
 ### Chrome is for strangers too
 
 The header and the footer are both unconditional, for the same reason. The
@@ -295,9 +304,10 @@ switch alone for a stranger, the account menu for somebody with no group yet
 left half is the same gift mark everywhere, linking to the current group or to
 `/`.
 
-The sign-in card keeps its own large gift tile under that. The two are not a
-repetition: one is 24px of chrome in a corner, the other is the 64px hero of a
-front door.
+`/` no longer repeats the mark. It is a landing page now: the header's small
+gift is the only one on it, and the work the 64px tile used to do is done by the
+headline and the illustration beside it. The 56% rule survives where it
+started, in `/icon` and `/apple-icon`.
 
 ### `(app)` and `(legal)`
 
@@ -385,8 +395,8 @@ One drawing serves `/icon` (512px, both `any` and `maskable`) and `/apple-icon`
   rasterise through Satori, which draws plain SVG but does not render React
   components, so `<GiftIcon />` would come out blank.
 - The background is full-bleed and the glyph sits at **56%** of the canvas,
-  inside Android's inner-80% adaptive-icon safe zone. That ratio is the rule —
-  the login tile repeats it at 36/64 — and any rescale has to keep it.
+  inside Android's inner-80% adaptive-icon safe zone. That ratio is the rule,
+  and any rescale has to keep it.
 - Both metadata routes are `force-static`, or the root layout's `force-dynamic`
   would leak down and rasterise a PNG on every request.
 - There is deliberately no `favicon.ico`. One would emit a second
