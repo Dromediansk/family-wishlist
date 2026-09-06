@@ -122,6 +122,46 @@
     "install": "Install",
     "dismiss": "Not now"
   },
+  "landing": {
+    "eyebrow": "For a family, a team, a circle of friends",
+    "headline": "No duplicate gifts. <hl>The surprise survives.</hl>",
+    "sub": "Everyone writes down what they'd like. The others quietly reserve. You never find out.",
+    "trust": "Free · no ads · invite only",
+    "closingTitle": "Start a group and invite your people",
+    "beats": {
+      "write": {
+        "title": "Write down what you'd like",
+        "body": "A title is enough. Add a photo, a link, a note. The list is yours, not the group's — you choose which circles see it."
+      },
+      "reserve": {
+        "title": "The others quietly reserve",
+        "body": "Anyone in the group can reserve a gift. Everyone else sees it is taken, so nobody buys the same thing twice."
+      },
+      "secret": {
+        "title": "You never find out",
+        "body": "The same list from your side: no marks, no hints. The secret ends when the giver says the gift was handed over."
+      }
+    },
+    "mock": {
+      "ownerCaption": "Wish list — Zuzana",
+      "historyCaption": "Gift history",
+      "familySees": "The family sees",
+      "ownerSees": "Zuzana sees",
+      "claimedBy": "Reserved by Peter",
+      "claimAction": "I'll buy this",
+      "wishes": {
+        "book": "A book about gardening",
+        "socks": "Wool socks, size 39",
+        "mug": "A mug with a name on it"
+      },
+      "figures": {
+        "hero": "An illustration of a wish list. The reservation fades away — the owner of the list never sees it.",
+        "owner": "An illustration of a wish list with three items.",
+        "family": "An illustration of the list as the family sees it: one wish is already reserved.",
+        "split": "An illustration of the same wish side by side: the family sees it is reserved, the owner sees nothing."
+      }
+    }
+  },
   "invites": {
     "create": "Create an invite",
     "empty": "No invites yet.",

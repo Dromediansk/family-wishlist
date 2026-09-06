@@ -122,6 +122,46 @@
     "install": "Nainštalovať",
     "dismiss": "Teraz nie"
   },
+  "landing": {
+    "eyebrow": "Pre rodinu, tím aj partiu priateľov",
+    "headline": "Darčeky bez duplikátov. <hl>Prekvapenie zostáva.</hl>",
+    "sub": "Každý si napíše, čo by chcel. Ostatní potichu rezervujú. Ty sa nedozvieš nič.",
+    "trust": "Zadarmo · bez reklám · len na pozvánku",
+    "closingTitle": "Založ skupinu a pozvi svojich",
+    "beats": {
+      "write": {
+        "title": "Napíš, čo by si chcel",
+        "body": "Názov stačí. Môžeš pridať fotku, odkaz aj poznámku. Zoznam patrí tebe, nie skupine — ty vyberáš, kto ho uvidí."
+      },
+      "reserve": {
+        "title": "Ostatní potichu rezervujú",
+        "body": "Ktokoľvek zo skupiny si darček rezervuje. Ostatní to vidia, takže nikto nekúpi to isté dvakrát."
+      },
+      "secret": {
+        "title": "Ty sa to nedozvieš",
+        "body": "Ten istý zoznam z tvojej strany: žiadne značky, žiadne nápovedy. Tajomstvo skončí, až keď darca povie, že darček odovzdal."
+      }
+    },
+    "mock": {
+      "ownerCaption": "Zoznam — Zuzana",
+      "historyCaption": "História darčekov",
+      "familySees": "Rodina vidí",
+      "ownerSees": "Zuzana vidí",
+      "claimedBy": "Rezervoval Peter",
+      "claimAction": "Toto kúpim",
+      "wishes": {
+        "book": "Kniha o záhradkárstve",
+        "socks": "Vlnené ponožky, veľkosť 39",
+        "mug": "Hrnček s menom"
+      },
+      "figures": {
+        "hero": "Ukážka zoznamu prianí. Rezervácia z neho zmizne — majiteľ zoznamu ju nikdy nevidí.",
+        "owner": "Ukážka zoznamu prianí s tromi položkami.",
+        "family": "Ukážka zoznamu tak, ako ho vidí rodina: jedno prianie je už rezervované.",
+        "split": "Ukážka toho istého priania vedľa seba: rodina vidí, že je rezervované, majiteľka nevidí nič."
+      }
+    }
+  },
   "invites": {
     "create": "Vytvoriť pozvánku",
     "empty": "Zatiaľ žiadne pozvánky.",
