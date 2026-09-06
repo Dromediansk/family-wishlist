@@ -170,6 +170,8 @@ export default async function RootLayout({
           <div className="mx-auto flex min-h-dvh w-full max-w-5xl flex-col px-4 pt-[max(1.5rem,env(safe-area-inset-top))] pb-[max(1.5rem,env(safe-area-inset-bottom))] sm:px-6 sm:pt-10 sm:pb-10">
             <OfflineBanner />
             <SiteHeader />
+            {/* Must never become positioned — `/`'s full-bleed gradient
+                resolves against it. See `.landing-wash` in landing.css. */}
             <main className="flex-1">{children}</main>
             <InstallPrompt />
             <SiteFooter />

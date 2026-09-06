@@ -23,9 +23,12 @@
    * `w-screen` would be a hair wider than that whenever a scrollbar is on
    * screen, and the page would gain a horizontal one.
    *
-   * NOTHING BETWEEN THIS ELEMENT AND <body> MAY BE POSITIONED. Adding
-   * `relative` to the root layout's <main>, or to the hero <section>, clips
-   * this to that box instead. src/components/landing/landing.tsx says so too.
+   * NOTHING BETWEEN THIS ELEMENT AND <body> MAY ESTABLISH A CONTAINING BLOCK
+   * FOR ABSOLUTELY POSITIONED DESCENDANTS. `position` is the obvious way to do
+   * that — `relative` on the root layout's <main> or the hero <section> clips
+   * this to that box instead — but `transform`, `filter`, `backdrop-filter`,
+   * `contain: paint` and `will-change` on an ancestor create one too.
+   * src/components/landing/landing.tsx and src/app/layout.tsx say so too.
    */
   position: absolute;
   inset-inline: 0;

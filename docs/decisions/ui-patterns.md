@@ -268,12 +268,18 @@ because a wrapper around something that renders `null` still takes a row of
 
 The root layout owns the whole shell: the header, then
 `<main className="flex-1">` around the page, then the install nudge and the
-footer. Two details are load-bearing:
+footer. Three details are load-bearing:
 
 - the header is a **sibling** of `<main>`, never inside it — a `<header>` nested
   in `<main>` stops being the `banner` landmark;
 - `flex-1` on the `<main>` fills the `min-h-dvh` column, lets a short page
-  centre itself, and pushes the nudge and the footer down to the bottom edge.
+  centre itself, and pushes the nudge and the footer down to the bottom edge;
+- nothing in the shell may establish a containing block for absolutely
+  positioned descendants — `/`'s full-bleed gradient (`.landing-wash` in
+  `landing.css`) is positioned with no relative ancestor of its own, so it
+  resolves against the initial containing block. `position`, `transform`,
+  `filter`, `backdrop-filter`, `contain: paint` or `will-change` on anything
+  between it and `<body>` would clip or shift it instead.
 
 **The header used to sit in `(app)` and every page had to bring its own
 `<main>`.** Both followed from one rule — the header was chrome for members
