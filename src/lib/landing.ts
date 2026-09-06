@@ -43,19 +43,29 @@ export const CLAIMED_MOCK_ID = "mock-socks";
 export type MockVariant = "owner" | "family" | "split";
 
 /**
- * The three beats, in order. `side` is the side the illustration sits on from
- * `sm:` up; below that the layout is one column and the field is ignored.
+ * The three beats, in order. `layout` says how the beat is drawn:
+ * `beside` puts the illustration next to the prose from `sm:` up, alternating
+ * with `side`; `full` gives the illustration the whole content measure and
+ * drops `side` — a beat with nothing beside it has no side to be the start or
+ * end of, and the type says so by not carrying the field at all.
  */
-export type BeatSpec = {
-  key: "write" | "reserve" | "secret";
-  side: "start" | "end";
-  mock: MockVariant;
-};
+export type BeatSpec =
+  | {
+      key: "write" | "reserve" | "secret";
+      mock: MockVariant;
+      layout: "beside";
+      side: "start" | "end";
+    }
+  | {
+      key: "write" | "reserve" | "secret";
+      mock: MockVariant;
+      layout: "full";
+    };
 
 export const STORY_BEATS: readonly BeatSpec[] = [
-  { key: "write", side: "end", mock: "owner" },
-  { key: "reserve", side: "start", mock: "family" },
-  { key: "secret", side: "end", mock: "split" },
+  { key: "write", side: "end", mock: "owner", layout: "beside" },
+  { key: "reserve", side: "start", mock: "family", layout: "beside" },
+  { key: "secret", mock: "split", layout: "full" },
 ];
 
 /**

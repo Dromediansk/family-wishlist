@@ -62,12 +62,17 @@ describe("STORY_BEATS", () => {
     ]);
   });
 
-  it("alternates sides, so the page does not read as one column", () => {
-    expect(STORY_BEATS.map((beat) => beat.side)).toEqual([
-      "end",
-      "start",
-      "end",
+  it("alternates sides on the beside beats, and gives the third the full width", () => {
+    expect(STORY_BEATS.map((beat) => beat.layout)).toEqual([
+      "beside",
+      "beside",
+      "full",
     ]);
+    expect(
+      STORY_BEATS.filter((beat) => beat.layout === "beside").map(
+        (beat) => beat.side,
+      ),
+    ).toEqual(["end", "start"]);
   });
 
   it("shows a different screen in each beat", () => {
