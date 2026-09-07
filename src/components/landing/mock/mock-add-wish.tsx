@@ -55,8 +55,23 @@ export async function MockAddWish() {
     <MockPanel>
       {/* `pt-6` stands in for the header the illustration does not draw: it is
           the same 24px the dialog's own `HEADER` puts above its title, so the
-          first label does not sit on the card's edge. */}
-      <div className={cn(BODY, "flex flex-col gap-4 pt-6")}>
+          first label does not sit on the card's edge.
+
+          `overflow-visible overscroll-auto` drops the two `BODY` carries for
+          the real dialog: a body that scrolls inside a height-capped panel, and
+          an `overscroll-contain` that keeps a phone from rubber-banding the page
+          behind it. This card has no cap, so the region would be a scroll
+          container with nothing to scroll — and `overscroll-contain` refuses to
+          pass the wheel on, stopping the whole page while the pointer rests on
+          the picture. The axis-specific spelling will not do: tailwind-merge
+          drops `overscroll-contain` for `overscroll-auto`, but keeps it beside
+          `overscroll-y-auto`. */}
+      <div
+        className={cn(
+          BODY,
+          "flex flex-col gap-4 overflow-visible overscroll-auto pt-6",
+        )}
+      >
         <div className="flex flex-col gap-2">
           <p className={LABEL}>{tForm("title")}</p>
           {/* A div, not an `<input>`: a field is a tab stop, and a read-only one
