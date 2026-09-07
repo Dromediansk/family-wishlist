@@ -124,14 +124,14 @@
   },
   "landing": {
     "eyebrow": "For a family, a team, a circle of friends",
-    "headline": "Gifts by the wish. <hl>The surprise survives.</hl>",
+    "headline": "Gifts as desired. <hl>The surprise survives.</hl>",
     "sub": "Write down what you'd like. The others secretly reserve. You never find out.",
     "trust": "Free · no ads · private groups, invite only",
     "closingTitle": "Start a group and invite people",
     "beats": {
       "write": {
         "title": "Write down what you'd like",
-        "body": "A title is enough. Add a photo, a link, a note. The list is yours, not the group's — you choose which circles see it."
+        "body": "A title is enough. Add a photo, a link, a note. You choose which group see it."
       },
       "reserve": {
         "title": "The others secretly reserve",
@@ -268,7 +268,7 @@
       "title": "Terms of use",
       "about": {
         "title": "What this is",
-        "p1": "“Prajem si” is a wish-list app for a family, a team or a circle of friends. Everyone writes down what they'd like; everyone else can quietly pick out a gift, and the owner of the list never finds out.",
+        "p1": "“Prajem si” is a wish-list app for a family, a team or a group of friends. Everyone writes down what they'd like; everyone else can quietly pick out a gift, and the owner of the list never finds out.",
         "p2": "It is run by <operatorName></operatorName>, <operatorAddress></operatorAddress>, contact <contactEmail></contactEmail>. It is free to use and non-commercial. By using the app you agree to these terms."
       },
       "account": {

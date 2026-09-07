@@ -131,7 +131,7 @@
     "beats": {
       "write": {
         "title": "Napíš, čo by si chcel",
-        "body": "Názov stačí. Môžeš pridať fotku, odkaz aj poznámku. Zoznam patrí tebe, nie skupine — ty vyberáš, aká skupina ho uvidí."
+        "body": "Názov stačí. Môžeš pridať fotku, odkaz aj poznámku. Ty vyberieš, aká skupina ho uvidí."
       },
       "reserve": {
         "title": "Ostatní tajne rezervujú",
