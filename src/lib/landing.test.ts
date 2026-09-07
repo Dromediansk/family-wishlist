@@ -1,6 +1,12 @@
 import { describe, expect, it } from "vitest";
 
-import { MOCK_WISHES, STORY_BEATS, toMockDisplayable } from "@/lib/landing";
+import {
+  MOCK_GROUPS,
+  MOCK_WISHES,
+  STORY_BEATS,
+  TICKED_MOCK_GROUPS,
+  toMockDisplayable,
+} from "@/lib/landing";
 
 import en from "../../messages/en.json";
 import sk from "../../messages/sk.json";
@@ -28,6 +34,29 @@ describe("MOCK_WISHES", () => {
         expect(title, `${locale}: ${key}`).toBeDefined();
         expect(title.trim(), `${locale}: ${key}`).not.toBe("");
       }
+    }
+  });
+});
+
+describe("MOCK_GROUPS", () => {
+  it("names every group in beat one's picker, in both languages", () => {
+    for (const [locale, names] of [
+      ["sk", sk.landing.mock.groups],
+      ["en", en.landing.mock.groups],
+    ] as const) {
+      for (const key of MOCK_GROUPS) {
+        const name = (names as Record<string, string>)[key];
+        expect(name, `${locale}: ${key}`).toBeDefined();
+        expect(name.trim(), `${locale}: ${key}`).not.toBe("");
+      }
+    }
+  });
+
+  it("ticks some of them but not all — an empty picker illustrates nothing, and a full one does not show a choice being made", () => {
+    expect(TICKED_MOCK_GROUPS.length).toBeGreaterThan(0);
+    expect(TICKED_MOCK_GROUPS.length).toBeLessThan(MOCK_GROUPS.length);
+    for (const key of TICKED_MOCK_GROUPS) {
+      expect(MOCK_GROUPS, key).toContain(key);
     }
   });
 });

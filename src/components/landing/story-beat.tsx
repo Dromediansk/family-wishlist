@@ -1,5 +1,6 @@
 import { getTranslations } from "next-intl/server";
 
+import { MockAddWish } from "@/components/landing/mock/mock-add-wish";
 import { MockFigure } from "@/components/landing/mock/mock-card";
 import { MockList } from "@/components/landing/mock/mock-list";
 import { MockSplit } from "@/components/landing/mock/mock-split";
@@ -51,10 +52,13 @@ export async function StoryBeat({ beat }: Readonly<{ beat: BeatSpec }>) {
       </div>
 
       <MockFigure caption={tMock(`figures.${beat.mock}`)}>
-        {/* Narrowed on `beat.mock` directly, not on `beat.layout`: TS can't
-            carry one union member's narrowing back to a different field's
-            type. */}
-        {beat.mock === "split" ? <MockSplit /> : <MockList variant={beat.mock} />}
+        {beat.mock === "form" ? (
+          <MockAddWish />
+        ) : beat.mock === "split" ? (
+          <MockSplit />
+        ) : (
+          <MockList />
+        )}
       </MockFigure>
     </section>
   );

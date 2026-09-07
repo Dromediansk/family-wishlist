@@ -1,16 +1,13 @@
 import * as React from "react";
 
+import { TEXTAREA } from "@/components/ui/field-styles";
 import { cn } from "@/lib/utils";
 
 function Textarea({ className, ...props }: React.ComponentProps<"textarea">) {
   return (
     <textarea
       data-slot="textarea"
-      className={cn(
-        // 17px for the same reason as Input — under 16px iOS zooms on focus.
-        "border-input bg-background placeholder:text-muted-foreground flex min-h-28 w-full rounded-md border px-3.5 py-2.5 text-base shadow-xs transition-colors disabled:cursor-not-allowed disabled:opacity-50",
-        className,
-      )}
+      className={cn(TEXTAREA, className)}
       {...props}
     />
   );
