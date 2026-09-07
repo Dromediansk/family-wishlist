@@ -33,8 +33,40 @@ export const MOCK_WISHES: readonly MockWishKey[] = ["book", "socks", "mug"];
  */
 export const CLAIMED_MOCK_KEY: MockWishKey = "socks";
 
+/**
+ * The wish being typed in beat one's form.
+ *
+ * Not `socks`, even though it is the wish the rest of the story follows: the
+ * real field's placeholder is `wishes.form.titlePlaceholder`, "napr. Vlnené
+ * ponožky, veľkosť 42", so a socks title would read as a placeholder nobody has
+ * filled in yet rather than as something Zuzana wrote.
+ */
+export const WRITTEN_MOCK_KEY: MockWishKey = "book";
+
+/** Names a group under `landing.mock.groups`. A union for the same reason as
+    `MockWishKey`: the catalogue lookup and `TICKED_MOCK_GROUPS` are both
+    checked by the compiler. */
+export type MockGroupKey = "family" | "colleagues" | "cabin";
+
+export const MOCK_GROUPS: readonly MockGroupKey[] = [
+  "family",
+  "colleagues",
+  "cabin",
+];
+
+/**
+ * Which of them beat one shows ticked. Two rather than one: one tick shows
+ * that a wish is put somewhere, two show that it can be in more than one place
+ * at once — which is the reason the real picker is checkboxes and not a
+ * dropdown, and the half of the beat's sentence the old illustration left out.
+ */
+export const TICKED_MOCK_GROUPS: readonly MockGroupKey[] = [
+  "family",
+  "colleagues",
+];
+
 /** Which of the three fake screens a beat shows. */
-export type MockVariant = "owner" | "family" | "split";
+export type MockVariant = "form" | "family" | "split";
 
 /**
  * The three beats, in order. `layout` says how the beat is drawn:
@@ -57,7 +89,7 @@ export type BeatSpec =
     };
 
 export const STORY_BEATS: readonly BeatSpec[] = [
-  { key: "write", side: "end", mock: "owner", layout: "beside" },
+  { key: "write", side: "end", mock: "form", layout: "beside" },
   { key: "reserve", side: "start", mock: "family", layout: "beside" },
   { key: "secret", mock: "split", layout: "full" },
 ];

@@ -78,7 +78,6 @@ export async function Hero({
             className="text-muted-foreground absolute inset-x-0 top-8 hidden opacity-50 sm:block sm:rotate-3"
           />
           <MockList
-            variant="family"
             vanishClaim
             staggerRows
             className="landing-lift relative sm:-rotate-2"

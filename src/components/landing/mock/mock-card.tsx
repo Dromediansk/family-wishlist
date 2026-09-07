@@ -2,10 +2,11 @@
  * The illustrations on the landing page.
  *
  * They are built from the app's own components — `Card`, `WishRow`, `Badge`,
- * the button classes — with fake rows, rather than from screenshots. Two
- * languages and two themes would be four sets of images to recapture on every
- * change, and a list captured at desktop width and scaled to a phone is
- * unreadable, which is the one reader this app exists for.
+ * the button classes, the dialog's own regions and the field styles — with fake
+ * rows, rather than from screenshots. Two languages and two themes would be
+ * four sets of images to recapture on every change, and a list captured at
+ * desktop width and scaled to a phone is unreadable, which is the one reader
+ * this app exists for.
  *
  * What that buys: the card and `WishRow`'s own interior — the title, the
  * description, the link — can drift in *data*, never in *structure*, because
@@ -45,6 +46,24 @@ export function MockCard({
       </p>
       {children}
     </Card>
+  );
+}
+
+/**
+ * The panel a fake *dialog* sits on. The same `Card` as `MockCard`, stripped of
+ * its padding and its gap so the children can be the dialog's own three
+ * regions, which is where a dialog's padding lives.
+ * docs/decisions/ui-patterns.md#three-things-that-will-bite
+ *
+ * No caption: a dialog has a real title of its own, and an uppercase eyebrow
+ * above it would be a second heading saying the same thing.
+ */
+export function MockPanel({
+  className,
+  children,
+}: Readonly<{ className?: string; children: React.ReactNode }>) {
+  return (
+    <Card className={cn("gap-0 p-0 shadow-lg", className)}>{children}</Card>
   );
 }
 

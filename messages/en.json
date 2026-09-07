@@ -153,9 +153,15 @@
         "socks": "Wool socks, size 39",
         "mug": "A mug with a name on it"
       },
+      "wishNote": "About rock gardens, please — I already have the rose one.",
+      "groups": {
+        "family": "Family",
+        "colleagues": "Colleagues",
+        "cabin": "The cabin"
+      },
       "figures": {
         "hero": "An illustration of a wish list. The reservation fades away — the owner of the list never sees it.",
-        "owner": "An illustration of a wish list with three items.",
+        "form": "An illustration of the add-a-wish dialog: a title, a note, and the groups Family and Colleagues ticked.",
         "family": "An illustration of the list as the family sees it: one wish is already reserved.",
         "split": "An illustration of the same wish side by side: the family sees it is reserved, the owner sees nothing."
       }

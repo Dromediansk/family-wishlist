@@ -5,6 +5,7 @@ import { useTranslations } from "next-intl";
 
 import { Button } from "@/components/ui/button";
 import { DialogBody, DialogFooter } from "@/components/ui/dialog";
+import { CHECKBOX } from "@/components/ui/field-styles";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -165,7 +166,7 @@ export function WishForm({
                 >
                   <input
                     type="checkbox"
-                    className="mt-0.5 size-5 shrink-0 accent-primary"
+                    className={CHECKBOX}
                     checked={values.groupIds.includes(group.id)}
                     onChange={(event) =>
                       update(

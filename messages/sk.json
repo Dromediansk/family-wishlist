@@ -153,9 +153,15 @@
         "socks": "Vlnené ponožky, veľkosť 39",
         "mug": "Hrnček s menom"
       },
+      "wishNote": "Radšej o skalke, tú o ružiach už mám.",
+      "groups": {
+        "family": "Rodina",
+        "colleagues": "Kolegovia",
+        "cabin": "Chata"
+      },
       "figures": {
         "hero": "Ukážka zoznamu prianí. Rezervácia z neho zmizne — majiteľka zoznamu ju nikdy nevidí.",
-        "owner": "Ukážka zoznamu prianí s tromi položkami.",
+        "form": "Ukážka okna na pridanie želania: názov, poznámka a vybrané skupiny Rodina a Kolegovia.",
         "family": "Ukážka zoznamu tak, ako ho vidí rodina: jedno prianie je už rezervované.",
         "split": "Ukážka toho istého priania vedľa seba: rodina vidí, že je rezervované, majiteľka nevidí nič."
       }
