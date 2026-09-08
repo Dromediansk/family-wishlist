@@ -22,7 +22,7 @@ describe("manifest", () => {
 
   it("is in Slovak", () => {
     expect(result.lang).toBe("sk");
-    expect(result.short_name).toBe("Prajem si");
+    expect(result.short_name).toBe("Wishlist");
   });
 
   it("keeps short_name short enough for a home screen label", () => {

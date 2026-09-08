@@ -79,7 +79,7 @@
     "deleteDescription": "The group disappears for every one of its members."
   },
   "footer": {
-    "copyright": "Prajem si · © {year}",
+    "copyright": "Wishlist · © {year}",
     "legalNav": "Legal information",
     "privacy": "Privacy policy",
     "terms": "Terms of use"
@@ -192,7 +192,7 @@
       "courtVenue": "the city whose courts have jurisdiction over disputes"
     },
     "privacy": {
-      "metaTitle": "Privacy policy · Prajem si",
+      "metaTitle": "Privacy policy · Wishlist",
       "metaDescription": "What the app stores about you, why, who can see it and for how long.",
       "title": "Privacy policy",
       "controller": {
@@ -263,12 +263,12 @@
       }
     },
     "terms": {
-      "metaTitle": "Terms of use · Prajem si",
+      "metaTitle": "Terms of use · Wishlist",
       "metaDescription": "The terms the app can be used under, what to expect from it and what not to.",
       "title": "Terms of use",
       "about": {
         "title": "What this is",
-        "p1": "“Prajem si” is a wish-list app for a family, a team or a group of friends. Everyone writes down what they'd like; everyone else can quietly pick out a gift, and the owner of the list never finds out.",
+        "p1": "“Wishlist” is a wish-list app for a family, a team or a group of friends. Everyone writes down what they'd like; everyone else can quietly pick out a gift, and the owner of the list never finds out.",
         "p2": "It is run by <operatorName></operatorName>, <operatorAddress></operatorAddress>, contact <contactEmail></contactEmail>. It is free to use and non-commercial. By using the app you agree to these terms."
       },
       "account": {
@@ -360,7 +360,7 @@
     "removeQuestion": "Remove <strong>{name}</strong> from the group? Their list ({wishes}) stays theirs. Reservations that existed only through membership of this group will be released. They can only come back through a new invite."
   },
   "metadata": {
-    "name": "Prajem si",
+    "name": "Wishlist",
     "description": "What everyone would like, and who is quietly getting it."
   },
   "notFound": {
