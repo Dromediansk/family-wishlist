@@ -267,13 +267,18 @@ because a wrapper around something that renders `null` still takes a row of
 ## Layout contract
 
 The root layout owns the whole shell: the header, then
-`<main className="flex-1">` around the page, then the install nudge and the
-footer. Two details are load-bearing:
+`<main className="flex-1">` around the page, then the footer. Two details are
+load-bearing:
 
 - the header is a **sibling** of `<main>`, never inside it — a `<header>` nested
   in `<main>` stops being the `banner` landmark;
 - `flex-1` on the `<main>` fills the `min-h-dvh` column, lets a short page
-  centre itself, and pushes the nudge and the footer down to the bottom edge.
+  centre itself, and pushes the footer down to the bottom edge.
+
+The install nudge is in the root layout too but **outside that column** — it is
+a fixed sheet over the page, not a row in it, at `z-40`. That is the one layer
+below `z-50`, which the dialog overlay, the dialog panel and the dropdown menu
+all share; a nudge that floated over an open dialog would be a bug.
 
 **The header used to sit in `(app)` and every page had to bring its own
 `<main>`.** Both followed from one rule — the header was chrome for members
@@ -379,6 +384,19 @@ the share sheet. A dismissal is remembered in `localStorage`.
 The prompt and the offline banner both live in the **root** layout, not behind
 sign-in. The person most likely to install this is someone who has just landed
 on `/` on a phone.
+
+**The nudge is a sheet pinned to the bottom of the viewport.** It used to be a
+block at the foot of the page, which on `/` put it below the entire landing page
+— headline, three beats, mock screenshots, closing CTA. Nobody arriving for the
+first time scrolled that far, so the one visitor it exists for was the one who
+never saw it.
+
+**It is deliberately not modal.** No overlay, no focus trap, nothing to answer
+before reading anything: a stranger's first screen is not the place for a
+question they did not come to answer. The page scrolls behind it, and the two
+buttons are there whenever they want them. That is also why nothing reserves
+space for it — a dismissible layer that never returns does not get to reshape
+every page that might carry it.
 
 **There is deliberately no service worker.** Cached HTML could show an owner
 their own claims. `experimental.useOffline` covers offline instead: it holds

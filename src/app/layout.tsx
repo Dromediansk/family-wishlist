@@ -142,7 +142,9 @@ export const dynamic = "force-dynamic";
  *
  * The install nudge and the offline notice stay document-level for the same
  * kind of reason — the person most likely to install this has just landed on
- * `/`.
+ * `/`. The nudge sits outside the column as well as in the root layout: it is
+ * a fixed sheet at the bottom of the viewport, under everything the dialogs
+ * and menus draw at `z-50`.
  *
  * The `<header>` is a sibling of `<main>` and not a child, or it stops being
  * the `banner` landmark; `flex-1` is load-bearing too. Both are spelled out at
@@ -171,9 +173,13 @@ export default async function RootLayout({
             <OfflineBanner />
             <SiteHeader />
             <main className="flex-1">{children}</main>
-            <InstallPrompt />
             <SiteFooter />
           </div>
+          {/*
+           * Outside the column, because it is a layer over the page rather than
+           * a row in it. docs/decisions/ui-patterns.md#layout-contract
+           */}
+          <InstallPrompt />
         </NextIntlClientProvider>
       </body>
     </html>
