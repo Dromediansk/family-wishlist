@@ -25,8 +25,8 @@ export const LEGAL_DETAILS = {
    */
   effectiveFrom: "2026-08-24",
 
-  /** The data controller. A person's name is fine; this is a side project. */
-  operatorName: "Miroslav Pillár",
+  /** The data controller — the company that runs the app. */
+  operatorName: "Bitloom",
 
   operatorAddress: "Košice, Slovakia",
 
@@ -35,7 +35,7 @@ export const LEGAL_DETAILS = {
    * route to erasure, since nothing in the app deletes an account, and Google's
    * OAuth review checks that it is reachable.
    */
-  contactEmail: "pillar.mr@gmail.com",
+  contactEmail: "info@bitloom.sk",
 
   /**
    * Where Vercel and Supabase actually hold the data, and — if that is outside

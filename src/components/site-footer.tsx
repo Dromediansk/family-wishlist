@@ -1,3 +1,4 @@
+import { ExternalLinkIcon } from "lucide-react";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
 
@@ -14,11 +15,24 @@ export function SiteFooter() {
   const t = useTranslations("footer");
   return (
     <footer className="text-muted-foreground mt-10 flex flex-wrap items-center gap-x-4 gap-y-2 border-t pt-6 text-sm">
-      {/*
-       * The year is read per render, which the root layout's force-dynamic
-       * already guarantees — nothing here can be baked into a stale build.
-       */}
-      <p>{t("copyright", { year: new Date().getFullYear() })}</p>
+      {/* The maker's name is a tag rather than a second message, so the
+          sentence around it stays one translatable string. */}
+      <p>
+        {t.rich("copyright", {
+          bitloom: (chunks: React.ReactNode) => (
+            <a
+              href="https://bitloom.sk"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-primary inline-flex items-center gap-1 underline-offset-4 hover:underline"
+            >
+              {chunks}
+              <ExternalLinkIcon className="size-3.5 shrink-0" />
+              <span className="sr-only">{t("bitloomSite")}</span>
+            </a>
+          ),
+        })}
+      </p>
 
       {/* Named, because two bare links in a landmark tell a screen reader
           nothing about what they are for. */}

@@ -79,7 +79,8 @@
     "deleteDescription": "Skupina zmizne pre všetkých jej členov."
   },
   "footer": {
-    "copyright": "Wishlist · © {year}",
+    "copyright": "Wishlist · vytvorené spoločnosťou <bitloom>Bitloom</bitloom>",
+    "bitloomSite": "otvorí sa v novom okne",
     "legalNav": "Právne informácie",
     "privacy": "Ochrana osobných údajov",
     "terms": "Podmienky používania"

@@ -79,7 +79,8 @@
     "deleteDescription": "The group disappears for every one of its members."
   },
   "footer": {
-    "copyright": "Wishlist · © {year}",
+    "copyright": "Wishlist · made by <bitloom>Bitloom</bitloom>",
+    "bitloomSite": "opens in a new window",
     "legalNav": "Legal information",
     "privacy": "Privacy policy",
     "terms": "Terms of use"
