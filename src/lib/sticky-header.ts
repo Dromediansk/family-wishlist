@@ -23,15 +23,25 @@ export type HeaderState = {
   hidden: boolean;
   /** The turning point the current run is measured from. */
   anchor: number;
-  /** The previous offset, which is what tells a run apart from a jump. */
+  /**
+   * The previous offset. Not the same as the anchor, which stops at the extreme
+   * of the run: it is the frame-to-frame step that says whether the reader
+   * travelled or arrived.
+   */
   last: number;
 };
 
-export const INITIAL_HEADER_STATE: HeaderState = {
-  hidden: false,
-  anchor: 0,
-  last: 0,
-};
+/**
+ * The header on screen, with the run measured from here. The only way to build
+ * a shown state: the clamp is easy to forget, and a bounce would otherwise
+ * anchor the next run at a negative offset.
+ */
+export function shownHeaderState(y: number): HeaderState {
+  // Overscroll rubber-banding reports offsets past both ends of the document.
+  // Neither end is a direction.
+  const top = y > 0 ? y : 0;
+  return { hidden: false, anchor: top, last: top };
+}
 
 /**
  * Folds one scroll offset into the state.
@@ -42,10 +52,8 @@ export const INITIAL_HEADER_STATE: HeaderState = {
  * and off.
  */
 export function nextHeaderState(state: HeaderState, y: number): HeaderState {
-  // Overscroll rubber-banding reports offsets past both ends of the document.
-  // Neither end is a direction.
-  const top = y > 0 ? y : 0;
-  const shown: HeaderState = { hidden: false, anchor: top, last: top };
+  const shown = shownHeaderState(y);
+  const top = shown.anchor;
 
   if (top <= TOP_ZONE) return shown;
 

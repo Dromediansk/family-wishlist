@@ -25,9 +25,8 @@ import { isConfigured } from "@/lib/supabase";
  * but still an account to sign out of. `getAccess` is memoised per render, so
  * asking here costs nothing.
  *
- * The `<header>` element itself belongs to `StickyHeader`, which pins the bar
- * and takes it out of the way on the way down. This stays a Server Component so
- * the account half below still streams in behind its own boundary.
+ * `StickyHeader` owns the element so that this can stay a Server Component and
+ * the account half below can keep streaming in behind its own boundary.
  */
 export async function SiteHeader() {
   return (

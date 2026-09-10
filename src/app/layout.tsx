@@ -169,7 +169,7 @@ export default async function RootLayout({
           <LiveChannels />
         </Suspense>
         <NextIntlClientProvider messages={messages}>
-          <div className="mx-auto flex min-h-dvh w-full max-w-5xl flex-col px-4 pt-[max(1.5rem,env(safe-area-inset-top))] pb-[max(1.5rem,env(safe-area-inset-bottom))] sm:px-6 sm:pt-10 sm:pb-10">
+          <div className="mx-auto flex min-h-dvh w-full max-w-5xl flex-col [--gutter:1rem] px-(--gutter) pt-[max(1.5rem,env(safe-area-inset-top))] pb-[max(1.5rem,env(safe-area-inset-bottom))] sm:[--gutter:1.5rem] sm:pt-10 sm:pb-10">
             <OfflineBanner />
             <SiteHeader />
             <main className="flex-1">{children}</main>
