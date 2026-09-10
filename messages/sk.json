@@ -193,10 +193,16 @@
       "vatId": "IČ DPH prevádzkovateľa",
       "registryEntry": "súd, oddiel a vložka zápisu v obchodnom registri",
       "contactEmail": "e-mail, na ktorom prevádzkovateľ naozaj odpovedá",
+      "operatorWebsite": "webová adresa prevádzkovateľa vrátane https://",
       "hostingRegion": "región serverov a základ prenosu údajov mimo EÚ",
       "courtVenue": "mesto, ktorého súdy sú príslušné na spory"
     },
-    "identifiers": "IČO: <businessId></businessId>, DIČ: <taxId></taxId>, IČ DPH: <vatId></vatId>. Zapísaná v obchodnom registri: <registryEntry></registryEntry>.",
+    "operator": {
+      "title": "Prevádzkovateľ",
+      "businessId": "IČO: <businessId></businessId>",
+      "taxId": "DIČ: <taxId></taxId>",
+      "vatId": "IČ DPH: <vatId></vatId>"
+    },
     "privacy": {
       "metaTitle": "Ochrana osobných údajov · Wishlist",
       "metaDescription": "Aké údaje o tebe appka ukladá, prečo, kto ich vidí a ako dlho.",

@@ -193,10 +193,16 @@
       "vatId": "the operator's VAT ID (IČ DPH)",
       "registryEntry": "the court, section and entry number in the Commercial Register",
       "contactEmail": "an e-mail address the operator actually answers",
+      "operatorWebsite": "the operator's web address, including https://",
       "hostingRegion": "the server region, and the basis for any transfer outside the EU",
       "courtVenue": "the city whose courts have jurisdiction over disputes"
     },
-    "identifiers": "Business ID (IČO): <businessId></businessId>, Tax ID (DIČ): <taxId></taxId>, VAT ID (IČ DPH): <vatId></vatId>. Entered in the Commercial Register: <registryEntry></registryEntry>.",
+    "operator": {
+      "title": "Operator",
+      "businessId": "Business ID (IČO): <businessId></businessId>",
+      "taxId": "Tax ID (DIČ): <taxId></taxId>",
+      "vatId": "VAT ID (IČ DPH): <vatId></vatId>"
+    },
     "privacy": {
       "metaTitle": "Privacy policy · Wishlist",
       "metaDescription": "What the app stores about you, why, who can see it and for how long.",

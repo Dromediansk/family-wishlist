@@ -39,13 +39,14 @@ export const LEGAL_DETAILS = {
    * what follows „zapísaná v“ and English does not, so the wording stays in the
    * catalogues and the value stays a proper noun spelled the same in both.
    */
-  businessId: "",
+  businessId: "56397631",
 
-  taxId: "",
+  taxId: "2122301907",
 
-  vatId: "",
+  vatId: "SK2122301907",
 
-  registryEntry: "",
+  registryEntry:
+    "Obchodný register Mestského súdu Košice, oddiel: Sro, vložka č. 60013/V",
 
   /**
    * Quoted three times, and the one value that has to be real: it is the only
@@ -53,6 +54,12 @@ export const LEGAL_DETAILS = {
    * OAuth review checks that it is reachable.
    */
   contactEmail: "info@bitloom.sk",
+
+  /**
+   * With the scheme, because an `href` needs one. `displayUrl` takes it off
+   * again for the text a reader sees.
+   */
+  operatorWebsite: "https://bitloom.sk",
 
   /**
    * Where Vercel and Supabase actually hold the data, and — if that is outside
@@ -65,6 +72,15 @@ export const LEGAL_DETAILS = {
 } satisfies Record<string, string>;
 
 export type LegalDetailKey = keyof typeof LEGAL_DETAILS;
+
+/**
+ * A web address the way a reader wants to see it — `bitloom.sk` rather than
+ * `https://bitloom.sk/`. The stored value keeps its scheme; only the label
+ * loses it.
+ */
+export function displayUrl(url: string): string {
+  return url.replace(/^https?:\/\//, "").replace(/\/+$/, "");
+}
 
 /**
  * Which details are still waiting for a value. Nothing calls this in the app —

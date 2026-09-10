@@ -4,7 +4,6 @@ import { useTranslations } from "next-intl";
 import { getTranslations } from "next-intl/server";
 
 import {
-  LegalIdentifiers,
   LegalList,
   LegalPage,
   LegalSection,
@@ -50,8 +49,6 @@ export default function TermsPage() {
       <LegalSection title={t("about.title")}>
         <p>{t.rich("about.p1", tags)}</p>
         <p>{t.rich("about.p2", tags)}</p>
-        {/* The trader, identified where the contract is formed. */}
-        <LegalIdentifiers />
       </LegalSection>
 
       <LegalSection title={t("account.title")}>

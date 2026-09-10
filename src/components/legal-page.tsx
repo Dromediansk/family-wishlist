@@ -1,7 +1,8 @@
 import { useLocale, useTranslations } from "next-intl";
 
+import { Card, CardHeader, CardTitle } from "@/components/ui/card";
 import { Code } from "@/components/ui/code";
-import { LEGAL_DETAILS, type LegalDetailKey } from "@/lib/legal";
+import { displayUrl, LEGAL_DETAILS, type LegalDetailKey } from "@/lib/legal";
 import { formatDate } from "@/lib/utils";
 
 /**
@@ -75,15 +76,73 @@ export function useLegalTags() {
 }
 
 /**
- * The operator's company identifiers, as the one sentence both pages carry —
- * the privacy page to finish identifying the controller, the terms to identify
- * the trader. One message rather than one per page: only the labels around the
- * numbers differ by language, and the numbers themselves come from `legal.ts`.
+ * A detail that is also a destination. An unfilled one stays `Detail`'s red gap
+ * rather than turning into a link to nowhere.
  */
-export function LegalIdentifiers() {
+function DetailLink({
+  of,
+  href,
+  children,
+}: Readonly<{
+  of: LegalDetailKey;
+  href: string;
+  children?: React.ReactNode;
+}>) {
+  if (LEGAL_DETAILS[of].trim() === "") return <Detail of={of} />;
+  return (
+    <a
+      href={href}
+      className="text-primary w-fit underline-offset-4 hover:underline"
+    >
+      {children ?? <Detail of={of} />}
+    </a>
+  );
+}
+
+/**
+ * Who runs the app, as the last thing on both pages: the company, where it is
+ * registered, the three tax numbers it has to publish, and how to reach it.
+ * `LegalPage` renders it after the last section, so neither page carries a call
+ * site that could drift out of step with the other.
+ *
+ * The name, the address and the register entry take no label — each says what
+ * it is, and the register entry would stutter against one. Only the three
+ * numbers need naming, so only those three are sentences in the catalogues.
+ */
+function LegalOperator() {
   const t = useTranslations("legal");
   const tags = useLegalTags();
-  return <p>{t.rich("identifiers", tags)}</p>;
+
+  return (
+    <Card className="mt-10 max-w-[62ch] gap-4">
+      <CardHeader>
+        <CardTitle className="text-base">{t("operator.title")}</CardTitle>
+      </CardHeader>
+      {/* `address` is the element for the contact details of its article. It
+          arrives italic, which is not what a company name wants. */}
+      <address className="flex flex-col gap-1 text-sm not-italic">
+        <span className="text-foreground font-medium">
+          <Detail of="operatorName" />
+        </span>
+        <span>
+          <Detail of="operatorAddress" />
+        </span>
+        <span>
+          <Detail of="registryEntry" />
+        </span>
+        <span>{t.rich("operator.businessId", tags)}</span>
+        <span>{t.rich("operator.taxId", tags)}</span>
+        <span>{t.rich("operator.vatId", tags)}</span>
+        <DetailLink
+          of="contactEmail"
+          href={`mailto:${LEGAL_DETAILS.contactEmail}`}
+        />
+        <DetailLink of="operatorWebsite" href={LEGAL_DETAILS.operatorWebsite}>
+          {displayUrl(LEGAL_DETAILS.operatorWebsite)}
+        </DetailLink>
+      </address>
+    </Card>
+  );
 }
 
 export function LegalPage({
@@ -103,6 +162,7 @@ export function LegalPage({
         })}
       </p>
       {children}
+      <LegalOperator />
     </article>
   );
 }
