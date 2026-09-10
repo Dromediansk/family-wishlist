@@ -26,9 +26,26 @@ export const LEGAL_DETAILS = {
   effectiveFrom: "2026-08-24",
 
   /** The data controller — the company that runs the app. */
-  operatorName: "Bitloom",
+  operatorName: "Bitloom s.r.o.",
 
   operatorAddress: "Košice, Slovakia",
+
+  /**
+   * What a company has to publish about itself: § 3a of the Slovak Commercial
+   * Code asks for the register entry, the tax code for the other three. Both
+   * pages carry all four through one shared sentence, `legal.identifiers`.
+   *
+   * `registryEntry` holds the bare entry and no preposition — Slovak declines
+   * what follows „zapísaná v“ and English does not, so the wording stays in the
+   * catalogues and the value stays a proper noun spelled the same in both.
+   */
+  businessId: "",
+
+  taxId: "",
+
+  vatId: "",
+
+  registryEntry: "",
 
   /**
    * Quoted three times, and the one value that has to be real: it is the only

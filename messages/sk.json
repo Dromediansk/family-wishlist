@@ -188,10 +188,15 @@
       "effectiveFrom": "dátum účinnosti v tvare RRRR-MM-DD, napríklad „2026-09-01“",
       "operatorName": "meno alebo obchodný názov prevádzkovateľa",
       "operatorAddress": "poštová adresa prevádzkovateľa",
+      "businessId": "IČO prevádzkovateľa",
+      "taxId": "DIČ prevádzkovateľa",
+      "vatId": "IČ DPH prevádzkovateľa",
+      "registryEntry": "súd, oddiel a vložka zápisu v obchodnom registri",
       "contactEmail": "e-mail, na ktorom prevádzkovateľ naozaj odpovedá",
       "hostingRegion": "región serverov a základ prenosu údajov mimo EÚ",
       "courtVenue": "mesto, ktorého súdy sú príslušné na spory"
     },
+    "identifiers": "IČO: <businessId></businessId>, DIČ: <taxId></taxId>, IČ DPH: <vatId></vatId>. Zapísaná v obchodnom registri: <registryEntry></registryEntry>.",
     "privacy": {
       "metaTitle": "Ochrana osobných údajov · Wishlist",
       "metaDescription": "Aké údaje o tebe appka ukladá, prečo, kto ich vidí a ako dlho.",
@@ -199,7 +204,7 @@
       "controller": {
         "title": "Kto tvoje údaje spracúva",
         "p1": "Prevádzkovateľom je <operatorName></operatorName>, <operatorAddress></operatorAddress>. Napísať sa dá na <contactEmail></contactEmail> — je to jediná adresa, na ktorej sa o týchto údajoch dá čokoľvek vyriešiť.",
-        "p2": "Appka je nekomerčný projekt jedného človeka. Nepredáva sa v nej nič, nič sa neinzeruje a žiadne údaje sa nikomu nepredávajú."
+        "p2": "Appka je nekomerčný projekt. Nepredáva sa v nej nič, nič sa neinzeruje a žiadne údaje sa nikomu nepredávajú."
       },
       "stored": {
         "title": "Čo o tebe ukladáme",
@@ -293,7 +298,7 @@
       "moderation": {
         "title": "Nezákonný obsah a moderovanie",
         "p1": "Ak v appke uvidíš obsah, ktorý je podľa teba nezákonný, napíš na <contactEmail></contactEmail> — v ktorej skupine je, čie želanie to je a čo mu vytýkaš. Každé takéto oznámenie prevádzkovateľ posúdi a odpíše na adresu, z ktorej prišlo.",
-        "p2": "Moderuje jeden človek a ručne. Nič tu obsah automaticky neprehľadáva, o odstránení nerozhoduje algoritmus a nefunguje tu žiadne odvolacie konanie — je len ten istý e-mail.",
+        "p2": "Moderuje sa ručne. Nič tu obsah automaticky neprehľadáva, o odstránení nerozhoduje algoritmus a nefunguje tu žiadne odvolacie konanie — je len ten istý e-mail.",
         "p3": "Keď prevádzkovateľ obsah odstráni alebo zruší účet, povie o tom tomu, koho sa to týka, aj dôvod. Ohradiť sa dá odpoveďou na ten istý e-mail a cesta na súd zostáva otvorená vždy."
       },
       "secret": {
@@ -310,7 +315,7 @@
       },
       "availability": {
         "title": "Dostupnosť a záruka",
-        "p1": "Appka je projekt jedného človeka, beží na bezplatných službách a spravuje sa ručne. Nie je za ňou tím, nočná pohotovosť ani podporná linka.",
+        "p1": "Appka beží na bezplatných službách a spravuje sa ručne. Nie je za ňou tím, nočná pohotovosť ani podporná linka.",
         "p2": "Poskytuje sa <strong>„tak ako je“</strong>, bez záruky nepretržitej dostupnosti. Môže sa stať, že bude chvíľu nedostupná, že sa niečo pokazí alebo že jej prevádzka raz skončí. Zálohuj si to, na čom ti záleží."
       },
       "liability": {

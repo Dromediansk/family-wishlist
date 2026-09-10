@@ -74,6 +74,18 @@ export function useLegalTags() {
   };
 }
 
+/**
+ * The operator's company identifiers, as the one sentence both pages carry —
+ * the privacy page to finish identifying the controller, the terms to identify
+ * the trader. One message rather than one per page: only the labels around the
+ * numbers differ by language, and the numbers themselves come from `legal.ts`.
+ */
+export function LegalIdentifiers() {
+  const t = useTranslations("legal");
+  const tags = useLegalTags();
+  return <p>{t.rich("identifiers", tags)}</p>;
+}
+
 export function LegalPage({
   title,
   children,

@@ -188,10 +188,15 @@
       "effectiveFrom": "the effective date as YYYY-MM-DD, for example “2026-09-01”",
       "operatorName": "the operator's name or trading name",
       "operatorAddress": "the operator's postal address",
+      "businessId": "the operator's business ID (IČO)",
+      "taxId": "the operator's tax ID (DIČ)",
+      "vatId": "the operator's VAT ID (IČ DPH)",
+      "registryEntry": "the court, section and entry number in the Commercial Register",
       "contactEmail": "an e-mail address the operator actually answers",
       "hostingRegion": "the server region, and the basis for any transfer outside the EU",
       "courtVenue": "the city whose courts have jurisdiction over disputes"
     },
+    "identifiers": "Business ID (IČO): <businessId></businessId>, Tax ID (DIČ): <taxId></taxId>, VAT ID (IČ DPH): <vatId></vatId>. Entered in the Commercial Register: <registryEntry></registryEntry>.",
     "privacy": {
       "metaTitle": "Privacy policy · Wishlist",
       "metaDescription": "What the app stores about you, why, who can see it and for how long.",
@@ -199,7 +204,7 @@
       "controller": {
         "title": "Who processes your data",
         "p1": "The controller is <operatorName></operatorName>, <operatorAddress></operatorAddress>. You can write to <contactEmail></contactEmail> — it is the only address at which anything about this data can be resolved.",
-        "p2": "The app is one person's non-commercial project. Nothing is sold in it, nothing is advertised, and no data is sold to anybody."
+        "p2": "The app is a non-commercial project. Nothing is sold in it, nothing is advertised, and no data is sold to anybody."
       },
       "stored": {
         "title": "What we store about you",
@@ -293,7 +298,7 @@
       "moderation": {
         "title": "Illegal content and moderation",
         "p1": "If you see content in the app that you believe is unlawful, write to <contactEmail></contactEmail> — which group it is in, whose wish it is, and what your objection is. The operator assesses every such report and replies to the address it came from.",
-        "p2": "Moderation is done by one person, by hand. Nothing here scans content automatically, no algorithm decides on a removal, and there is no appeals procedure — there is only the same e-mail address.",
+        "p2": "Moderation is done by hand. Nothing here scans content automatically, no algorithm decides on a removal, and there is no appeals procedure — there is only the same e-mail address.",
         "p3": "When the operator removes content or closes an account, they tell the person concerned, and give the reason. You can object by replying to that same e-mail, and the route to a court always stays open."
       },
       "secret": {
@@ -310,7 +315,7 @@
       },
       "availability": {
         "title": "Availability and warranty",
-        "p1": "The app is one person's project, runs on free services and is administered by hand. There is no team behind it, no on-call rota and no support line.",
+        "p1": "The app runs on free services and is administered by hand. There is no team behind it, no on-call rota and no support line.",
         "p2": "It is provided <strong>“as is”</strong>, with no guarantee of continuous availability. It may be unavailable for a while, something may break, or it may one day stop running altogether. Keep your own copy of anything you care about."
       },
       "liability": {

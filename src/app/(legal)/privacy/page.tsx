@@ -3,6 +3,7 @@ import { useTranslations } from "next-intl";
 import { getTranslations } from "next-intl/server";
 
 import {
+  LegalIdentifiers,
   LegalList,
   LegalPage,
   LegalSection,
@@ -39,6 +40,8 @@ export default function PrivacyPage() {
     <LegalPage title={t("title")}>
       <LegalSection title={t("controller.title")}>
         <p>{t.rich("controller.p1", tags)}</p>
+        {/* Art. 13(1)(a) asks who the controller is; these finish the answer. */}
+        <LegalIdentifiers />
         <p>{t.rich("controller.p2", tags)}</p>
       </LegalSection>
 
