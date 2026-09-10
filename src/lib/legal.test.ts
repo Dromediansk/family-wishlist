@@ -1,15 +1,15 @@
 import { describe, expect, it } from "vitest";
 
-import { LEGAL_DETAILS, missingLegalDetails } from "@/lib/legal";
+import { displayUrl, LEGAL_DETAILS, missingLegalDetails } from "@/lib/legal";
 
 import en from "../../messages/en.json";
 import sk from "../../messages/sk.json";
 
 describe("missingLegalDetails", () => {
   it("names the details still waiting for a value", () => {
-    expect(
-      missingLegalDetails({ filled: "Ján Novák", blank: "" }),
-    ).toEqual(["blank"]);
+    expect(missingLegalDetails({ filled: "Ján Novák", blank: "" })).toEqual([
+      "blank",
+    ]);
   });
 
   it("counts whitespace as unfilled — a space is not an address", () => {
@@ -20,6 +20,27 @@ describe("missingLegalDetails", () => {
     expect(
       missingLegalDetails({ name: "Ján Novák", email: "jan@example.sk" }),
     ).toEqual([]);
+  });
+});
+
+describe("displayUrl", () => {
+  it("drops the scheme, which only the href needs", () => {
+    expect(displayUrl("https://bitloom.sk")).toBe("bitloom.sk");
+    expect(displayUrl("http://bitloom.sk")).toBe("bitloom.sk");
+  });
+
+  it("drops a trailing slash, so the label reads as a name", () => {
+    expect(displayUrl("https://bitloom.sk/")).toBe("bitloom.sk");
+  });
+
+  it("keeps a path — it is part of the address", () => {
+    expect(displayUrl("https://bitloom.sk/wishlist")).toBe(
+      "bitloom.sk/wishlist",
+    );
+  });
+
+  it("leaves an unfilled value empty, so Detail still draws the gap", () => {
+    expect(displayUrl("")).toBe("");
   });
 });
 
