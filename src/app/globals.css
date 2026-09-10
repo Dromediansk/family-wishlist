@@ -190,4 +190,13 @@
     outline: 2px solid var(--ring);
     outline-offset: 2px;
   }
+
+  /*
+   * The sticky header is about 68px of chrome over the top of the page. Without
+   * this, tabbing to a control just below the fold parks it underneath the bar.
+   * The inset matches the one the bar carries.
+   */
+  html {
+    scroll-padding-top: calc(max(0.75rem, env(safe-area-inset-top)) + 3.5rem);
+  }
 }
