@@ -278,7 +278,40 @@ load-bearing:
 The install nudge is in the root layout too but **outside that column** — it is
 a fixed sheet over the page, not a row in it, at `z-40`. That is the one layer
 below `z-50`, which the dialog overlay, the dialog panel and the dropdown menu
-all share; a nudge that floated over an open dialog would be a bug.
+all share; a nudge that floated over an open dialog would be a bug. The header
+sits a rung below both, at `z-30`: it has to pass under the nudge as well as
+under everything modal.
+
+### The header stays within reach
+
+The header is **sticky**, and takes itself out of the way on the way down and
+comes back on the way up: on a long list the way home, the group switcher and
+the account menu are otherwise a full scroll away, which is the moment somebody
+wants them.
+
+**Direction is decided in JS**, against the grain of everything else here.
+`animation-timeline: scroll()` has no direction primitive and
+`scroll-state(stuck)` is one engine's, so there is no CSS answer to fall back
+on. The consolation is that the awkward reasoning sits in a pure module,
+`src/lib/sticky-header.ts`, where it is tested without a browser; the component
+beside it only feeds it a frame at a time.
+
+**Sticky inside the column, not `fixed` over it.** A fixed bar ignores the
+`padding-right` Radix's scroll lock puts on `<body>`, so it would jump sideways
+every time a dialog opened; and the header's height has to stay inside the
+`min-h-dvh` column or the footer stops landing on the bottom edge. Staying in
+the column costs one thing — the bar's background would stop short of the
+column's own side padding — which a negative margin and a matching padding on
+the bar buy back, in both axes. That is also what moves the safe-area top inset
+onto the bar: `viewportFit: "cover"` draws under the notch, and once the bar has
+left the column's padding behind, nothing else holds it clear of the status bar.
+
+**Transparent until the page moves.** The ground below is a gradient, and an
+opaque bar the width of the column reads as a lighter rectangle sitting on it.
+The background arrives only once there is something scrolling underneath to be
+read through. A reader who asks for stillness still gets it — under
+`prefers-reduced-motion: reduce` the bar is pinned and never moves, but it keeps
+the background, because unreadable text is not a kindness.
 
 **The header used to sit in `(app)` and every page had to bring its own
 `<main>`.** Both followed from one rule — the header was chrome for members

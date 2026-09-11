@@ -5,6 +5,14 @@
 
 :root {
   --radius: 0.75rem;
+  /*
+   * The sticky header's own geometry, named here because three places have to
+   * agree on it: the bar itself, the negative margin that cancels its padding,
+   * and the scroll padding that keeps a tabbed-to control out from under it.
+   * The 3.5rem is the tallest control in the row plus the bar's `pb-3`.
+   */
+  --header-inset: max(0.75rem, env(safe-area-inset-top));
+  --header-height: calc(var(--header-inset) + 3.5rem);
   --background: oklch(0.99 0.005 95);
   --foreground: oklch(0.22 0.02 275);
   --card: oklch(1 0 0);
@@ -189,5 +197,10 @@
   :focus-visible {
     outline: 2px solid var(--ring);
     outline-offset: 2px;
+  }
+
+  /* Or tabbing to a control just below the fold parks it under the header. */
+  html {
+    scroll-padding-top: var(--header-height);
   }
 }

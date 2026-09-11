@@ -7,6 +7,7 @@ import { AccountMenu } from "@/components/account-menu";
 import { GroupSwitcher } from "@/components/group-switcher";
 import { HomeLink } from "@/components/home-link";
 import { LocaleSwitcher } from "@/components/locale-switcher";
+import { StickyHeader } from "@/components/sticky-header";
 import { Button } from "@/components/ui/button";
 import { getAccess, getAccountName } from "@/lib/data/access";
 import { countGroupsCreatedBy } from "@/lib/data/groups";
@@ -23,10 +24,13 @@ import { isConfigured } from "@/lib/supabase";
  * to the account menu for somebody with no group yet: nothing to switch between,
  * but still an account to sign out of. `getAccess` is memoised per render, so
  * asking here costs nothing.
+ *
+ * `StickyHeader` owns the element so that this can stay a Server Component and
+ * the account half below can keep streaming in behind its own boundary.
  */
 export async function SiteHeader() {
   return (
-    <header className="mb-8 flex items-center justify-between gap-4">
+    <StickyHeader>
       <HomeLink />
       {/*
        * Without this boundary the account half's round trip sits in front of the
@@ -36,7 +40,7 @@ export async function SiteHeader() {
       <Suspense fallback={<div className="size-11 shrink-0" />}>
         <HeaderRight />
       </Suspense>
-    </header>
+    </StickyHeader>
   );
 }
 
