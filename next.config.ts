@@ -2,6 +2,30 @@ import type { NextConfig } from "next";
 import createNextIntlPlugin from "next-intl/plugin";
 
 const nextConfig: NextConfig = {
+  /**
+   * Vercel charges Function Storage for every deployment it still retains, so a
+   * byte in a bundle is paid for once per deploy rather than once. Two packages
+   * were riding along that no route here can reach.
+   *
+   * `sharp` is an optional dependency of `next` itself, traced into every server
+   * function for Image Optimization. This app has no `next/image` — a photo is
+   * streamed straight out of Storage by `wish-photo/[wishId]` — so 26MB of
+   * libvips and wasm was freight. Drop this line the day a `next/image` appears,
+   * or that route fails at runtime rather than at build.
+   *
+   * `@vercel/og` is reachable only from `icon.tsx` and `apple-icon.tsx`, which
+   * compile to `route` entries. The `page` key leaves those two alone and takes
+   * its ~3MB out of the eleven page bundles instead.
+   *
+   * Keys match the entry name, not the URL. `outputFileTracingIncludes` cannot
+   * win a file back — `collect-build-traces` applies the excludes last — and
+   * `images.unoptimized` does not drop `sharp` at all; both were tried.
+   */
+  outputFileTracingExcludes: {
+    "/**/*": ["node_modules/@img/**", "node_modules/sharp/**"],
+    "**/page": ["node_modules/next/dist/compiled/@vercel/og/**"],
+  },
+
   experimental: {
     /**
      * Holds failed navigations, prefetches and Server Actions and retries them
