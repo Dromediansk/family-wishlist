@@ -12,10 +12,22 @@ Have a Supabase project and a Google OAuth client set up —
 
 Set the three environment variables from
 [Production setup → Configure the app](production.md#3-configure-the-app) as
-secrets. On Vercel, import the repo and add them there; the build needs no
-further configuration.
+secrets. On Vercel, import the repo and add them there; `vercel.json` carries
+everything else.
 
 `SUPABASE_SERVICE_ROLE_KEY` must never be prefixed with `NEXT_PUBLIC_`.
+
+## Which branches deploy
+
+Only `main`. `vercel.json` turns Git-triggered deployments off for every branch
+and back on for the production one, so neither a push nor a pull request makes a
+preview any more. Vercel bills a deployment's bundle for as long as it keeps it,
+and the reviews here happen in the diff, so those URLs were rent on something
+nobody opened.
+
+Run `npx vercel` from the branch when you do want one — the rule only governs
+what Git triggers. A branch cut before this file reached `main` does not carry it
+and still deploys.
 
 ## After the first deploy
 
