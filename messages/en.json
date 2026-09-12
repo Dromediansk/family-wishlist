@@ -94,7 +94,8 @@
     "personLabel": "for:"
   },
   "group": {
-    "intro": "Add something to your own list, or pick out what you'll buy for somebody else."
+    "intro": "Add something to your own list, or pick out what you'll buy for somebody else.",
+    "notes": "Notes"
   },
   "groups": {
     "create": {
@@ -375,6 +376,15 @@
   "metadata": {
     "name": "Wishlist",
     "description": "What everyone would like, and who is quietly getting it."
+  },
+  "notes": {
+    "everyone": "Everyone",
+    "title": "Notes",
+    "intro": "Your notebook for this group. Only you can see it — nobody else can reach it.",
+    "label": "What to buy whom",
+    "placeholder": "For example:\nDad — cordless drill, up to €80\nJana — a book, ask Peter which ones she has",
+    "save": "Save",
+    "saved": "Saved"
   },
   "notFound": {
     "title": "There's no such page here",

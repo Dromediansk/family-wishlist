@@ -1,8 +1,11 @@
+import Link from "next/link";
 import { notFound } from "next/navigation";
+import { NotebookPenIcon } from "lucide-react";
 import { getTranslations } from "next-intl/server";
 
 import { MemberCard } from "@/components/member-card";
 import { SetupRequired } from "@/components/setup-required";
+import { Button } from "@/components/ui/button";
 import { enterGroup } from "@/lib/data/access";
 import { getMemberSummaries } from "@/lib/data/members";
 import { isConfigured } from "@/lib/supabase";
@@ -27,13 +30,21 @@ export default async function GroupPage({
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-semibold text-balance break-words">
-          {ctx.groupName}
-        </h1>
-        <p className="text-muted-foreground mt-1 max-w-[62ch]">
-          {t("intro")}
-        </p>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <h1 className="text-2xl font-semibold text-balance break-words">
+            {ctx.groupName}
+          </h1>
+          <p className="text-muted-foreground mt-1 max-w-[62ch]">
+            {t("intro")}
+          </p>
+        </div>
+        <Button variant="ghost" size="sm" asChild>
+          <Link href={`/g/${ctx.groupId}/notes`}>
+            <NotebookPenIcon />
+            {t("notes")}
+          </Link>
+        </Button>
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
