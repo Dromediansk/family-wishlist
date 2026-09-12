@@ -27,6 +27,7 @@ subscribed.
 |---|---|---|
 | a wish, a claim, a hand-over | every group the **owner** is in | the owner is the one person every interested viewer has in common — a claim made in one group has to reach the owner's other groups, whose members share nothing with the claimer |
 | a member, an invite, a group | that one group | nobody outside it can see the difference |
+| a group note | nothing | only its author can see it, so the only tabs that could be stale are that author's own — and between those, last write wins |
 
 A **deleted** group is pinged after its row has gone, which works because the
 channel is named from the id rather than from anything that has to still exist.
@@ -124,11 +125,11 @@ is set to **60 seconds**.
 The browser's own Back/Forward buttons were never subject to that default; Next
 replays those regardless, bounded by invalidation alone.
 
-Both are honest because every write pings and every ping purges the whole cache.
-So the 60 seconds bounds the `<Link>` case alone, and a Back/Forward replay is
-bounded by the ping. That leaves exactly one scenario: a tab whose socket
-believes it is still subscribed but has gone silent, where a Back navigation can
-replay a page that is arbitrarily old.
+Both are honest because every write another tab could be *showing* pings, and
+every ping purges the whole cache. So the 60 seconds bounds the `<Link>` case
+alone, and a Back/Forward replay is bounded by the ping. That leaves exactly
+one scenario: a tab whose socket believes it is still subscribed but has gone
+silent, where a Back navigation can replay a page that is arbitrarily old.
 
 Nothing new is stored by doing this. The cache holds the same per-viewer pages
 the server had already decided to send — in memory, per tab, gone on reload —

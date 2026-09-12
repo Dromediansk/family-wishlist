@@ -11,7 +11,15 @@ import type { ActionResult } from "@/lib/types";
 
 // A message key, not a sentence: a schema is built before any request has a
 // language. docs/decisions/language.md
-const bodySchema = z.string().max(NOTE_MAX_LENGTH, "noteTooLong");
+//
+// Normalised inside the schema, before it is measured, so a non-string body
+// is a Zod failure like any other rather than a thrown TypeError, and the
+// length refused is the length stored — a textarea's CRLF would otherwise
+// count twice per line.
+const bodySchema = z
+  .string()
+  .transform(normaliseNote)
+  .pipe(z.string().max(NOTE_MAX_LENGTH, "noteTooLong"));
 
 /**
  * Writes the caller's own note for one group.
@@ -26,7 +34,9 @@ const bodySchema = z.string().max(NOTE_MAX_LENGTH, "noteTooLong");
  * Action checklist in CLAUDE.md, after `syncFromLive` and `setLocale`. Nobody
  * else's screen changes when a private note is saved, so pinging the group
  * channel would wake every member's tab to re-render identical HTML. The cost
- * is that the author's own second tab catches up on focus rather than at once.
+ * is that the author's own other tabs do not learn about the save at all —
+ * not on focus, not on the fallback poll — until one reloads or navigates
+ * afresh, so two tabs of the author's own are last-write-wins.
  */
 export async function saveGroupNote(
   groupId: string,
@@ -37,9 +47,7 @@ export async function saveGroupNote(
 
   const text = await getErrorText();
 
-  // Normalised before it is measured, so the length refused is the length
-  // stored — a textarea's CRLF would otherwise count twice per line.
-  const parsed = bodySchema.safeParse(normaliseNote(body));
+  const parsed = bodySchema.safeParse(body);
   if (!parsed.success) {
     const issue = firstIssue(parsed.error);
     return { ok: false, error: text(issue.key, issue.params) };

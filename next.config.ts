@@ -38,7 +38,8 @@ const nextConfig: NextConfig = {
      * How long the browser may replay an already-visited page on a `<Link>`
      * navigation. Next's default for dynamic routes is 0, which showed the
      * skeleton twice for data that had not changed. Honest only because every
-     * write pings and every ping purges the whole cache.
+     * write another tab could be *showing* pings, and every ping purges the
+     * whole cache.
      *
      * `static` stays at Next's default — nothing here is static.
      * docs/decisions/live-updates.md#why-going-back-doesnt-reload

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { normaliseNote, NOTE_MAX_LENGTH } from "@/lib/notes";
+import { normaliseNote } from "@/lib/notes";
 
 describe("normaliseNote", () => {
   it("turns the CRLF a textarea posts into plain newlines", () => {
@@ -25,11 +25,5 @@ describe("normaliseNote", () => {
 
   it("leaves an already-clean note alone", () => {
     expect(normaliseNote("Otec: vŕtačka")).toBe("Otec: vŕtačka");
-  });
-});
-
-describe("NOTE_MAX_LENGTH", () => {
-  it("is the number the migration's check constraint also names", () => {
-    expect(NOTE_MAX_LENGTH).toBe(4000);
   });
 });

@@ -16,6 +16,7 @@ create table group_notes (
   user_id    uuid not null,
   group_id   uuid not null,
   body       text not null check (char_length(body) <= 4000),
+  -- Ordinary row bookkeeping; nothing reads it yet.
   updated_at timestamptz not null default now(),
 
   primary key (user_id, group_id),
