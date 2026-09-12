@@ -33,6 +33,7 @@
     "titleRequired": "Názov je povinný.",
     "titleTooLong": "Názov môže mať najviac {max} znakov.",
     "descriptionTooLong": "Popis môže mať najviac {max} znakov.",
+    "noteTooLong": "Poznámka môže mať najviac {max} znakov.",
     "urlScheme": "Odkaz musí začínať na http:// alebo https://",
     "pickGroup": "Vyber aspoň jednu skupinu.",
     "photoUnreadable": "Fotku sa nepodarilo načítať.",
