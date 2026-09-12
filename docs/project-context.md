@@ -133,7 +133,8 @@ Rationale, enforcement and the holes in full:
 - **Nobody can leave a group themselves.** Asking an admin is the only exit.
 - Removing somebody deletes their membership and their notes for that group.
   Their wishes, photos and history are untouched.
-- Any admin may delete the group. It takes the memberships, the notes written for it and the invites, and nothing else.
+- Any admin may delete the group. It takes the memberships, the notes written
+  for it and the invites, and nothing else.
 
 ### History
 
