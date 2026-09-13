@@ -1,6 +1,7 @@
 {
   "account": {
     "label": "Account – {name}",
+    "buying": "What I'm buying",
     "manageGroup": "Manage group",
     "signOut": "Sign out"
   },
@@ -116,9 +117,6 @@
       "heading": "Groups",
       "current": "Group – {name}"
     }
-  },
-  "header": {
-    "buying": "What I'm buying"
   },
   "install": {
     "prompt": "Install the app on your home screen and it opens like any other.",

@@ -10,13 +10,13 @@ import { Skeleton } from "@/components/ui/skeleton";
 export default function GroupLoading() {
   return (
     <div className="space-y-6">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div className="space-y-2">
+      <div className="space-y-2">
+        <div className="flex items-start justify-between gap-3">
           <Skeleton className="h-9 w-40" />
-          <Skeleton className="h-5 w-72 max-w-full" />
+          {/* The Notes button: icon alone until `sm`, as on the real page. */}
+          <Skeleton className="h-10 w-13 shrink-0 sm:w-28" />
         </div>
-        {/* The Notes button, same row as the title on the real page. */}
-        <Skeleton className="h-10 w-28" />
+        <Skeleton className="h-5 w-72 max-w-full" />
       </div>
 
       {/* Mirrors MemberCard: the name centred, the action row below. */}

@@ -1,14 +1,10 @@
 import { Suspense } from "react";
-import Link from "next/link";
-import { ShoppingBagIcon } from "lucide-react";
-import { getTranslations } from "next-intl/server";
 
 import { AccountMenu } from "@/components/account-menu";
 import { GroupSwitcher } from "@/components/group-switcher";
 import { HomeLink } from "@/components/home-link";
 import { LocaleSwitcher } from "@/components/locale-switcher";
 import { StickyHeader } from "@/components/sticky-header";
-import { Button } from "@/components/ui/button";
 import { getAccess, getAccountName } from "@/lib/data/access";
 import { countGroupsCreatedBy } from "@/lib/data/groups";
 import { getPeerNames } from "@/lib/data/members";
@@ -53,17 +49,12 @@ async function HeaderRight() {
   // The one control that is a stranger's to use before they sign in.
   if (access.kind === "anonymous") return <LocaleSwitcher />;
 
-  // Below the guards, not above them: neither arm above needs a catalogue —
-  // `LOCALE_LABELS` is code, on purpose — so this is what first resolves the
-  // request's own.
-  const t = await getTranslations("header");
-
   const viewer = access.viewer;
 
   /*
-   * No group means no per-group label to wear, nothing to switch between and no
-   * group-scoped entry to offer — but the menu itself has to be here. It is the
-   * only way off `/start`, and an account that cannot sign out is stuck.
+   * No group means no per-group label to wear and nothing to switch between —
+   * but the menu itself has to be here. It is the only way off `/start`, and an
+   * account that cannot sign out is stuck.
    *
    * Two name sources because a groupless account has no per-group label at all:
    * `getPeerNames` reads memberships and hands back nothing for them, so the
@@ -87,18 +78,10 @@ async function HeaderRight() {
   return (
     <div className="flex shrink-0 items-center gap-1 sm:gap-2">
       {groupless ? null : (
-        <>
-          <Button variant="ghost" size="sm" asChild>
-            <Link href="/buying" aria-label={t("buying")}>
-              <ShoppingBagIcon />
-              <span className="hidden sm:inline">{t("buying")}</span>
-            </Link>
-          </Button>
-          <GroupSwitcher
-            groups={viewer.groups}
-            canCreate={created < MAX_GROUPS_PER_ACCOUNT}
-          />
-        </>
+        <GroupSwitcher
+          groups={viewer.groups}
+          canCreate={created < MAX_GROUPS_PER_ACCOUNT}
+        />
       )}
       <AccountMenu name={name} groups={viewer.groups} />
     </div>

@@ -1,6 +1,7 @@
 {
   "account": {
     "label": "Účet – {name}",
+    "buying": "Čo kupujem",
     "manageGroup": "Spravovať skupinu",
     "signOut": "Odhlásiť sa"
   },
@@ -116,9 +117,6 @@
       "heading": "Skupiny",
       "current": "Skupina – {name}"
     }
-  },
-  "header": {
-    "buying": "Čo kupujem"
   },
   "install": {
     "prompt": "Nainštaluj si appku na plochu, otvorí sa ti ako každá iná.",

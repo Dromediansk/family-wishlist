@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LogOutIcon, SettingsIcon } from "lucide-react";
+import { LogOutIcon, SettingsIcon, ShoppingBagIcon } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
 
 import { signOut } from "@/app/actions/auth";
@@ -38,7 +38,9 @@ const SET_LOCALE_FORM = "set-locale";
  * anything wish-shaped.
  *
  * Managing members is per group, so the entry appears only inside one, and only
- * where this viewer is its admin: being an admin elsewhere is not cover.
+ * where this viewer is its admin: being an admin elsewhere is not cover. What
+ * the viewer is buying spans every group, so that entry needs no current one —
+ * only a group somewhere, since an account with none has nothing to reserve.
  */
 export function AccountMenu({
   name,
@@ -78,6 +80,15 @@ export function AccountMenu({
         <DropdownMenuContent align="end">
           <DropdownMenuLabel className="truncate">{name}</DropdownMenuLabel>
           <DropdownMenuSeparator />
+
+          {groups.length > 0 ? (
+            <DropdownMenuItem asChild>
+              <Link href="/buying">
+                <ShoppingBagIcon />
+                {t("buying")}
+              </Link>
+            </DropdownMenuItem>
+          ) : null}
 
           {current && isGroupAdmin(current) ? (
             <DropdownMenuItem asChild>

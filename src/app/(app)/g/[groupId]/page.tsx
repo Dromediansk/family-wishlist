@@ -35,31 +35,37 @@ export default async function GroupPage({
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <h1 className="text-2xl font-semibold text-balance break-words">
+      <div>
+        <div className="flex items-start justify-between gap-3">
+          <h1 className="min-w-0 text-2xl font-semibold text-balance break-words">
             {ctx.groupName}
           </h1>
-          <p className="text-muted-foreground mt-1 max-w-[62ch]">
-            {t("intro")}
-          </p>
+          <Button variant="ghost" size="sm" asChild className="shrink-0">
+            <Link href={`/g/${ctx.groupId}/notes`}>
+              <NotebookPenIcon />
+              {/*
+               * Icon alone on a narrow screen, like the header's own entries —
+               * but the label stays in the accessible name rather than moving
+               * to an `aria-label`, which would swallow the mark below.
+               */}
+              <span className="sr-only sm:not-sr-only">{t("notes")}</span>
+              {/*
+               * A mark, not a count: the page says whether there is anything to
+               * come back to, and the note itself says how much.
+               */}
+              {hasNote ? (
+                <>
+                  <span
+                    className="bg-primary size-1.5 rounded-full"
+                    aria-hidden
+                  />
+                  <span className="sr-only">{t("notesFilled")}</span>
+                </>
+              ) : null}
+            </Link>
+          </Button>
         </div>
-        <Button variant="ghost" size="sm" asChild>
-          <Link href={`/g/${ctx.groupId}/notes`}>
-            <NotebookPenIcon />
-            {t("notes")}
-            {/*
-             * A mark, not a count: the page says whether there is anything to
-             * come back to, and the note itself says how much.
-             */}
-            {hasNote ? (
-              <>
-                <span className="bg-primary size-1.5 rounded-full" aria-hidden />
-                <span className="sr-only">{t("notesFilled")}</span>
-              </>
-            ) : null}
-          </Link>
-        </Button>
+        <p className="text-muted-foreground mt-1 max-w-[62ch]">{t("intro")}</p>
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
