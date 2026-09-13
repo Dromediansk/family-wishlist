@@ -384,8 +384,7 @@
     "intro": "Tvoj zápisník pre túto skupinu. Vidíš ho len ty — nikto iný sa k nemu nedostane.",
     "label": "Čo komu kúpiť",
     "placeholder": "Napríklad:\nOtec — aku vŕtačka, do 80 €\nJana — kniha, spýtať sa Petra, ktorú už má",
-    "save": "Uložiť",
-    "saved": "Uložené"
+    "save": "Uložiť"
   },
   "notFound": {
     "title": "Takáto stránka tu nie je",
