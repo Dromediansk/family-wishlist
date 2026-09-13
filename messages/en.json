@@ -95,9 +95,7 @@
     "personLabel": "for:"
   },
   "group": {
-    "intro": "Add something to your own list, or pick out what you'll buy for somebody else.",
-    "notes": "Notes",
-    "notesFilled": "You have notes here"
+    "intro": "Add something to your own list, or pick out what you'll buy for somebody else."
   },
   "groups": {
     "create": {
@@ -377,7 +375,7 @@
     "description": "What everyone would like, and who is quietly getting it."
   },
   "notes": {
-    "everyone": "Everyone",
+    "filled": "You have notes here",
     "title": "Notes",
     "intro": "Your notebook for this group. Only you can see it — nobody else can reach it.",
     "label": "What to buy whom",
