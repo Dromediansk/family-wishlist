@@ -95,9 +95,7 @@
     "personLabel": "pre:"
   },
   "group": {
-    "intro": "Pridaj si niečo do vlastného zoznamu alebo si vyber, čo kúpiš niekomu inému.",
-    "notes": "Poznámky",
-    "notesFilled": "Máš tu poznámky"
+    "intro": "Pridaj si niečo do vlastného zoznamu alebo si vyber, čo kúpiš niekomu inému."
   },
   "groups": {
     "create": {
@@ -377,7 +375,8 @@
     "description": "Čo by si kto prial a kto splní prianie komu."
   },
   "notes": {
-    "everyone": "Všetci",
+    "action": "Poznámky",
+    "filled": "Máš tu poznámky",
     "title": "Poznámky",
     "intro": "Tvoj zápisník pre túto skupinu. Vidíš ho len ty — nikto iný sa k nemu nedostane.",
     "label": "Čo komu kúpiť",

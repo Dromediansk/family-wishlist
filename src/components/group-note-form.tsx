@@ -1,11 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 
 import { saveGroupNote } from "@/app/actions/notes";
 import { SubmitButton } from "@/components/submit-button";
+import { DialogBody, DialogFooter } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import type { GroupId } from "@/lib/ids";
@@ -16,27 +16,27 @@ import type { ActionFailure } from "@/lib/types";
 const FIELD = "note-body";
 
 /**
- * The whole of the notes page's interaction: a box, a button, and a refusal if
- * one comes back. Success needs no marker of its own — it sends the author
- * back to the group's wish list.
+ * The whole of the notes dialog's interaction: a box, a button, and a refusal
+ * if one comes back. Success needs no marker of its own — it closes the dialog.
  *
  * The textarea is uncontrolled — nothing here needs to read what is being typed
  * before it is submitted, and leaving it uncontrolled is what keeps the text
- * the author is mid-sentence on from being replaced when the page revalidates
- * underneath them.
+ * the author is mid-sentence on from being replaced when the page underneath
+ * revalidates.
  *
- * A plain `<form action>`, so it still posts without JavaScript; `SubmitButton`
- * adds the spinner once hydrated.
+ * A plain `<form action>`, as in `CreateGroupDialog`; `SubmitButton` adds the
+ * spinner.
  */
 export function GroupNoteForm({
   groupId,
   initial,
+  onDone,
 }: {
   groupId: GroupId;
   initial: string;
+  onDone: () => void;
 }) {
   const t = useTranslations("notes");
-  const router = useRouter();
 
   // Only the failed half is worth holding on to, as in `wish-form`.
   const [failure, setFailure] = useState<ActionFailure | null>(null);
@@ -47,45 +47,53 @@ export function GroupNoteForm({
       String(formData.get(FIELD) ?? ""),
     );
     if (result.ok) {
-      router.push(`/g/${groupId}`);
+      onDone();
       return;
     }
     setFailure(result);
   }
 
+  /*
+   * The form *is* the dialog's body and footer, not a block inside them, so the
+   * box takes the room going spare while the button stays pinned to the bottom
+   * edge. `min-h-0` is what lets it shrink to the panel rather than to its own
+   * content. docs/decisions/ui-patterns.md#three-things-that-will-bite
+   */
   return (
-    <form action={submit} className="flex flex-col gap-4">
-      <div className="flex flex-col gap-2">
-        <Label htmlFor={FIELD}>{t("label")}</Label>
-        <Textarea
-          id={FIELD}
-          name={FIELD}
-          defaultValue={initial}
-          placeholder={t("placeholder")}
-          maxLength={MAX_NOTE_LENGTH}
-          // Tall enough to hold a family's worth of plans without scrolling
-          // inside a page that already scrolls.
-          className="min-h-64"
-          // A refusal is not true any more the moment the text changes again.
-          onChange={() => setFailure(null)}
-        />
-      </div>
+    <form action={submit} className="flex min-h-0 flex-1 flex-col">
+      <DialogBody className="flex flex-col gap-4">
+        {/*
+         * The one field grows into the panel instead of leaving dead space
+         * below it — a full-screen phone dialog is mostly this box. On the
+         * `sm:` card there is no spare height to take, so it keeps its own.
+         */}
+        <div className="flex min-h-0 flex-1 flex-col gap-2">
+          <Label htmlFor={FIELD}>{t("label")}</Label>
+          <Textarea
+            id={FIELD}
+            name={FIELD}
+            defaultValue={initial}
+            placeholder={t("placeholder")}
+            maxLength={MAX_NOTE_LENGTH}
+            // Tall enough to be worth opening for; the box scrolls past it.
+            className="min-h-48 flex-1"
+            // A refusal is not true any more the moment the text changes again.
+            onChange={() => setFailure(null)}
+          />
+        </div>
 
-      {failure ? (
-        <p className="text-destructive" role="alert">
-          {failure.error}
-        </p>
-      ) : null}
+        {failure ? (
+          <p className="text-destructive shrink-0" role="alert">
+            {failure.error}
+          </p>
+        ) : null}
+      </DialogBody>
 
-      {/*
-        `w-full sm:w-auto` is the house pairing, but it only sizes to content in
-        a flex row — a dialog's `FOOTER` turns into one at `sm:`. This form is a
-        column, whose default `stretch` would otherwise beat `w-auto` and leave
-        a full-width button at every size.
-      */}
-      <SubmitButton size="lg" className="w-full sm:w-auto sm:self-start">
-        {t("save")}
-      </SubmitButton>
+      <DialogFooter>
+        <SubmitButton size="lg" className="w-full sm:w-auto">
+          {t("save")}
+        </SubmitButton>
+      </DialogFooter>
     </form>
   );
 }
