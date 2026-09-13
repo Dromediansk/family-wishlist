@@ -20,8 +20,11 @@
 /**
  * `leading-tight`, not `leading-none`: a line box the exact height of the type
  * clips the caron off a capital Č or Ľ, which Slovak labels have.
+ *
+ * `mt-2` on top of each field wrapper's own `gap-2`/`gap-4`: distinct breathing
+ * room above the label, separate from the gap below it to its input.
  */
-export const LABEL = "text-base leading-tight font-medium select-none";
+export const LABEL = "mt-2 text-base leading-tight font-medium select-none";
 
 /**
  * `text-base` is 17px. Anything under 16px makes iOS Safari zoom the viewport
