@@ -5,7 +5,7 @@ import { z } from "zod";
 
 import { firstIssue, getErrorText } from "@/i18n/errors";
 import { requireGroup } from "@/lib/data/access";
-import { NOTE_MAX_LENGTH, normaliseNote } from "@/lib/notes";
+import { MAX_NOTE_LENGTH, normaliseNote } from "@/lib/notes";
 import { getSupabase } from "@/lib/supabase";
 import type { ActionResult } from "@/lib/types";
 
@@ -19,7 +19,7 @@ import type { ActionResult } from "@/lib/types";
 const bodySchema = z
   .string()
   .transform(normaliseNote)
-  .pipe(z.string().max(NOTE_MAX_LENGTH, "noteTooLong"));
+  .pipe(z.string().max(MAX_NOTE_LENGTH, "noteTooLong"));
 
 /**
  * Writes the caller's own note for one group.
@@ -45,11 +45,10 @@ export async function saveGroupNote(
   const permitted = await requireGroup(groupId);
   if (!permitted.ok) return permitted;
 
-  const text = await getErrorText();
-
   const parsed = bodySchema.safeParse(body);
   if (!parsed.success) {
     const issue = firstIssue(parsed.error);
+    const text = await getErrorText();
     return { ok: false, error: text(issue.key, issue.params) };
   }
 
@@ -75,7 +74,6 @@ export async function saveGroupNote(
             user_id: ctx.userId,
             group_id: ctx.groupId,
             body: parsed.data,
-            updated_at: new Date().toISOString(),
           },
           { onConflict: "user_id,group_id" },
         );

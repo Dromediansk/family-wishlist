@@ -10,8 +10,9 @@ const nextConfig: NextConfig = {
    * `sharp` is an optional dependency of `next` itself, traced into every server
    * function for Image Optimization. This app has no `next/image` — a photo is
    * streamed straight out of Storage by `wish-photo/[wishId]` — so 26MB of
-   * libvips and wasm was freight. Drop this line the day a `next/image` appears,
-   * or that route fails at runtime rather than at build.
+   * libvips and wasm was freight. Excluded files fail at runtime rather than at
+   * build, so `no-restricted-imports` in `eslint.config.mjs` refuses
+   * `next/image` instead; drop both together the day one is wanted.
    *
    * `@vercel/og` is reachable only from `icon.tsx` and `apple-icon.tsx`, which
    * compile to `route` entries. The `page` key leaves those two alone and takes

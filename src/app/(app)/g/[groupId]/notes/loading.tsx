@@ -17,7 +17,7 @@ export default function NotesLoading() {
           <Skeleton className="h-5 w-40" />
           <Skeleton className="h-64 w-full" />
         </div>
-        <Skeleton className="h-11 w-full sm:w-32" />
+        <Skeleton className="h-12 w-full sm:w-32" />
       </Card>
     </div>
   );

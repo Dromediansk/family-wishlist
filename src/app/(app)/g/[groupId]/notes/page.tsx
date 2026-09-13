@@ -30,8 +30,10 @@ export default async function NotesPage({
   const ctx = await enterGroup(groupId);
   if (!ctx) notFound();
 
-  const note = await getGroupNote(ctx);
-  const t = await getTranslations("notes");
+  const [note, t] = await Promise.all([
+    getGroupNote(ctx),
+    getTranslations("notes"),
+  ]);
 
   return (
     <div className="space-y-6">

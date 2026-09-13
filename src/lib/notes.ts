@@ -9,7 +9,7 @@
  * else. The Zod refusal quotes this number, so raising it in both places is the
  * whole change.
  */
-export const NOTE_MAX_LENGTH = 4000;
+export const MAX_NOTE_LENGTH = 4000;
 
 /**
  * A textarea posts its value with CRLF line endings, which would otherwise cost

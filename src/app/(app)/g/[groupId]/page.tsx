@@ -26,12 +26,12 @@ export default async function GroupPage({
   const ctx = await enterGroup(groupId);
   if (!ctx) notFound();
 
-  // Independent reads against the same membership — neither waits on the other.
-  const [members, hasNote] = await Promise.all([
+  // Independent reads against the same membership — none waits on the others.
+  const [members, hasNote, t] = await Promise.all([
     getMemberSummaries(ctx),
     hasGroupNote(ctx),
+    getTranslations("group"),
   ]);
-  const t = await getTranslations("group");
 
   return (
     <div className="space-y-6">

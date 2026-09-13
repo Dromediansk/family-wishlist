@@ -35,13 +35,10 @@ export async function getGroupNote(ctx: GroupContext): Promise<string> {
  * Whether the caller has written a note for this group. The group page marks
  * its Notes link when there is one, and needs a yes or no rather than the text.
  *
- * The body is tested in the `WHERE` clause and a key column is what comes back,
- * so a note of four thousand characters costs the same as an empty one.
- *
- * `saveGroupNote` deletes the row rather than storing `""`, which would make
- * the row's mere existence answer this. The emptiness test is here anyway: the
- * table's only check is on length, so an empty body is a row the database would
- * accept, and this stays right if one ever arrives by another road.
+ * A key column is what comes back, so a note of four thousand characters costs
+ * the same as a one-line one. `saveGroupNote` deletes the row rather than
+ * storing `""`, and the table refuses an empty body, so the row's mere
+ * existence is the whole answer.
  */
 export async function hasGroupNote(ctx: GroupContext): Promise<boolean> {
   const { data, error } = await getSupabase()
@@ -49,7 +46,6 @@ export async function hasGroupNote(ctx: GroupContext): Promise<boolean> {
     .select("user_id")
     .eq("user_id", ctx.userId)
     .eq("group_id", ctx.groupId)
-    .neq("body", "")
     .maybeSingle();
 
   if (error) throw error;

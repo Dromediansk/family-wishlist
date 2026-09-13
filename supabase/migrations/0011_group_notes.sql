@@ -15,9 +15,10 @@ begin;
 create table group_notes (
   user_id    uuid not null,
   group_id   uuid not null,
-  body       text not null check (char_length(body) <= 4000),
-  -- Ordinary row bookkeeping; nothing reads it yet.
-  updated_at timestamptz not null default now(),
+  -- Emptying a note deletes the row, so an empty body is not a state this
+  -- table has. Enforced here rather than only in the action, which lets the
+  -- Notes mark ask whether the row exists and nothing more.
+  body       text not null check (body <> '' and char_length(body) <= 4000),
 
   primary key (user_id, group_id),
 
