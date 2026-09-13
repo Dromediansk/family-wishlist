@@ -14,8 +14,6 @@ import type { GroupContext } from "@/lib/types";
  *
  * Empty string rather than null: "never written" and "emptied" read the same to
  * the person looking at the page, and the form renders one value either way.
- * It is also what the group page marks its Notes button from — `""` is "no
- * note", so there is nothing a separate existence check would answer.
  *
  * Not `cache`d — one page calls this once.
  */
