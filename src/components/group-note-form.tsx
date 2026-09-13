@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 
 import { saveGroupNote } from "@/app/actions/notes";
@@ -16,8 +17,8 @@ const FIELD = "note-body";
 
 /**
  * The whole of the notes page's interaction: a box, a button, and a refusal if
- * one comes back. Nothing marks a success — no form here does, and the author
- * leaves by the back link when they are done.
+ * one comes back. Success needs no marker of its own — it sends the author
+ * back to the group's wish list.
  *
  * The textarea is uncontrolled — nothing here needs to read what is being typed
  * before it is submitted, and leaving it uncontrolled is what keeps the text
@@ -35,6 +36,7 @@ export function GroupNoteForm({
   initial: string;
 }) {
   const t = useTranslations("notes");
+  const router = useRouter();
 
   // Only the failed half is worth holding on to, as in `wish-form`.
   const [failure, setFailure] = useState<ActionFailure | null>(null);
@@ -44,7 +46,11 @@ export function GroupNoteForm({
       groupId,
       String(formData.get(FIELD) ?? ""),
     );
-    setFailure(result.ok ? null : result);
+    if (result.ok) {
+      router.push(`/g/${groupId}`);
+      return;
+    }
+    setFailure(result);
   }
 
   return (
