@@ -71,7 +71,13 @@ export function GroupNoteForm({
         </p>
       ) : null}
 
-      <SubmitButton size="lg" className="w-full sm:w-auto">
+      {/*
+        `w-full sm:w-auto` is the house pairing, but it only sizes to content in
+        a flex row — a dialog's `FOOTER` turns into one at `sm:`. This form is a
+        column, whose default `stretch` would otherwise beat `w-auto` and leave
+        a full-width button at every size.
+      */}
+      <SubmitButton size="lg" className="w-full sm:w-auto sm:self-start">
         {t("save")}
       </SubmitButton>
     </form>
