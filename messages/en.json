@@ -377,7 +377,7 @@
   "notes": {
     "filled": "You have notes here",
     "title": "Notes",
-    "intro": "Your notebook for this group. Only you can see it — nobody else can reach it.",
+    "intro": "Your private notebook for this group.",
     "label": "What to buy whom",
     "placeholder": "For example:\nDad — cordless drill, up to €80\nJana — a book, ask Peter which ones she has",
     "save": "Save"

@@ -377,7 +377,7 @@
   "notes": {
     "filled": "Máš tu poznámky",
     "title": "Poznámky",
-    "intro": "Tvoj zápisník pre túto skupinu. Vidíš ho len ty — nikto iný sa k nemu nedostane.",
+    "intro": "Tvoj súkromný zápisník pre túto skupinu.",
     "label": "Čo komu kúpiť",
     "placeholder": "Napríklad:\nOtec — aku vŕtačka, do 80 €\nJana — kniha, spýtať sa Petra, ktorú už má",
     "save": "Uložiť"
