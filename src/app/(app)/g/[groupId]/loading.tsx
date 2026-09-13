@@ -3,16 +3,20 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 /**
  * Also the shell Next prefetches, so it is what renders when someone taps
- * through with no signal. The member and family pages under here bring their
- * own, so this one is the grid's alone.
+ * through with no signal. The member, family and notes pages under here bring
+ * their own, so this one is the grid's alone.
  * docs/decisions/ui-patterns.md#app-and-legal
  */
 export default function GroupLoading() {
   return (
     <div className="space-y-6">
-      <div className="space-y-2">
-        <Skeleton className="h-9 w-40" />
-        <Skeleton className="h-5 w-72 max-w-full" />
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="space-y-2">
+          <Skeleton className="h-9 w-40" />
+          <Skeleton className="h-5 w-72 max-w-full" />
+        </div>
+        {/* The Notes button, same row as the title on the real page. */}
+        <Skeleton className="h-10 w-28" />
       </div>
 
       {/* Mirrors MemberCard: the name centred, the action row below. */}

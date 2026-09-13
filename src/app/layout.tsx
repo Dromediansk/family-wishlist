@@ -101,6 +101,7 @@ const CLIENT_NAMESPACES = [
   "install",
   "invites",
   "members",
+  "notes",
   "wishes",
 ];
 

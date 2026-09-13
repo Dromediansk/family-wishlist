@@ -46,6 +46,16 @@ const eslintConfig = defineConfig([
               message:
                 "Table access belongs in src/lib/data/, where a Viewer or GroupContext scopes it.",
             },
+            {
+              name: "next/image",
+              message:
+                "next.config.ts excludes sharp from the trace, so this fails at runtime, not at build. Drop that exclude first.",
+            },
+            {
+              name: "next/legacy/image",
+              message:
+                "next.config.ts excludes sharp from the trace, so this fails at runtime, not at build. Drop that exclude first.",
+            },
           ],
         },
       ],

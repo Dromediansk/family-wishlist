@@ -33,6 +33,7 @@
     "titleRequired": "Názov je povinný.",
     "titleTooLong": "Názov môže mať najviac {max} znakov.",
     "descriptionTooLong": "Popis môže mať najviac {max} znakov.",
+    "noteTooLong": "Poznámka môže mať najviac {max} znakov.",
     "urlScheme": "Odkaz musí začínať na http:// alebo https://",
     "pickGroup": "Vyber aspoň jednu skupinu.",
     "photoUnreadable": "Fotku sa nepodarilo načítať.",
@@ -93,7 +94,9 @@
     "personLabel": "pre:"
   },
   "group": {
-    "intro": "Pridaj si niečo do vlastného zoznamu alebo si vyber, čo kúpiš niekomu inému."
+    "intro": "Pridaj si niečo do vlastného zoznamu alebo si vyber, čo kúpiš niekomu inému.",
+    "notes": "Poznámky",
+    "notesFilled": "Máš tu poznámky"
   },
   "groups": {
     "create": {
@@ -374,6 +377,14 @@
   "metadata": {
     "name": "Wishlist",
     "description": "Čo by si kto prial a kto splní prianie komu."
+  },
+  "notes": {
+    "everyone": "Všetci",
+    "title": "Poznámky",
+    "intro": "Tvoj zápisník pre túto skupinu. Vidíš ho len ty — nikto iný sa k nemu nedostane.",
+    "label": "Čo komu kúpiť",
+    "placeholder": "Napríklad:\nOtec — aku vŕtačka, do 80 €\nJana — kniha, spýtať sa Petra, ktorú už má",
+    "save": "Uložiť"
   },
   "notFound": {
     "title": "Takáto stránka tu nie je",

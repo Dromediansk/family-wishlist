@@ -54,6 +54,7 @@ priorities, prices, notifications, and any form of self-service group discovery.
 | **Invite** | `invites` | A token link admitting anyone who opens it into one group |
 | **Wish** | `wishes` | One thing somebody would like. Belongs to an **account**, not a group |
 | **Wish tag** | `wish_groups` | One per (wish, group). Which of the owner's groups may see that wish |
+| **Group note** | `group_notes` | One person's private notebook for one group. Keyed on the membership, so it cannot outlive one |
 | **Claim** | *(columns on `wishes`)* | A reservation. Not a table — `claimed_by_user_id` and `claimed_at`, set and cleared together |
 | **Fulfilled wish** | `fulfilled_wishes` | An immutable record written when a gift is handed over. Copies names and group names rather than joining to them, so it outlives both |
 
@@ -97,6 +98,16 @@ Rationale, enforcement and the holes in full:
   claim holder marks it handed over; the account is deleted.
 - Lists are ordered oldest first, everywhere.
 
+### Notes
+
+- A note belongs to one person **in one group**, and only that person ever
+  reads it. It is never shown to anybody else, in any view.
+- Because nobody else reads it, it is outside the one rule rather than an
+  exception to it — there is no note a list owner could learn a claim from.
+- Emptying a note deletes it. There is no such thing as an empty note.
+- It ends with the membership: being removed from the group, the group being
+  deleted, or the account being deleted all take it. Rejoining starts blank.
+
 ### Claiming
 
 - You may claim only a wish tagged with a group **you** are in.
@@ -120,10 +131,10 @@ Rationale, enforcement and the holes in full:
 - An account may **create** at most 5 groups. Deleting one gives the budget
   back; leaving one does not.
 - **Nobody can leave a group themselves.** Asking an admin is the only exit.
-- Removing somebody deletes their membership and nothing else. Their wishes,
-  photos and history are untouched.
-- Any admin may delete the group. It takes the memberships and the invites and
-  nothing else.
+- Removing somebody deletes their membership and their notes for that group.
+  Their wishes, photos and history are untouched.
+- Any admin may delete the group. It takes the memberships, the notes written
+  for it and the invites, and nothing else.
 
 ### History
 

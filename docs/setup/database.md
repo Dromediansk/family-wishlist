@@ -1,6 +1,6 @@
 # Database
 
-Seven tables, no policies, and a migration process that stays deliberately
+Eight tables, no policies, and a migration process that stays deliberately
 manual in production.
 
 **`supabase/migrations/` is the schema.** This file covers only what the DDL
@@ -125,6 +125,7 @@ same pair.**
 | `0008_multi_tenant.sql` | Many groups, one account: the four identity tables, the peer functions and triggers, the renamed wish columns | **reshapes every table — take a snapshot first** |
 | `0009_wish_groups.sql` | Per-wish group visibility: `wish_groups`, its ownership guard, `wish_shares_group`, the two claim triggers sharpened onto it, and `update_wish` | no |
 | `0010_fulfilled_wish_groups.sql` | `fulfilled_wishes.group_names`, `shared_wish_groups`, and `fulfil_wish` rewritten to snapshot the tags both parties shared | no |
+| `0011_group_notes.sql` | `group_notes`: one private note per person per group, hung off `memberships` by a cascading composite foreign key | no |
 
 **`0003_auth.sql` deletes every member and every wish.** Identity moved from "a
 name you picked" to "a Google account", and there is no way to tell which
@@ -145,7 +146,7 @@ drops a table at the end, and there is no way back from that without a snapshot.
 **In production: by hand**, pasted into the Supabase SQL editor, in order,
 skipping `0002`.
 
-**Locally:** `npm run db:reset` applies all ten. It runs `0002` too, which is
+**Locally:** `npm run db:reset` applies all eleven. It runs `0002` too, which is
 harmless — that file is entirely comments. The CLI accepts the `0001_`-style
 names; they need no timestamp prefix.
 

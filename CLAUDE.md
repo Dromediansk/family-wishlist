@@ -102,10 +102,13 @@ Reachable by direct POST, so each one must, in order:
 Return `ActionResult`, never throw for expected failures. Set `final: true` only
 when repeating the call cannot change the outcome.
 
-Two exceptions: `syncFromLive` (`src/app/actions/live.ts`) skips all five, and
+Three exceptions: `syncFromLive` (`src/app/actions/live.ts`) skips all five;
 `setLocale` (`src/app/actions/locale.ts`) keeps only 3 and 5 — the choice is a
 browser's, not an account's, so there is no caller to re-derive, no row to write
-and deliberately **no `notifyChanged`**.
+and deliberately **no `notifyChanged`**; and `saveGroupNote`
+(`src/app/actions/notes.ts`) keeps 1, 3, 4 and 5 but sends **no `notifyChanged`**
+— a private note changes nobody else's screen, so the group channel has nothing
+to say.
 
 ## Conventions
 

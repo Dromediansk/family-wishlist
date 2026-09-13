@@ -1,10 +1,14 @@
+import Link from "next/link";
 import { notFound } from "next/navigation";
+import { NotebookPenIcon } from "lucide-react";
 import { getTranslations } from "next-intl/server";
 
 import { MemberCard } from "@/components/member-card";
 import { SetupRequired } from "@/components/setup-required";
+import { Button } from "@/components/ui/button";
 import { enterGroup } from "@/lib/data/access";
 import { getMemberSummaries } from "@/lib/data/members";
+import { hasGroupNote } from "@/lib/data/notes";
 import { isConfigured } from "@/lib/supabase";
 
 /** One group's grid. Nobody else's members are reachable from here. */
@@ -22,18 +26,40 @@ export default async function GroupPage({
   const ctx = await enterGroup(groupId);
   if (!ctx) notFound();
 
-  const members = await getMemberSummaries(ctx);
-  const t = await getTranslations("group");
+  // Independent reads against the same membership — none waits on the others.
+  const [members, hasNote, t] = await Promise.all([
+    getMemberSummaries(ctx),
+    hasGroupNote(ctx),
+    getTranslations("group"),
+  ]);
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-semibold text-balance break-words">
-          {ctx.groupName}
-        </h1>
-        <p className="text-muted-foreground mt-1 max-w-[62ch]">
-          {t("intro")}
-        </p>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <h1 className="text-2xl font-semibold text-balance break-words">
+            {ctx.groupName}
+          </h1>
+          <p className="text-muted-foreground mt-1 max-w-[62ch]">
+            {t("intro")}
+          </p>
+        </div>
+        <Button variant="ghost" size="sm" asChild>
+          <Link href={`/g/${ctx.groupId}/notes`}>
+            <NotebookPenIcon />
+            {t("notes")}
+            {/*
+             * A mark, not a count: the page says whether there is anything to
+             * come back to, and the note itself says how much.
+             */}
+            {hasNote ? (
+              <>
+                <span className="bg-primary size-1.5 rounded-full" aria-hidden />
+                <span className="sr-only">{t("notesFilled")}</span>
+              </>
+            ) : null}
+          </Link>
+        </Button>
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
