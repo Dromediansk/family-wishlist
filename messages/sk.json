@@ -95,7 +95,8 @@
   },
   "group": {
     "intro": "Pridaj si niečo do vlastného zoznamu alebo si vyber, čo kúpiš niekomu inému.",
-    "notes": "Poznámky"
+    "notes": "Poznámky",
+    "notesFilled": "Máš tu poznámky"
   },
   "groups": {
     "create": {

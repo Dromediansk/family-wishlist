@@ -1,6 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { CheckIcon } from "lucide-react";
 import { useTranslations } from "next-intl";
 
 import { saveGroupNote } from "@/app/actions/notes";
@@ -14,8 +16,17 @@ import { NOTE_MAX_LENGTH } from "@/lib/notes";
 const FIELD = "note-body";
 
 /**
- * The whole of the notes page's interaction: a box, a button, and a word when
- * it lands.
+ * How long the check stays before the group page replaces it. Long enough to
+ * be seen and read as "that landed", short enough that nobody waits on it.
+ */
+const SAVED_DWELL_MS = 800;
+
+/**
+ * The whole of the notes page's interaction: a box, a button, a tick when it
+ * lands, and the way back to the group a moment later.
+ *
+ * Typing during that moment cancels the departure — the effect's cleanup runs
+ * when `saved` goes false again, so second thoughts keep the page.
  *
  * The textarea is uncontrolled — nothing here needs to read what is being typed
  * before it is submitted, and leaving it uncontrolled is what keeps the text
@@ -33,8 +44,28 @@ export function GroupNoteForm({
   initial: string;
 }) {
   const t = useTranslations("notes");
+  const router = useRouter();
   const [error, setError] = useState<string | null>(null);
   const [saved, setSaved] = useState(false);
+
+  /*
+   * The way back, once the check has been seen. Deliberately not awaited inside
+   * the action: `SubmitButton` watches `useFormStatus`, so holding the action
+   * open would spin the button through the pause and show a spinner and a check
+   * at once. The cleanup matters — leaving under one's own steam during the
+   * pause must not drag the group page along a moment later.
+   *
+   * `saveGroupNote` has already revalidated, so the page this lands on shows
+   * the note's mark without asking for anything further.
+   */
+  useEffect(() => {
+    if (!saved) return;
+    const timer = setTimeout(
+      () => router.push(`/g/${groupId}`),
+      SAVED_DWELL_MS,
+    );
+    return () => clearTimeout(timer);
+  }, [saved, groupId, router]);
 
   async function submit(formData: FormData) {
     const result = await saveGroupNote(groupId, String(formData.get(FIELD) ?? ""));
@@ -79,8 +110,10 @@ export function GroupNoteForm({
           {t("save")}
         </SubmitButton>
         {saved ? (
-          <p className="text-muted-foreground" role="status">
-            {t("saved")}
+          /* The word is still here for a screen reader; the eye gets the tick. */
+          <p className="text-primary" role="status">
+            <CheckIcon className="size-5" aria-hidden />
+            <span className="sr-only">{t("saved")}</span>
           </p>
         ) : null}
       </div>

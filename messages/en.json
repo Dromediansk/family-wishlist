@@ -95,7 +95,8 @@
   },
   "group": {
     "intro": "Add something to your own list, or pick out what you'll buy for somebody else.",
-    "notes": "Notes"
+    "notes": "Notes",
+    "notesFilled": "You have notes here"
   },
   "groups": {
     "create": {
