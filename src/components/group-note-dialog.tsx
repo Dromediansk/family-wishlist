@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { NotebookPenIcon } from "lucide-react";
 import { useTranslations } from "next-intl";
 
@@ -50,6 +50,8 @@ export function GroupNoteDialog({
   // Only the failed half is worth holding on to, as in `wish-form`.
   const [failure, setFailure] = useState<ActionFailure | null>(null);
 
+  const fieldRef = useRef<HTMLTextAreaElement>(null);
+
   async function submit(formData: FormData) {
     const result = await saveGroupNote(
       groupId,
@@ -94,7 +96,20 @@ export function GroupNoteDialog({
         </Button>
       </DialogTrigger>
       {/* `sm:`-qualified, or the width leaks down and un-fullscreens the phone. */}
-      <DialogContent className="sm:max-w-md">
+      <DialogContent
+        className="sm:max-w-md"
+        // Radix focuses the first field on open but only moves the caret for
+        // an `input`, so a filled note would open with its author standing in
+        // front of their own sentence. Once per open, not per render — a `ref`
+        // callback doing this would yank the caret back mid-edit.
+        onOpenAutoFocus={(event) => {
+          event.preventDefault();
+          const field = fieldRef.current;
+          if (!field) return;
+          field.focus();
+          field.setSelectionRange(field.value.length, field.value.length);
+        }}
+      >
         <DialogHeader>
           <DialogTitle>{t("title")}</DialogTitle>
           {/* Nobody writes an honest gift plan into a box they don't trust. */}
@@ -115,6 +130,7 @@ export function GroupNoteDialog({
             <div className="flex min-h-0 flex-1 flex-col gap-2">
               <Label htmlFor={FIELD}>{t("label")}</Label>
               <Textarea
+                ref={fieldRef}
                 id={FIELD}
                 name={FIELD}
                 defaultValue={note}
