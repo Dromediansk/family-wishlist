@@ -117,7 +117,7 @@ function Row({
         <span className="text-xs font-semibold uppercase tracking-wide">
           {label}
           {/* The colour alone would say this to sighted readers only. */}
-          {isNew ? <span className="sr-only"> — {t("unread")}</span> : null}
+          {isNew ? <span className="sr-only">{t("unread")}</span> : null}
         </span>
         <span className="w-full truncate font-medium">{title}</span>
         <span className="text-muted-foreground w-full truncate text-sm">
@@ -179,9 +179,7 @@ export function ActivityBell({
           buttonVariants({ variant: "ghost", size: "icon" }),
           "relative rounded-full",
         )}
-        aria-label={
-          unseen > 0 ? `${t("label")} — ${t("unseen", { count: unseen })}` : t("label")
-        }
+        aria-label={unseen > 0 ? t("labelUnseen", { count: unseen }) : t("label")}
       >
         <BellIcon />
         {unseen > 0 ? (

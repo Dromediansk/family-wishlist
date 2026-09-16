@@ -7,7 +7,7 @@
   },
   "activity": {
     "label": "Novinky",
-    "unseen": "{count, plural, one {# novinka} few {# novinky} other {# noviniek}}",
+    "labelUnseen": "Novinky – {count, plural, one {# novinka} few {# novinky} other {# noviniek}}",
     "empty": "Nič nové.",
     "wishAdded": "Nové želanie",
     "wishClaimed": "Rezervácia",
@@ -17,7 +17,7 @@
     "claimer": "Rezervuje: {name}",
     "claimerHidden": "Rezervované",
     "giver": "Darca: {name}",
-    "unread": "Neprečítané"
+    "unread": "— Neprečítané"
   },
   "buying": {
     "everyone": "Všetci",

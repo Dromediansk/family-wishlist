@@ -7,7 +7,7 @@
   },
   "activity": {
     "label": "What's new",
-    "unseen": "{count, plural, one {# new} other {# new}}",
+    "labelUnseen": "What's new – {count} new",
     "empty": "Nothing new.",
     "wishAdded": "New wish",
     "wishClaimed": "Reserved",
@@ -17,7 +17,7 @@
     "claimer": "Reserved by {name}",
     "claimerHidden": "Reserved",
     "giver": "From {name}",
-    "unread": "Unread"
+    "unread": "— Unread"
   },
   "buying": {
     "everyone": "Everyone",
