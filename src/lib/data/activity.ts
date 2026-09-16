@@ -18,7 +18,11 @@ import { getPeerGroups, getPeerNames } from "@/lib/data/members";
 import { asGroupId, asUserId, type GroupId, type UserId } from "@/lib/ids";
 import { getSupabase } from "@/lib/supabase";
 import type { ActivityItem, Viewer } from "@/lib/types";
-import { WISH_GROUPS_SCOPE } from "@/lib/wishes";
+import {
+  WISH_GROUPS_SCOPE,
+  embeddedGroupIds,
+  type WishGroupsEmbed,
+} from "@/lib/wishes";
 
 /**
  * The activity feed: four reads over rows that already exist, merged per
@@ -35,14 +39,6 @@ export type ActivityFeed = {
 };
 
 const EMPTY: ActivityFeed = { items: [], unseen: 0 };
-
-/** The `wish_groups` embed as PostgREST hands it back, ids not yet branded. */
-type WishGroupsEmbed = { wish_groups: { group_id: string }[] };
-
-/** The one place these embeds become branded ids, as in `data/wishes.ts`. */
-function embeddedGroupIds(embed: { group_id: string }[]): GroupId[] {
-  return embed.map((row) => asGroupId(row.group_id));
-}
 
 /** Everyone the viewer can see, themselves excluded — nobody's own news. */
 function othersVisibleTo(viewer: Viewer): string[] {
@@ -190,7 +186,9 @@ async function fulfilledGifts(
 ): Promise<ActivityItem[]> {
   const { data, error } = await getSupabase()
     .from("fulfilled_wishes")
-    .select("owner_id, owner_name, giver_id, giver_name, title, group_names, fulfilled_at")
+    .select(
+      "id, owner_id, owner_name, giver_id, giver_name, title, group_names, fulfilled_at",
+    )
     .or(`owner_id.eq.${viewer.userId},giver_id.eq.${viewer.userId}`)
     .gte("fulfilled_at", since)
     .order("fulfilled_at", { ascending: false })
@@ -199,6 +197,7 @@ async function fulfilledGifts(
   if (error) throw error;
 
   const rows = (data ?? []) as {
+    id: string;
     owner_id: string | null;
     owner_name: string;
     giver_id: string | null;
@@ -210,6 +209,7 @@ async function fulfilledGifts(
 
   return rows.map((row) => ({
     kind: "wish-fulfilled" as const,
+    id: row.id,
     at: row.fulfilled_at,
     title: row.title,
     owner: { id: asUserId(row.owner_id ?? ""), name: row.owner_name },

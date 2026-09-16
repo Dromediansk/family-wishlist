@@ -1,7 +1,7 @@
 import "server-only";
 
 import { getPeerGroups, getPeerNames, groupIdsOf } from "@/lib/data/members";
-import { asGroupId, asUserId, type GroupId, type UserId } from "@/lib/ids";
+import { asUserId, type UserId } from "@/lib/ids";
 import { getSupabase } from "@/lib/supabase";
 import type { ClaimedWish, GroupContext, Viewer, WishListView } from "@/lib/types";
 import { canReadList, liveWishGroups, wishVisibleTo } from "@/lib/visibility";
@@ -10,24 +10,15 @@ import {
   VIEWER_WISH_COLUMNS,
   WISH_GROUPS_EMBED,
   WISH_GROUPS_SCOPE,
+  embeddedGroupIds,
   toClaimedWish,
   toOwnerWish,
   toViewerWish,
   type ClaimedWishRow,
   type OwnerWishRow,
   type ViewerWishRow,
+  type WishGroupsEmbed,
 } from "@/lib/wishes";
-
-/** The `wish_groups` embed as PostgREST hands it back, ids not yet branded. */
-type WishGroupsEmbed = { wish_groups: { group_id: string }[] };
-
-/**
- * The one place a `wish_groups` embed becomes branded ids: read from a column
- * that references `groups`, so this boundary is what can vouch for them.
- */
-function embeddedGroupIds(embed: { group_id: string }[]): GroupId[] {
-  return embed.map((row) => asGroupId(row.group_id));
-}
 
 /**
  * Is this wish, right now, tagged with a group the viewer *and* its owner both

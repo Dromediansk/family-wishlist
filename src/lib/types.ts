@@ -202,6 +202,8 @@ export type ActivityItem =
   | {
       kind: "wish-fulfilled";
       at: string;
+      /** `fulfilled_wishes.id` — carries the record's own identity, not the wish's. */
+      id: string;
       title: string;
       owner: PersonRef;
       giver: PersonRef;

@@ -169,7 +169,7 @@ export function activityKey(item: ActivityItem): string {
     case "wish-claimed":
       return `${item.kind}:${item.wishId}:${item.at}`;
     case "wish-fulfilled":
-      return `${item.kind}:${item.owner.id}:${item.at}`;
+      return `${item.kind}:${item.id}`;
     case "member-joined":
       return `${item.kind}:${item.member.id}:${item.group.id}:${item.at}`;
   }
