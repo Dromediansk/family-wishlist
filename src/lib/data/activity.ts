@@ -262,35 +262,47 @@ async function joinedMembers(
  *
  * `cache`d because the header renders once per request but Next may ask twice
  * while streaming the Suspense boundary it sits behind.
+ *
+ * Wrapped so any failure here returns an empty feed instead of throwing: this
+ * read is purely decorative -- a bell that comes up empty is a smaller loss
+ * than a header that 500s the whole site -- and migrations reach production by
+ * hand, so code can ship a request ahead of `0012_activity_seen.sql`, in which
+ * case `lastSeenAt`'s `select activity_seen_at` errors. Nothing else in
+ * `src/lib/data/` gets this treatment: every other read there is load-bearing
+ * and must keep throwing.
  */
 export const getActivity = cache(
   async (viewer: Viewer): Promise<ActivityFeed> => {
-    if (viewer.groups.length === 0) return EMPTY;
+    try {
+      if (viewer.groups.length === 0) return EMPTY;
 
-    const others = othersVisibleTo(viewer);
-    const since = activityWindowStart(new Date());
+      const others = othersVisibleTo(viewer);
+      const since = activityWindowStart(new Date());
 
-    // `fulfilled` and `joined` need neither `names` nor `peerGroups`, so they
-    // ride in this round instead of waiting behind it -- only the two wish
-    // reads below need what this round produces.
-    const [names, peerGroups, seenAt, fulfilled, joined] = await Promise.all([
-      getPeerNames(viewer),
-      getPeerGroups(viewer),
-      lastSeenAt(viewer),
-      fulfilledGifts(viewer, since),
-      joinedMembers(viewer, since),
-    ]);
+      // `fulfilled` and `joined` need neither `names` nor `peerGroups`, so they
+      // ride in this round instead of waiting behind it -- only the two wish
+      // reads below need what this round produces.
+      const [names, peerGroups, seenAt, fulfilled, joined] = await Promise.all([
+        getPeerNames(viewer),
+        getPeerGroups(viewer),
+        lastSeenAt(viewer),
+        fulfilledGifts(viewer, since),
+        joinedMembers(viewer, since),
+      ]);
 
-    const [added, claimed] = await Promise.all([
-      others.length > 0
-        ? addedWishes(viewer, since, names, peerGroups, others)
-        : [],
-      others.length > 0
-        ? claimedWishes(viewer, since, names, peerGroups, others)
-        : [],
-    ]);
+      const [added, claimed] = await Promise.all([
+        others.length > 0
+          ? addedWishes(viewer, since, names, peerGroups, others)
+          : [],
+        others.length > 0
+          ? claimedWishes(viewer, since, names, peerGroups, others)
+          : [],
+      ]);
 
-    const items = mergeActivity([added, claimed, fulfilled, joined]);
-    return { items, unseen: countUnseen(items, seenAt) };
+      const items = mergeActivity([added, claimed, fulfilled, joined]);
+      return { items, unseen: countUnseen(items, seenAt) };
+    } catch {
+      return EMPTY;
+    }
   },
 );
