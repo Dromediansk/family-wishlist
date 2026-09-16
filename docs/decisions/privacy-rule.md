@@ -122,9 +122,14 @@ statement.
 Two filters hold the rule, on purpose: `.neq("owner_user_id", …)` in the query
 (`src/lib/data/activity.ts`) and a second refusal in `toClaimActivity`
 (`src/lib/activity.ts`), which is the tested one. The query's filter is also
-what makes selecting `claimed_by_user_id` legal on that path at all — it is the
-second place in the codebase to select that column, and the only one outside
-`src/lib/data/wishes.ts`.
+what makes selecting `claimed_by_user_id` legal on that path at all.
+
+Three places name that column. `VIEWER_WISH_COLUMNS` serves everyone but the
+owner. `lookUpRefusal` is the one owner-serving path allowed to read it, and
+the value never leaves that function. This is the third, and what keeps it off
+the owner's path is the filter rather than the caller — which is why the filter
+and the guard in `toClaimActivity` are both load-bearing, and why neither may
+be removed as redundant.
 
 Live updates are the last surface the rule reaches —
 [Live updates](live-updates.md).
