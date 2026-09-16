@@ -5,7 +5,7 @@ what you are touching; these are linked from the code they explain.
 
 | Document | Covers |
 |---|---|
-| [The privacy rule](privacy-rule.md) | Why it cannot be an RLS policy, where it is enforced, the deliberate exception, when the secret ends, and the three accepted holes |
+| [The privacy rule](privacy-rule.md) | Why it cannot be an RLS policy, where it is enforced, the deliberate exception, when the secret ends, and the four accepted holes |
 | [Wishes, claims and history](wishes-claims-history.md) | Conditional writes, the three list shapes, photos, and what happens at hand-over |
 | [Groups and invites](groups-and-invites.md) | Per-group names and roles, the creation cap, invite links, removal, deletion, and a known gap |
 | [Identity and sessions](identity-and-sessions.md) | Sign-in, the identity trigger and its repair, the proxy, and the OAuth exchange |

@@ -82,9 +82,10 @@ codebase follows from that sentence.
   refusal, and do not extend it by showing claim state on the owner's list.
 - **Only the holder of a claim may end the secret**, by pressing *Darované*.
   No admin override, no cron, no date.
-- **Three accepted holes**, all deliberate. An owner who tries to delete every
+- **Four accepted holes**, all deliberate. An owner who tries to delete every
   wish learns which are taken; a giver can spoil the surprise by pressing
-  *Darované* early; removing somebody from a group silently un-reserves gifts.
+  *Darované* early; removing somebody from a group silently un-reserves gifts;
+  and the activity bell's unread badge moves for some changes and not others.
 
 Rationale, enforcement and the holes in full:
 [decisions/privacy-rule.md](decisions/privacy-rule.md).
