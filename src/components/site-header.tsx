@@ -1,11 +1,13 @@
 import { Suspense } from "react";
 
 import { AccountMenu } from "@/components/account-menu";
+import { ActivityBell } from "@/components/activity-bell";
 import { GroupSwitcher } from "@/components/group-switcher";
 import { HomeLink } from "@/components/home-link";
 import { LocaleSwitcher } from "@/components/locale-switcher";
 import { StickyHeader } from "@/components/sticky-header";
 import { getAccess, getAccountName } from "@/lib/data/access";
+import { getActivity } from "@/lib/data/activity";
 import { countGroupsCreatedBy } from "@/lib/data/groups";
 import { getPeerNames } from "@/lib/data/members";
 import { MAX_GROUPS_PER_ACCOUNT } from "@/lib/groups";
@@ -68,20 +70,27 @@ async function HeaderRight() {
    * first. The two controls beside it work out which group is current from the
    * path, which this Server Component cannot see.
    */
-  const [name, created] = await Promise.all([
+  const [name, created, activity] = await Promise.all([
     groupless
       ? getAccountName(viewer)
       : getPeerNames(viewer).then((names) => names.get(viewer.userId) ?? "?"),
     groupless ? 0 : countGroupsCreatedBy(viewer),
+    // A groupless account has no circle to have news from, and `getActivity`
+    // says so itself — asked anyway, the four reads would each be scoped to an
+    // empty set.
+    getActivity(viewer),
   ]);
 
   return (
     <div className="flex shrink-0 items-center gap-1 sm:gap-2">
       {groupless ? null : (
-        <GroupSwitcher
-          groups={viewer.groups}
-          canCreate={created < MAX_GROUPS_PER_ACCOUNT}
-        />
+        <>
+          <ActivityBell items={activity.items} unseen={activity.unseen} />
+          <GroupSwitcher
+            groups={viewer.groups}
+            canCreate={created < MAX_GROUPS_PER_ACCOUNT}
+          />
+        </>
       )}
       <AccountMenu name={name} groups={viewer.groups} />
     </div>

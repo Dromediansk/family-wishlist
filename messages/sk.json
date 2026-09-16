@@ -5,6 +5,20 @@
     "manageGroup": "Spravovať skupinu",
     "signOut": "Odhlásiť sa"
   },
+  "activity": {
+    "label": "Novinky",
+    "unseen": "{count, plural, one {# novinka} few {# novinky} other {# noviniek}}",
+    "empty": "Nič nové.",
+    "wishAdded": "Nové želanie",
+    "wishClaimed": "Rezervácia",
+    "wishFulfilled": "Darované",
+    "memberJoined": "Nový člen",
+    "owner": "Pre: {name}",
+    "claimer": "Rezervuje: {name}",
+    "claimerHidden": "Rezervované",
+    "giver": "Darca: {name}",
+    "unread": "Neprečítané"
+  },
   "buying": {
     "everyone": "Všetci",
     "title": "Čo kupujem",

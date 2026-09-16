@@ -5,6 +5,20 @@
     "manageGroup": "Manage group",
     "signOut": "Sign out"
   },
+  "activity": {
+    "label": "What's new",
+    "unseen": "{count, plural, one {# new} other {# new}}",
+    "empty": "Nothing new.",
+    "wishAdded": "New wish",
+    "wishClaimed": "Reserved",
+    "wishFulfilled": "Given",
+    "memberJoined": "New member",
+    "owner": "For {name}",
+    "claimer": "Reserved by {name}",
+    "claimerHidden": "Reserved",
+    "giver": "From {name}",
+    "unread": "Unread"
+  },
   "buying": {
     "everyone": "Everyone",
     "title": "What I'm buying",
