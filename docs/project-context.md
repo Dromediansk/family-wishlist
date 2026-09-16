@@ -42,7 +42,8 @@ told.
 | Installable | PWA, no service worker |
 
 Explicit non-goals: real-time collaboration, comments, wish reordering,
-priorities, prices, notifications, and any form of self-service group discovery.
+priorities, prices, push notifications and email, and any form of self-service
+group discovery.
 
 ## Entities
 
@@ -107,6 +108,19 @@ Rationale, enforcement and the holes in full:
 - Emptying a note deletes it. There is no such thing as an empty note.
 - It ends with the membership: being removed from the group, the group being
   deleted, or the account being deleted all take it. Rejoining starts blank.
+
+### Activity
+
+- The bell reports four things and only four: a wish added, a wish reserved, a
+  gift handed over, somebody joining. All four are **derived** from rows that
+  already exist — nothing is written when they happen.
+- Because it is derived, it can only report what is still true. A deleted wish,
+  a released claim and an edited wish leave the feed silently, which is what
+  keeps `0005_drop_claim_notices.sql` decided.
+- A reservation on your own list never appears in your own feed, and the
+  claimer is named only to a reader who shares a group with them.
+- It looks back 30 days, holds at most 20 rows, and remembers one thing: when
+  you last opened it.
 
 ### Claiming
 

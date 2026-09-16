@@ -117,6 +117,15 @@ in it. `/buying` narrows against live memberships; `fulfil_wish` does it once
 more at handover, because the wish those tags hung off is deleted in that very
 statement.
 
+### The activity feed
+
+Two filters hold the rule, on purpose: `.neq("owner_user_id", …)` in the query
+(`src/lib/data/activity.ts`) and a second refusal in `toClaimActivity`
+(`src/lib/activity.ts`), which is the tested one. The query's filter is also
+what makes selecting `claimed_by_user_id` legal on that path at all — it is the
+second place in the codebase to select that column, and the only one outside
+`src/lib/data/wishes.ts`.
+
 Live updates are the last surface the rule reaches —
 [Live updates](live-updates.md).
 
@@ -211,9 +220,9 @@ claim. The names on a record are snapshots taken at handover, so the record
 outlives any group either party is in —
 [Wishes, claims and history](wishes-claims-history.md#the-two-pages).
 
-## Three accepted holes
+## Four accepted holes
 
-All three are deliberate, and none is an argument for weakening the rule
+All four are deliberate, and none is an argument for weakening the rule
 anywhere else.
 
 1. **An owner who tries to delete every wish learns which are taken** —
@@ -227,3 +236,18 @@ anywhere else.
    the same choice `0005_drop_claim_notices.sql` made about notices, for the
    same reason: a notice saying "the wish you bought is loose again" is a claim
    notice with extra steps.
+4. **A badge that does not move is a weak signal.** Every change pings every
+   tab, and the owner's refreshes with the rest —
+   [why](live-updates.md#why-the-owners-tab-refreshes-too). Until the activity
+   feed that refresh produced no observable change at all on the owner's
+   screen; the unread badge is one, and a claim on their own wish is among the
+   pings it does not move for.
+
+   Accepted, because the inference is noisy: a ping that moves no badge is also
+   what a released claim, a minted or revoked invite, a removed member, a change
+   in a group the viewer cannot see, and the viewer's own second tab all look
+   like. Reading it takes devtools and patience, and an owner that determined
+   already has hole 1, which is cheaper and exact.
+
+   There is no mitigation worth having — you cannot hand the owner a fake
+   increment, and a badge that never counts is a feature nobody asked for.
