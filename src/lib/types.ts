@@ -164,6 +164,62 @@ export type GroupRef = {
   role: Role;
 };
 
+/** Somebody named on an activity row. Always a per-group label, never a seed name. */
+export type PersonRef = {
+  id: UserId;
+  name: string;
+};
+
+/**
+ * PRIVACY-RULE: the claim variant carries a nullable claimer, and nulling it is
+ * the enforcement.
+ *
+ * One line in the activity feed. A discriminated union for the same reason
+ * `ClaimView` is one: `claimer: null` means the reader may be told that a
+ * reservation happened but not by whom, so a component handed it has no name to
+ * render. A claim on the reader's *own* wish never reaches this type at all —
+ * `toClaimActivity` returns null for it.
+ * docs/decisions/privacy-rule.md
+ */
+export type ActivityItem =
+  | {
+      kind: "wish-added";
+      at: string;
+      wishId: string;
+      title: string;
+      owner: PersonRef;
+      group: GroupRef;
+    }
+  | {
+      kind: "wish-claimed";
+      at: string;
+      wishId: string;
+      title: string;
+      owner: PersonRef;
+      group: GroupRef;
+      claimer: PersonRef | null;
+    }
+  | {
+      kind: "wish-fulfilled";
+      at: string;
+      title: string;
+      owner: PersonRef;
+      giver: PersonRef;
+      /**
+       * Snapshot strings off `fulfilled_wishes`, not a `GroupRef`: the group
+       * may since have been deleted, so this one is never a link.
+       */
+      groupNames: string[];
+      /** Which history page this row links to. */
+      viewerIsOwner: boolean;
+    }
+  | {
+      kind: "member-joined";
+      at: string;
+      member: PersonRef;
+      group: GroupRef;
+    };
+
 /**
  * Who is looking, and everyone they are allowed to see.
  *
