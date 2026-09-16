@@ -164,12 +164,6 @@ export type GroupRef = {
   role: Role;
 };
 
-/** Somebody named on an activity row. Always a per-group label, never a seed name. */
-export type PersonRef = {
-  id: UserId;
-  name: string;
-};
-
 /**
  * PRIVACY-RULE: the claim variant carries a nullable claimer, and nulling it is
  * the enforcement.
@@ -187,7 +181,7 @@ export type ActivityItem =
       at: string;
       wishId: string;
       title: string;
-      owner: PersonRef;
+      owner: PeerUser;
       group: GroupRef;
     }
   | {
@@ -195,9 +189,9 @@ export type ActivityItem =
       at: string;
       wishId: string;
       title: string;
-      owner: PersonRef;
+      owner: PeerUser;
       group: GroupRef;
-      claimer: PersonRef | null;
+      claimer: PeerUser | null;
     }
   | {
       kind: "wish-fulfilled";
@@ -205,12 +199,14 @@ export type ActivityItem =
       /** `fulfilled_wishes.id` — carries the record's own identity, not the wish's. */
       id: string;
       title: string;
-      owner: PersonRef;
-      giver: PersonRef;
       /**
-       * Snapshot strings off `fulfilled_wishes`, not a `GroupRef`: the group
-       * may since have been deleted, so this one is never a link.
+       * Snapshot strings off `fulfilled_wishes`, never a `PeerUser`: both
+       * columns are `on delete set null`, and either party may since have left
+       * every group the reader can see. There is no id worth carrying — the
+       * record names people the way it names groups, and neither is a link.
        */
+      ownerName: string;
+      giverName: string;
       groupNames: string[];
       /** Which history page this row links to. */
       viewerIsOwner: boolean;
@@ -218,7 +214,7 @@ export type ActivityItem =
   | {
       kind: "member-joined";
       at: string;
-      member: PersonRef;
+      member: PeerUser;
       group: GroupRef;
     };
 

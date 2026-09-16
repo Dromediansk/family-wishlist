@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Fragment, useState, useTransition } from "react";
+import { Fragment, startTransition, useState } from "react";
 import { BellIcon } from "lucide-react";
 import { useTranslations } from "next-intl";
 
@@ -71,8 +71,8 @@ function ActivityRow({ item, isNew }: { item: ActivityItem; isNew: boolean }) {
           label={t("wishFulfilled")}
           title={item.title}
           detail={[
-            t("giver", { name: item.giver.name }),
-            t("owner", { name: item.owner.name }),
+            t("giver", { name: item.giverName }),
+            t("owner", { name: item.ownerName }),
           ].join(" · ")}
           groupNames={item.groupNames}
           isNew={isNew}
@@ -153,7 +153,6 @@ export function ActivityBell({
   unseen: number;
 }) {
   const t = useTranslations("activity");
-  const [, startTransition] = useTransition();
 
   /*
    * Frozen only while the dropdown is open, not for the life of the tab.
