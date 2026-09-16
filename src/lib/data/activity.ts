@@ -18,7 +18,7 @@ import { getPeerGroups, getPeerNames } from "@/lib/data/members";
 import { asGroupId, asUserId, type GroupId, type UserId } from "@/lib/ids";
 import { getSupabase } from "@/lib/supabase";
 import type { ActivityItem, Viewer } from "@/lib/types";
-import { WISH_GROUPS_EMBED } from "@/lib/wishes";
+import { WISH_GROUPS_SCOPE } from "@/lib/wishes";
 
 /**
  * The activity feed: four reads over rows that already exist, merged per
@@ -69,9 +69,14 @@ async function lastSeenAt(viewer: Viewer): Promise<string | null> {
 /**
  * Wishes added to a list the viewer can read.
  *
- * Scoped three ways: to people the viewer shares a group with, away from the
- * viewer's own list, and — in `labelGroup` — to a tag naming a group both the
- * viewer and the owner still stand in.
+ * Scoped four ways: to people the viewer shares a group with, away from the
+ * viewer's own list, to a wish tagged for one of the viewer's own groups —
+ * `WISH_GROUPS_SCOPE`'s `!inner` join narrows the embed itself, not just which
+ * rows come back, so `ACTIVITY_LIMIT` is spent on rows the viewer could see in
+ * the first place rather than on ones `labelGroup` would go on to discard —
+ * and, in `labelGroup`, to a tag naming a group the owner still stands in,
+ * which the query cannot express because nothing prunes `wish_groups` when a
+ * membership goes.
  */
 async function addedWishes(
   viewer: Viewer,
@@ -82,8 +87,12 @@ async function addedWishes(
 ): Promise<(ActivityItem | null)[]> {
   const { data, error } = await getSupabase()
     .from("wishes")
-    .select(`${ACTIVITY_COLUMNS.added}, ${WISH_GROUPS_EMBED}`)
+    .select(`${ACTIVITY_COLUMNS.added}, ${WISH_GROUPS_SCOPE}`)
     .in("owner_user_id", others)
+    .in(
+      "wish_groups.group_id",
+      viewer.groups.map((group) => group.id),
+    )
     .gte("created_at", since)
     .order("created_at", { ascending: false })
     .limit(ACTIVITY_LIMIT);
@@ -111,6 +120,13 @@ async function addedWishes(
  * Reservations made on lists the viewer can read. The filter below is the first
  * of two; `toClaimActivity` refuses the viewer's own wish a second time, so
  * neither one alone is load-bearing. docs/decisions/privacy-rule.md
+ *
+ * Also scoped, same as `addedWishes`, to a wish tagged for one of the viewer's
+ * own groups: `WISH_GROUPS_SCOPE`'s `!inner` join narrows the embed before
+ * `ACTIVITY_LIMIT` is applied, so a claim on a tag the viewer cannot see does
+ * not spend a limit slot the viewer was never going to be shown. `labelGroup`
+ * still runs afterwards for the owner-has-since-left check the query cannot
+ * express.
  */
 async function claimedWishes(
   viewer: Viewer,
@@ -121,8 +137,12 @@ async function claimedWishes(
 ): Promise<(ActivityItem | null)[]> {
   const { data, error } = await getSupabase()
     .from("wishes")
-    .select(`${ACTIVITY_COLUMNS.claimed}, ${WISH_GROUPS_EMBED}`)
+    .select(`${ACTIVITY_COLUMNS.claimed}, ${WISH_GROUPS_SCOPE}`)
     .in("owner_user_id", others)
+    .in(
+      "wish_groups.group_id",
+      viewer.groups.map((group) => group.id),
+    )
     .neq("owner_user_id", viewer.userId)
     .neq("claimed_by_user_id", viewer.userId)
     .not("claimed_by_user_id", "is", null)
