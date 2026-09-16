@@ -55,11 +55,11 @@ export function ArchivedGroupTags({
 }
 
 /**
- * One badge per group. Shared so the live tags and the archived ones cannot
- * drift apart, and keyed by index because a name is not unique — two groups may
- * share one, and a snapshot has no id to fall back on.
+ * One badge per group. Shared so the live tags, the archived ones and the
+ * activity feed's cannot drift apart, and keyed by index because a name is not
+ * unique — two groups may share one, and a snapshot has no id to fall back on.
  */
-function GroupBadges({ names }: { names: readonly string[] }) {
+export function GroupBadges({ names }: { names: readonly string[] }) {
   const t = useTranslations("common");
   return (
     <div className="flex flex-wrap items-center gap-1.5">

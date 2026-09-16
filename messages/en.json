@@ -25,7 +25,7 @@
     "description": "Everything you have reserved, across every list.",
     "history": "History",
     "empty": "You haven't reserved anything yet.",
-    "wishedBy": "wished for by: {name}"
+    "wishedBy": "wished by: {name}"
   },
   "common": {
     "close": "Close",

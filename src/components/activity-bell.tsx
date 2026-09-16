@@ -1,11 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import { useState, useTransition } from "react";
+import { Fragment, useState, useTransition } from "react";
 import { BellIcon } from "lucide-react";
 import { useTranslations } from "next-intl";
 
 import { markActivitySeen } from "@/app/actions/activity";
+import { GroupBadges } from "@/components/group-tags";
 import { buttonVariants } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -40,7 +41,8 @@ function ActivityRow({ item, isNew }: { item: ActivityItem; isNew: boolean }) {
           href={`/g/${item.group.id}/member/${item.owner.id}`}
           label={t("wishAdded")}
           title={item.title}
-          detail={`${item.owner.name} · ${item.group.name}`}
+          detail={item.owner.name}
+          groupNames={[item.group.name]}
           isNew={isNew}
         />
       );
@@ -56,8 +58,8 @@ function ActivityRow({ item, isNew }: { item: ActivityItem; isNew: boolean }) {
             item.claimer
               ? t("claimer", { name: item.claimer.name })
               : t("claimerHidden"),
-            item.group.name,
           ].join(" · ")}
+          groupNames={[item.group.name]}
           isNew={isNew}
         />
       );
@@ -71,8 +73,8 @@ function ActivityRow({ item, isNew }: { item: ActivityItem; isNew: boolean }) {
           detail={[
             t("giver", { name: item.giver.name }),
             t("owner", { name: item.owner.name }),
-            ...item.groupNames,
           ].join(" · ")}
+          groupNames={item.groupNames}
           isNew={isNew}
         />
       );
@@ -83,7 +85,7 @@ function ActivityRow({ item, isNew }: { item: ActivityItem; isNew: boolean }) {
           href={`/g/${item.group.id}/family`}
           label={t("memberJoined")}
           title={item.member.name}
-          detail={item.group.name}
+          groupNames={[item.group.name]}
           isNew={isNew}
         />
       );
@@ -95,12 +97,15 @@ function Row({
   label,
   title,
   detail,
+  groupNames,
   isNew,
 }: {
   href: string;
   label: string;
   title: string;
-  detail: string;
+  /** Absent where the title already carries the only name — a new member. */
+  detail?: string;
+  groupNames: readonly string[];
   isNew: boolean;
 }) {
   const t = useTranslations("activity");
@@ -120,9 +125,21 @@ function Row({
           {isNew ? <span className="sr-only">{t("unread")}</span> : null}
         </span>
         <span className="w-full truncate font-medium">{title}</span>
-        <span className="text-muted-foreground w-full truncate text-sm">
-          {detail}
-        </span>
+        {/* The names and the tag share a line, the tag pushed to its end, so
+            the badges line up down the menu however long the names run. A
+            handed-over gift may have kept no group names at all. */}
+        <div className="flex w-full items-center gap-2">
+          {detail ? (
+            <span className="text-muted-foreground min-w-0 truncate text-sm">
+              {detail}
+            </span>
+          ) : null}
+          {groupNames.length > 0 ? (
+            <div className="ml-auto flex justify-end">
+              <GroupBadges names={groupNames} />
+            </div>
+          ) : null}
+        </div>
       </Link>
     </DropdownMenuItem>
   );
@@ -200,11 +217,10 @@ export function ActivityBell({
           <p className="text-muted-foreground px-2 py-3 text-sm">{t("empty")}</p>
         ) : (
           items.map((item, index) => (
-            <ActivityRow
-              key={activityKey(item)}
-              item={item}
-              isNew={index < newCount}
-            />
+            <Fragment key={activityKey(item)}>
+              {index > 0 ? <DropdownMenuSeparator /> : null}
+              <ActivityRow item={item} isNew={index < newCount} />
+            </Fragment>
           ))
         )}
       </DropdownMenuContent>

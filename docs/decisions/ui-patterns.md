@@ -244,18 +244,25 @@ repeated on every row, and the filled badge is already spoken for by *správca*,
 which is a role claim and should stay the louder of the two.
 
 It appears on the **four lists that span more than one group** — the owner's own
-list, `/buying`, and the two history pages — and nowhere else. Every other list
-is scoped to one group in its query, so the tag would only repeat the URL.
+list, `/buying`, and the two history pages — and on the **activity dropdown**,
+and nowhere else. Every other list is scoped to one group in its query, so the
+tag would only repeat the URL.
 
 A history row's badges are read off the record's own snapshot of names. There is
 no id to resolve and no live group to resolve it against — that is what lets the
 record outlive the group it names.
 
-It renders **nothing** for somebody in a single group: every wish they can see
-is there through it, so the badge would say the same thing on every row. That is
-the same rule that hides the group picker in `WishForm`, so both ask
-`groupsWorthNaming` rather than comparing lengths — two spellings in opposite
-polarities would drift.
+On those four lists it renders **nothing** for somebody in a single group: every
+wish they can see is there through it, so the badge would say the same thing on
+every row. That is the same rule that hides the group picker in `WishForm`, so
+both ask `groupsWorthNaming` rather than comparing lengths — two spellings in
+opposite polarities would drift.
+
+The activity dropdown does not ask. There the group is part of what the row
+*says* — it sat in the row's muted line of names before it was a badge — rather
+than metadata repeated down a list, and the bell is reached from every page, so
+a row arrives with no scope named around it. A reader in one group is told which
+group anyway, which costs them a repeated word and never a missing one.
 
 The tag sits directly under the wish's title, not below its content. A
 description runs to 62ch over any number of lines and the link below it is a
