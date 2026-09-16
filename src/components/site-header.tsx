@@ -12,6 +12,7 @@ import { countGroupsCreatedBy } from "@/lib/data/groups";
 import { getPeerNames } from "@/lib/data/members";
 import { MAX_GROUPS_PER_ACCOUNT } from "@/lib/groups";
 import { isConfigured } from "@/lib/supabase";
+import type { Viewer } from "@/lib/types";
 
 /**
  * The bar at the top of every page. Mounted by the root layout, so a stranger
@@ -70,22 +71,25 @@ async function HeaderRight() {
    * first. The two controls beside it work out which group is current from the
    * path, which this Server Component cannot see.
    */
-  const [name, created, activity] = await Promise.all([
+  const [name, created] = await Promise.all([
     groupless
       ? getAccountName(viewer)
       : getPeerNames(viewer).then((names) => names.get(viewer.userId) ?? "?"),
     groupless ? 0 : countGroupsCreatedBy(viewer),
-    // A groupless account has no circle to have news from, and `getActivity`
-    // says so itself — asked anyway, the four reads would each be scoped to an
-    // empty set.
-    getActivity(viewer),
   ]);
 
   return (
     <div className="flex shrink-0 items-center gap-1 sm:gap-2">
       {groupless ? null : (
         <>
-          <ActivityBell items={activity.items} unseen={activity.unseen} />
+          {/*
+           * Its own boundary: `getActivity`'s four reads must not make the
+           * switcher and the avatar above wait on the feed. The fallback is
+           * the bell's own footprint, so nothing shifts when it resolves.
+           */}
+          <Suspense fallback={<div className="size-11 shrink-0" />}>
+            <ActivityBellSection viewer={viewer} />
+          </Suspense>
           <GroupSwitcher
             groups={viewer.groups}
             canCreate={created < MAX_GROUPS_PER_ACCOUNT}
@@ -95,4 +99,10 @@ async function HeaderRight() {
       <AccountMenu name={name} groups={viewer.groups} />
     </div>
   );
+}
+
+/** Isolates `getActivity`'s round trip behind its own Suspense boundary. */
+async function ActivityBellSection({ viewer }: { viewer: Viewer }) {
+  const activity = await getActivity(viewer);
+  return <ActivityBell items={activity.items} unseen={activity.unseen} />;
 }

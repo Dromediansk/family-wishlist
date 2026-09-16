@@ -270,21 +270,24 @@ export const getActivity = cache(
     const others = othersVisibleTo(viewer);
     const since = activityWindowStart(new Date());
 
-    const [names, peerGroups, seenAt] = await Promise.all([
+    // `fulfilled` and `joined` need neither `names` nor `peerGroups`, so they
+    // ride in this round instead of waiting behind it -- only the two wish
+    // reads below need what this round produces.
+    const [names, peerGroups, seenAt, fulfilled, joined] = await Promise.all([
       getPeerNames(viewer),
       getPeerGroups(viewer),
       lastSeenAt(viewer),
+      fulfilledGifts(viewer, since),
+      joinedMembers(viewer, since),
     ]);
 
-    const [added, claimed, fulfilled, joined] = await Promise.all([
+    const [added, claimed] = await Promise.all([
       others.length > 0
         ? addedWishes(viewer, since, names, peerGroups, others)
         : [],
       others.length > 0
         ? claimedWishes(viewer, since, names, peerGroups, others)
         : [],
-      fulfilledGifts(viewer, since),
-      joinedMembers(viewer, since),
     ]);
 
     const items = mergeActivity([added, claimed, fulfilled, joined]);
