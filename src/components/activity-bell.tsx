@@ -139,17 +139,20 @@ export function ActivityBell({
   const [, startTransition] = useTransition();
 
   /*
-   * Frozen at mount rather than read live. Opening the bell marks everything
-   * seen, and the `revalidatePath` that follows lands underneath the open
-   * dropdown — reading `unseen` directly would take the highlight away while
-   * the reader was still looking at it. The list is newest-first, so the first
-   * this-many rows are the ones they came for.
-   *
-   * The cost: a live ping arriving while the menu is open inserts a row at the
-   * top without highlighting it, because this count is one behind. It corrects
-   * on the next mount, and a stale highlight beats a flickering one.
+   * Frozen only while the dropdown is open, not for the life of the tab.
+   * `ActivityBell` is mounted by the root layout, so a `revalidatePath` or a
+   * live ping re-renders it into the running tree rather than replacing it —
+   * the component keeps its identity across every such update. Reading
+   * `unseen` straight from props would follow that re-render and take the
+   * highlight away — or hand the wrong rows a highlight — while the reader was
+   * still looking at it, since opening the bell immediately marks everything
+   * seen. Capturing it at open time and releasing it at close time survives
+   * exactly the updates that land underneath an open menu, without ever going
+   * stale: the next open always captures the current `unseen` afresh. The list
+   * is newest-first, so the first this-many rows are the ones they came for.
    */
-  const [newCount] = useState(unseen);
+  const [frozen, setFrozen] = useState<number | null>(null);
+  const newCount = frozen ?? unseen;
 
   /*
    * On open rather than on close: clicking a row navigates away and unmounts
@@ -158,7 +161,12 @@ export function ActivityBell({
    * clears next time.
    */
   const onOpenChange = (open: boolean) => {
-    if (!open || unseen === 0) return;
+    if (!open) {
+      setFrozen(null);
+      return;
+    }
+    setFrozen(unseen); // captured before markActivitySeen revalidates
+    if (unseen === 0) return;
     startTransition(() => {
       void markActivitySeen();
     });
