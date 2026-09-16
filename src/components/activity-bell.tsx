@@ -53,12 +53,14 @@ function ActivityRow({ item, isNew }: { item: ActivityItem; isNew: boolean }) {
           href={`/g/${item.group.id}/member/${item.owner.id}`}
           label={t("wishClaimed")}
           title={item.title}
-          detail={[
-            t("owner", { name: item.owner.name }),
+          detail={
             item.claimer
-              ? t("claimer", { name: item.claimer.name })
-              : t("claimerHidden"),
-          ].join(" · ")}
+              ? t("wishClaimedDetail", {
+                  owner: item.owner.name,
+                  claimer: item.claimer.name,
+                })
+              : t("wishClaimedDetailHidden", { owner: item.owner.name })
+          }
           groupNames={[item.group.name]}
           isNew={isNew}
         />
@@ -70,10 +72,10 @@ function ActivityRow({ item, isNew }: { item: ActivityItem; isNew: boolean }) {
           href={item.viewerIsOwner ? "/received" : "/buying/history"}
           label={t("wishFulfilled")}
           title={item.title}
-          detail={[
-            t("giver", { name: item.giverName }),
-            t("owner", { name: item.ownerName }),
-          ].join(" · ")}
+          detail={t("wishFulfilledDetail", {
+            giver: item.giverName,
+            owner: item.ownerName,
+          })}
           groupNames={item.groupNames}
           isNew={isNew}
         />

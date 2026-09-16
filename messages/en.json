@@ -13,10 +13,9 @@
     "wishClaimed": "Reserved",
     "wishFulfilled": "Given",
     "memberJoined": "New member",
-    "owner": "For {name}",
-    "claimer": "Reserved by {name}",
-    "claimerHidden": "Reserved",
-    "giver": "From {name}",
+    "wishClaimedDetail": "For {owner} · Reserved by {claimer}",
+    "wishClaimedDetailHidden": "For {owner} · Reserved",
+    "wishFulfilledDetail": "From {giver} · For {owner}",
     "unread": "— Unread"
   },
   "buying": {
