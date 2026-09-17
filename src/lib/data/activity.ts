@@ -5,6 +5,7 @@ import { cache } from "react";
 import {
   ACTIVITY_COLUMNS,
   ACTIVITY_LIMIT,
+  activityFloor,
   activityWindowStart,
   countUnseen,
   labelGroup,
@@ -50,30 +51,37 @@ function othersVisibleTo(viewer: Viewer): string[] {
   return [...viewer.peers].filter((id) => id !== viewer.userId);
 }
 
+/** When this account arrived, and when it last opened the bell. */
+type ActivityMarks = { activity_from: string; activity_seen_at: string | null };
+
 /**
- * When this account last opened the bell, or null if never.
+ * The reader's two moments, or null when the column pair is not there yet.
  *
- * Its own read rather than a column on `getViewer`: the viewer is built on
- * every request by every page, and only the header wants this.
+ * Its own read rather than two columns on `getViewer`: the viewer is built on
+ * every request by every page, and only the header wants these. Keeping them
+ * here is also what confines the soft failure below to the bell — in
+ * `getViewer` the same missing column would take every page down with it.
  *
  * The one soft failure in `src/lib/data/` — every other read here throws, and
  * must. Migrations reach production by hand, so this code can ship a request
- * ahead of `0012_activity_seen.sql`, and until it lands `select
- * activity_seen_at` errors. Null is exactly what that degrades to: "never
- * looked", which opens the bell to the whole window. Scoped to this one
- * statement on purpose — a feed read that fails is a bug, not an empty bell,
- * and swallowing it would hide a mis-scoped privacy filter as "nothing
- * happened lately". Remove this once 0012 is applied.
+ * ahead of `0012_activity_seen.sql`, and until it lands this select errors.
+ * Null degrades to a silent bell (`getActivity` returns `EMPTY`): with no floor
+ * on record there is no way to tell what predates the reader, and reporting
+ * everything is the one answer we know to be wrong. That makes this swallow
+ * indistinguishable from "nothing happened lately", which is exactly why it is
+ * scoped to this one statement and why the four feed reads still throw — one of
+ * those failing is a mis-scoped privacy filter, not an empty bell. Remove this
+ * once 0012 is applied.
  */
-async function lastSeenAt(viewer: Viewer): Promise<string | null> {
+async function activityMarks(viewer: Viewer): Promise<ActivityMarks | null> {
   const { data, error } = await getSupabase()
     .from("app_users")
-    .select("activity_seen_at")
+    .select("activity_from, activity_seen_at")
     .eq("id", viewer.userId)
     .maybeSingle();
 
-  if (error) return null;
-  return (data as { activity_seen_at: string | null } | null)?.activity_seen_at ?? null;
+  if (error || !data) return null;
+  return data as ActivityMarks;
 }
 
 /**
@@ -226,7 +234,13 @@ function rowsOf<Row>({
  *
  * Every read rides one round: the two wish queries need `names` and
  * `peerGroups` only to *map* their rows, not to build their filters, so making
- * them wait behind that round would buy a second trip for nothing.
+ * them wait behind that round would buy a second trip for nothing. The reader's
+ * arrival rides it too, and so reaches `mergeActivity` as a floor over the rows
+ * rather than a `since` in the four queries: each query orders newest-first, so
+ * everything the floor drops is older than everything it keeps, and flooring
+ * after a query's own `limit` gives the same list as flooring inside it. The
+ * price is rows fetched and then dropped — paid, rather than waiting a round
+ * for a marker that never moves.
  */
 export const getActivity = cache(
   async (viewer: Viewer): Promise<ActivityFeed> => {
@@ -236,16 +250,18 @@ export const getActivity = cache(
     const since = activityWindowStart(new Date());
     const hasOthers = others.length > 0;
 
-    const [names, peerGroups, seenAt, fulfilledResult, joinedResult, addedResult, claimedResult] =
+    const [names, peerGroups, marks, fulfilledResult, joinedResult, addedResult, claimedResult] =
       await Promise.all([
         getPeerNames(viewer),
         getPeerGroups(viewer),
-        lastSeenAt(viewer),
+        activityMarks(viewer),
         fulfilledGiftsQuery(viewer, since),
         joinedMembersQuery(viewer, since),
         hasOthers ? addedWishesQuery(viewer, since, others) : null,
         hasOthers ? claimedWishesQuery(viewer, since, others) : null,
       ]);
+
+    if (!marks) return EMPTY;
 
     const added = addedResult
       ? labelRows<AddedActivityRow>(
@@ -306,7 +322,10 @@ export const getActivity = cache(
         : [];
     });
 
-    const items = mergeActivity([added, claimed, fulfilled, joined]);
-    return { items, unseen: countUnseen(items, seenAt) };
+    const items = mergeActivity(
+      [added, claimed, fulfilled, joined],
+      activityFloor(since, marks.activity_from),
+    );
+    return { items, unseen: countUnseen(items, marks.activity_seen_at) };
   },
 );

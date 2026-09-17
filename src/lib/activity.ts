@@ -46,9 +46,24 @@ export type ClaimActivityRow = {
 
 const MS_PER_DAY = 86_400_000;
 
-/** The oldest moment the feed reports, as an ISO string a query can compare. */
+/** The oldest moment the window reaches, as an ISO string a query can compare. */
 export function activityWindowStart(now: Date): string {
   return new Date(now.getTime() - ACTIVITY_WINDOW_DAYS * MS_PER_DAY).toISOString();
+}
+
+/**
+ * The oldest moment the feed reports to *this* reader: the later of the window
+ * and their own arrival (`app_users.activity_from`). What keeps rows that
+ * predate the reader from ever becoming events — not merely seen ones.
+ *
+ * Takes the window start the caller already holds, and answers in epoch
+ * milliseconds because nothing compares the result as a string: `activity_from`
+ * arrives in Postgres's spelling and the window in `toISOString`'s, so lexical
+ * order between them is a coincidence. Why the arrival and not
+ * `activity_seen_at`: `0012_activity_seen.sql`.
+ */
+export function activityFloor(windowStart: string, from: string): number {
+  return Math.max(Date.parse(windowStart), Date.parse(from));
 }
 
 /**
@@ -124,19 +139,26 @@ export function toClaimActivity(
 }
 
 /**
- * Every source folded into one list, newest first, capped.
+ * Every source folded into one list, newest first, floored, capped.
  *
  * Takes the nulls the mappers hand back rather than making four callers filter
  * them, and sorts on parsed timestamps rather than on the strings: the four
  * columns come from four tables, and lexical order across them is a coincidence
  * rather than a guarantee.
+ *
+ * `floor` is a parameter rather than a filter the caller applies afterwards, so
+ * that assembling a feed and honouring the reader's arrival cannot come apart.
+ * Why it is applied over the rows rather than as a bound in the queries that
+ * fetched them: `getActivity`.
  */
 export function mergeActivity(
   sources: readonly (readonly (ActivityItem | null)[])[],
+  floor: number,
 ): ActivityItem[] {
   const items: ActivityItem[] = [];
   for (const source of sources) {
-    for (const item of source) if (item) items.push(item);
+    // Strictly after: the moment of arrival is not itself something to report.
+    for (const item of source) if (item && Date.parse(item.at) > floor) items.push(item);
   }
 
   return items
@@ -146,8 +168,8 @@ export function mergeActivity(
 
 /**
  * How many of these the reader has not seen. Null means they never looked, so
- * everything counts — a new account opens the bell to the window, not to
- * nothing.
+ * everything counts — which is honest only because `activityFloor` has already
+ * kept anything predating their arrival out of `items`.
  */
 export function countUnseen(
   items: readonly ActivityItem[],

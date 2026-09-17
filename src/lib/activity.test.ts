@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import {
   ACTIVITY_LIMIT,
+  activityFloor,
   activityKey,
   activityWindowStart,
   countUnseen,
@@ -44,10 +45,40 @@ function item(at: string, title = "Bicykel"): ActivityItem {
   };
 }
 
+const NOW = new Date("2026-09-16T12:00:00.000Z");
+/** Derived, so retuning ACTIVITY_WINDOW_DAYS moves every case below with it. */
+const WINDOW_START = activityWindowStart(NOW);
+
 describe("activityWindowStart", () => {
   it("looks back thirty days", () => {
-    expect(activityWindowStart(new Date("2026-09-16T12:00:00.000Z"))).toBe(
-      "2026-08-17T12:00:00.000Z",
+    expect(activityWindowStart(NOW)).toBe("2026-08-17T12:00:00.000Z");
+  });
+});
+
+describe("activityFloor", () => {
+  it("holds at the reader's arrival when that is inside the window", () => {
+    expect(activityFloor(WINDOW_START, "2026-09-10T08:00:00.000Z")).toBe(
+      Date.parse("2026-09-10T08:00:00.000Z"),
+    );
+  });
+
+  it("falls back to the window when the reader arrived before it", () => {
+    expect(activityFloor(WINDOW_START, "2026-05-01T08:00:00.000Z")).toBe(
+      Date.parse(WINDOW_START),
+    );
+  });
+
+  it("keeps the window when the two coincide", () => {
+    expect(activityFloor(WINDOW_START, WINDOW_START)).toBe(
+      Date.parse(WINDOW_START),
+    );
+  });
+
+  // Postgres hands back `+02:00` where `toISOString` writes `Z`; both sides are
+  // parsed to instants, so the two spellings cannot drift apart.
+  it("reads an offset the column was written with", () => {
+    expect(activityFloor(WINDOW_START, "2026-09-10T10:00:00+02:00")).toBe(
+      Date.parse("2026-09-10T08:00:00.000Z"),
     );
   });
 });
@@ -161,12 +192,18 @@ describe("toClaimActivity", () => {
 });
 
 describe("mergeActivity", () => {
+  /** Older than every fixture above, so only the floor cases below feel it. */
+  const OPEN = Date.parse("2026-01-01T00:00:00.000Z");
+
   it("orders every source together, newest first", () => {
-    const merged = mergeActivity([
-      [item("2026-09-10T00:00:00.000Z", "stary")],
-      [item("2026-09-15T00:00:00.000Z", "novy")],
-      [item("2026-09-12T00:00:00.000Z", "stredny")],
-    ]);
+    const merged = mergeActivity(
+      [
+        [item("2026-09-10T00:00:00.000Z", "stary")],
+        [item("2026-09-15T00:00:00.000Z", "novy")],
+        [item("2026-09-12T00:00:00.000Z", "stredny")],
+      ],
+      OPEN,
+    );
 
     // Narrowed because the union's `member-joined` variant has no title.
     const titles = merged.map((row) =>
@@ -177,7 +214,9 @@ describe("mergeActivity", () => {
   });
 
   it("drops the nulls the mappers hand back", () => {
-    expect(mergeActivity([[item("2026-09-10T00:00:00.000Z"), null]])).toHaveLength(1);
+    expect(
+      mergeActivity([[item("2026-09-10T00:00:00.000Z"), null]], OPEN),
+    ).toHaveLength(1);
   });
 
   it("keeps the newest ACTIVITY_LIMIT, not the first found", () => {
@@ -188,10 +227,44 @@ describe("mergeActivity", () => {
     // the cap — which is the one number here most likely to be retuned.
     const newest = many[many.length - 1].at;
 
-    const merged = mergeActivity([many]);
+    const merged = mergeActivity([many], OPEN);
 
     expect(merged).toHaveLength(ACTIVITY_LIMIT);
     expect(merged[0].at).toBe(newest);
+  });
+
+  it("refuses what happened before the reader arrived", () => {
+    const merged = mergeActivity(
+      [
+        [
+          item("2026-09-15T00:00:00.000Z", "po prichode"),
+          item("2026-09-01T00:00:00.000Z", "pred prichodom"),
+        ],
+      ],
+      Date.parse("2026-09-10T00:00:00.000Z"),
+    );
+
+    const titles = merged.map((row) =>
+      row.kind === "wish-added" ? row.title : null,
+    );
+
+    expect(titles).toEqual(["po prichode"]);
+  });
+
+  it("refuses one at exactly the floor — the arrival is not itself news", () => {
+    const at = "2026-09-10T00:00:00.000Z";
+
+    expect(mergeActivity([[item(at)]], Date.parse(at))).toEqual([]);
+  });
+
+  // The whole point: the day the feature ships, every row predates the floor.
+  it("hands an account that has just arrived an empty list", () => {
+    const merged = mergeActivity(
+      [[item("2026-09-15T00:00:00.000Z")], [item("2026-09-10T00:00:00.000Z")]],
+      Date.parse("2026-09-16T00:00:00.000Z"),
+    );
+
+    expect(merged).toEqual([]);
   });
 });
 
