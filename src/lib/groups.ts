@@ -25,6 +25,24 @@ export function groupsWorthNaming(groups: readonly unknown[]): boolean {
 }
 
 /**
+ * Is there anything behind the group's heading? Only when it has somewhere to
+ * send the reader: another of their groups, or this group's own management
+ * page. Otherwise the heading stays a heading — a title that opens onto the
+ * group you are already reading is a control that does nothing.
+ *
+ * Deliberately not `groupsWorthNaming`: that one asks whether a name
+ * distinguishes anything, which is a question about the names. This asks
+ * whether there is a destination, and an admin alone in one group has one.
+ * docs/decisions/ui-patterns.md#the-group-title-is-the-switcher
+ */
+export function groupTitleHasMenu(
+  groups: readonly unknown[],
+  canManage: boolean,
+): boolean {
+  return groups.length > 1 || canManage;
+}
+
+/**
  * The group segment of a path, as it was typed, or null when the path is not
  * under `/g/`. A bare id and nothing more: it has proved nothing yet.
  */

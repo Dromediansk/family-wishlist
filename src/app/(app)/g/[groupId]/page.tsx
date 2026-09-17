@@ -2,12 +2,14 @@ import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 
 import { GroupNoteDialog } from "@/components/group-note-dialog";
+import { GroupTitle } from "@/components/group-title";
 import { MemberCard } from "@/components/member-card";
 import { SetupRequired } from "@/components/setup-required";
 import { enterGroup } from "@/lib/data/access";
 import { getMemberSummaries } from "@/lib/data/members";
 import { getGroupNote } from "@/lib/data/notes";
 import { isConfigured } from "@/lib/supabase";
+import { isGroupAdmin } from "@/lib/visibility";
 
 /** One group's grid. Nobody else's members are reachable from here. */
 export default async function GroupPage({
@@ -35,9 +37,12 @@ export default async function GroupPage({
     <div className="space-y-6">
       <div>
         <div className="flex items-start justify-between gap-3">
-          <h1 className="min-w-0 text-2xl font-semibold text-balance break-words">
-            {ctx.groupName}
-          </h1>
+          <GroupTitle
+            groups={ctx.groups}
+            currentId={ctx.groupId}
+            name={ctx.groupName}
+            canManage={isGroupAdmin(ctx)}
+          />
           <GroupNoteDialog groupId={ctx.groupId} note={note} />
         </div>
         <p className="text-muted-foreground mt-1 max-w-[62ch]">{t("intro")}</p>

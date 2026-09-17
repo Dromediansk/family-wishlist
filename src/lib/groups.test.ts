@@ -4,6 +4,7 @@ import {
   groupIdFromPath,
   groupInPath,
   groupsWorthNaming,
+  groupTitleHasMenu,
   MAX_GROUPS_PER_ACCOUNT,
 } from "@/lib/groups";
 import { asGroupId } from "@/lib/ids";
@@ -83,5 +84,24 @@ describe("groupsWorthNaming", () => {
 
   it("says a name distinguishes something from two groups up", () => {
     expect(groupsWorthNaming(groups)).toBe(true);
+  });
+});
+
+describe("groupTitleHasMenu", () => {
+  it("leaves a lone member's heading inert", () => {
+    expect(groupTitleHasMenu([{ id: FAMILY }], false)).toBe(false);
+  });
+
+  it("opens for a lone admin, whose group is still theirs to manage", () => {
+    expect(groupTitleHasMenu([{ id: FAMILY }], true)).toBe(true);
+  });
+
+  it("opens from a second group, admin or not", () => {
+    expect(groupTitleHasMenu(groups, false)).toBe(true);
+    expect(groupTitleHasMenu(groups, true)).toBe(true);
+  });
+
+  it("stays shut for a groupless account, which has no heading anyway", () => {
+    expect(groupTitleHasMenu([], false)).toBe(false);
   });
 });
