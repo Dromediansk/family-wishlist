@@ -1,8 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { LogOutIcon, SettingsIcon, ShoppingBagIcon } from "lucide-react";
+import { LogOutIcon, PlusIcon, ShoppingBagIcon } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
 
 import { signOut } from "@/app/actions/auth";
@@ -18,9 +17,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { LOCALE_LABELS, otherLocale } from "@/i18n/config";
-import { groupInPath } from "@/lib/groups";
 import { cn, initial } from "@/lib/utils";
-import { isGroupAdmin } from "@/lib/visibility";
 import type { GroupRef } from "@/lib/types";
 
 /** Links the menu item to the form below it, which lives outside the menu. */
@@ -37,20 +34,24 @@ const SET_LOCALE_FORM = "set-locale";
  * Takes a name and the viewer's own groups — never a member row and never
  * anything wish-shaped.
  *
- * Managing members is per group, so the entry appears only inside one, and only
- * where this viewer is its admin: being an admin elsewhere is not cover. What
- * the viewer is buying spans every group, so that entry needs no current one —
- * only a group somewhere, since an account with none has nothing to reserve.
+ * Every entry here is account-level, and deliberately so: this menu is reached
+ * from screens that belong to no one group, so it must not ask which group is
+ * current. Managing one is per group and lives on that group's own title
+ * instead. What the viewer is buying spans every group, so that entry needs
+ * only a group somewhere — an account with none has nothing to reserve.
+ * docs/decisions/ui-patterns.md#the-group-title-is-the-switcher
  */
 export function AccountMenu({
   name,
   groups,
+  canCreate,
 }: {
   name: string;
   groups: readonly GroupRef[];
+  canCreate: boolean;
 }) {
-  const current = groupInPath(usePathname(), groups);
   const t = useTranslations("account");
+  const create = useTranslations("groups.create");
   const other = otherLocale(useLocale());
   const Flag = LOCALE_FLAGS[other];
   return (
@@ -90,11 +91,15 @@ export function AccountMenu({
             </DropdownMenuItem>
           ) : null}
 
-          {current && isGroupAdmin(current) ? (
+          {/*
+           * The only way to `/start` for an account that already has a group:
+           * `/` sends a groupless one there, and nothing else offers it.
+           */}
+          {canCreate ? (
             <DropdownMenuItem asChild>
-              <Link href={`/g/${current.id}/family`}>
-                <SettingsIcon />
-                {t("manageGroup")}
+              <Link href="/start">
+                <PlusIcon />
+                {create("action")}
               </Link>
             </DropdownMenuItem>
           ) : null}

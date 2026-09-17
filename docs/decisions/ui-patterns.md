@@ -235,11 +235,53 @@ Inside the dialog the picture is **full width and its own height**, scrolling in
 the body. Fitting it to the panel would undo the reason the thumbnail opens at
 all: a screenshot scaled to fit a phone-tall panel is back to being unreadable.
 
+## The group title is the switcher
+
+The way to another group is the **name of the group you are reading** — the
+`<h1>` on its grid, which opens onto the viewer's other groups. It used to be a
+glyph in the header, sitting beside the bell and the avatar with a truncated
+name that only appeared from `sm:` up.
+
+Moving it is what makes the control say what it does. A group's name is already
+the largest thing on its page and already names the thing being switched; a
+second copy of that name in the chrome, next to two controls that switch
+nothing, had to be learned. Here there is nothing to learn — the title is the
+subject, and pressing the subject offers the others.
+
+**It stops being a control when it has nowhere to go.** `groupTitleHasMenu`
+decides, and the two halves of it are different questions: another group to move
+to, or — for an admin alone in one group — that group's own management page.
+Below that it renders as the plain heading it always was, not as a disabled
+button. This is deliberately **not** `groupsWorthNaming`, which asks whether a
+name *distinguishes* anything; the two would drift the moment the admin half
+moved.
+
+**The trigger lives inside the `h1`, not instead of it.** The name is the page's
+heading first. A `<button>` in the heading's place would take the page out of
+the outline a screen reader navigates by, to say nothing of the reader who finds
+pages by their title.
+
+Two consequences follow from the header losing the control, and both are
+accepted:
+
+- **Switching is reachable only from a group's grid.** From `/buying`,
+  `/received`, `/g/[id]/family` or a member's list you go back to the grid
+  first. The grid is one tap away — it is what the gift mark in the corner
+  leads to — and those screens have no group title to hang a menu on.
+- ***Spravovať skupinu* moved off the account menu.** It is about one group, and
+  this is now the only control that names one. That also lets the account menu
+  stop asking which group is current, which it could only ever answer by reading
+  the path.
+
+**What is left in the account menu is account-level, and one thing is new
+there:** *Vytvoriť skupinu*. It cannot live behind the title — an account that
+has hit the cap, or one with no group at all, has no title to press — and it is
+the only route to `/start` for somebody who already has a group.
+
 ## A group tag
 
-An outline `Badge` per group, carrying the same icon the group switcher uses —
-one glyph means "group" everywhere, which is what lets the badge show a bare
-name with no label beside it. `outline` and not `secondary`: this is metadata
+An outline `Badge` per group, carrying the glyph that means "group" throughout
+the app, which is what lets the badge show a bare name with no label beside it. `outline` and not `secondary`: this is metadata
 repeated on every row, and the filled badge is already spoken for by *správca*,
 which is a role claim and should stay the louder of the two.
 
@@ -292,8 +334,8 @@ under everything modal.
 ### The header stays within reach
 
 The header is **sticky**, and takes itself out of the way on the way down and
-comes back on the way up: on a long list the way home, the group switcher and
-the account menu are otherwise a full scroll away, which is the moment somebody
+comes back on the way up: on a long list the way home, the activity bell and the
+account menu are otherwise a full scroll away, which is the moment somebody
 wants them.
 
 **Direction is decided in JS**, against the grain of everything else here.

@@ -40,9 +40,13 @@ is not cover for anything.
 removed; otherwise nobody could manage that group again and the only way back
 would be the database.
 
-*Spravovať rodinu* appears in the account menu only where you are an admin, but
-a hidden menu item is not a guard: the page re-checks in its own body and
-redirects, and every action behind it re-checks for itself.
+*Spravovať skupinu* appears behind the group's own title, and only where you are
+an admin of **that** group — it is offered by the one control that names a group,
+which is what keeps "admin of which?" from ever being a question.
+[The group title is the switcher](ui-patterns.md#the-group-title-is-the-switcher)
+
+A hidden menu item is not a guard all the same: the page re-checks in its own
+body and redirects, and every action behind it re-checks for itself.
 
 ## The creation cap
 

@@ -18,8 +18,8 @@ import { signInPath } from "@/lib/routes";
 import { isConfigured } from "@/lib/supabase";
 
 /**
- * Where an account with no group lands, and where the switcher sends anyone who
- * wants another one. Serves every signed-in visitor, so it never redirects a
+ * Where an account with no group lands, and where the account menu sends anyone
+ * who wants another one. Serves every signed-in visitor, so it never redirects a
  * member away — reaching it deliberately is the whole point.
  * docs/decisions/groups-and-invites.md
  */

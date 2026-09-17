@@ -2,7 +2,6 @@ import { Suspense } from "react";
 
 import { AccountMenu } from "@/components/account-menu";
 import { ActivityBell } from "@/components/activity-bell";
-import { GroupSwitcher } from "@/components/group-switcher";
 import { HomeLink } from "@/components/home-link";
 import { LocaleSwitcher } from "@/components/locale-switcher";
 import { StickyHeader } from "@/components/sticky-header";
@@ -68,35 +67,37 @@ async function HeaderRight() {
   /*
    * The header spans every group, so the avatar wears the account-level name —
    * `preferredName`'s default, the label from whichever group the viewer joined
-   * first. The two controls beside it work out which group is current from the
-   * path, which this Server Component cannot see.
+   * first. Nothing here works out which group is current: the one control that
+   * names one is the group's own title, inside the segment that proves it.
+   *
+   * The cap is counted for a groupless account too. They are the likeliest
+   * person to press *Vytvoriť skupinu*, and an account that has created five
+   * and left them all has spent the budget all the same.
    */
   const [name, created] = await Promise.all([
     groupless
       ? getAccountName(viewer)
       : getPeerNames(viewer).then((names) => names.get(viewer.userId) ?? "?"),
-    groupless ? 0 : countGroupsCreatedBy(viewer),
+    countGroupsCreatedBy(viewer),
   ]);
 
   return (
     <div className="flex shrink-0 items-center gap-1 sm:gap-2">
       {groupless ? null : (
-        <>
-          {/*
-           * Its own boundary: `getActivity`'s four reads must not make the
-           * switcher and the avatar above wait on the feed. The fallback is
-           * the bell's own footprint, so nothing shifts when it resolves.
-           */}
-          <Suspense fallback={<div className="size-11 shrink-0" />}>
-            <ActivityBellSection viewer={viewer} />
-          </Suspense>
-          <GroupSwitcher
-            groups={viewer.groups}
-            canCreate={created < MAX_GROUPS_PER_ACCOUNT}
-          />
-        </>
+        /*
+         * Its own boundary: `getActivity`'s four reads must not make the avatar
+         * beside it wait on the feed. The fallback is the bell's own footprint,
+         * so nothing shifts when it resolves.
+         */
+        <Suspense fallback={<div className="size-11 shrink-0" />}>
+          <ActivityBellSection viewer={viewer} />
+        </Suspense>
       )}
-      <AccountMenu name={name} groups={viewer.groups} />
+      <AccountMenu
+        name={name}
+        groups={viewer.groups}
+        canCreate={created < MAX_GROUPS_PER_ACCOUNT}
+      />
     </div>
   );
 }
