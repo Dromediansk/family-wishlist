@@ -42,7 +42,8 @@ told.
 | Installable | PWA, no service worker |
 
 Explicit non-goals: real-time collaboration, comments, wish reordering,
-priorities, prices, notifications, and any form of self-service group discovery.
+priorities, prices, push notifications and email, and any form of self-service
+group discovery.
 
 ## Entities
 
@@ -81,9 +82,10 @@ codebase follows from that sentence.
   refusal, and do not extend it by showing claim state on the owner's list.
 - **Only the holder of a claim may end the secret**, by pressing *Darované*.
   No admin override, no cron, no date.
-- **Three accepted holes**, all deliberate. An owner who tries to delete every
+- **Four accepted holes**, all deliberate. An owner who tries to delete every
   wish learns which are taken; a giver can spoil the surprise by pressing
-  *Darované* early; removing somebody from a group silently un-reserves gifts.
+  *Darované* early; removing somebody from a group silently un-reserves gifts;
+  and the activity bell's unread badge moves for some changes and not others.
 
 Rationale, enforcement and the holes in full:
 [decisions/privacy-rule.md](decisions/privacy-rule.md).
@@ -107,6 +109,23 @@ Rationale, enforcement and the holes in full:
 - Emptying a note deletes it. There is no such thing as an empty note.
 - It ends with the membership: being removed from the group, the group being
   deleted, or the account being deleted all take it. Rejoining starts blank.
+
+### Activity
+
+- The bell reports four things and only four: a wish added, a wish reserved, a
+  gift handed over, somebody joining. All four are **derived** from rows that
+  already exist — nothing is written when they happen.
+- Because it is derived, it can only report what is still true. A deleted wish,
+  a released claim and an edited wish leave the feed silently, which is what
+  keeps `0005_drop_claim_notices.sql` decided.
+- A reservation on your own list never appears in your own feed, and the
+  claimer is named only to a reader who shares a group with them.
+- It looks back 30 days, holds at most 20 rows, and never looks past the moment
+  you arrived. Whatever already existed when the feature shipped — or when you
+  signed up — is not an event and never was one, so nobody opens the bell to a
+  history they have already lived through.
+- It remembers two moments per account: when you arrived, which never moves, and
+  when you last opened the bell, which is what the unread badge counts from.
 
 ### Claiming
 

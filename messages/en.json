@@ -5,13 +5,26 @@
     "manageGroup": "Manage group",
     "signOut": "Sign out"
   },
+  "activity": {
+    "label": "What's new",
+    "labelUnseen": "What's new – {count} new",
+    "empty": "Nothing new.",
+    "wishAdded": "New wish",
+    "wishClaimed": "Reserved",
+    "wishFulfilled": "Given",
+    "memberJoined": "New member",
+    "wishClaimedDetail": "For {owner} · Reserved by {claimer}",
+    "wishClaimedDetailHidden": "For {owner} · Reserved",
+    "wishFulfilledDetail": "From {giver} · For {owner}",
+    "unread": "— Unread"
+  },
   "buying": {
     "everyone": "Everyone",
     "title": "What I'm buying",
     "description": "Everything you have reserved, across every list.",
     "history": "History",
     "empty": "You haven't reserved anything yet.",
-    "wishedBy": "wished for by: {name}"
+    "wishedBy": "wished by: {name}"
   },
   "common": {
     "close": "Close",

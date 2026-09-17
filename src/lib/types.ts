@@ -165,6 +165,60 @@ export type GroupRef = {
 };
 
 /**
+ * PRIVACY-RULE: the claim variant carries a nullable claimer, and nulling it is
+ * the enforcement.
+ *
+ * One line in the activity feed. A discriminated union for the same reason
+ * `ClaimView` is one: `claimer: null` means the reader may be told that a
+ * reservation happened but not by whom, so a component handed it has no name to
+ * render. A claim on the reader's *own* wish never reaches this type at all —
+ * `toClaimActivity` returns null for it.
+ * docs/decisions/privacy-rule.md
+ */
+export type ActivityItem =
+  | {
+      kind: "wish-added";
+      at: string;
+      wishId: string;
+      title: string;
+      owner: PeerUser;
+      group: GroupRef;
+    }
+  | {
+      kind: "wish-claimed";
+      at: string;
+      wishId: string;
+      title: string;
+      owner: PeerUser;
+      group: GroupRef;
+      claimer: PeerUser | null;
+    }
+  | {
+      kind: "wish-fulfilled";
+      at: string;
+      /** `fulfilled_wishes.id` — carries the record's own identity, not the wish's. */
+      id: string;
+      title: string;
+      /**
+       * Snapshot strings off `fulfilled_wishes`, never a `PeerUser`: both
+       * columns are `on delete set null`, and either party may since have left
+       * every group the reader can see. There is no id worth carrying — the
+       * record names people the way it names groups, and neither is a link.
+       */
+      ownerName: string;
+      giverName: string;
+      groupNames: string[];
+      /** Which history page this row links to. */
+      viewerIsOwner: boolean;
+    }
+  | {
+      kind: "member-joined";
+      at: string;
+      member: PeerUser;
+      group: GroupRef;
+    };
+
+/**
  * Who is looking, and everyone they are allowed to see.
  *
  * `peers` always contains the viewer's own id, even when they belong to no

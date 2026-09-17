@@ -1,15 +1,18 @@
 import { Suspense } from "react";
 
 import { AccountMenu } from "@/components/account-menu";
+import { ActivityBell } from "@/components/activity-bell";
 import { GroupSwitcher } from "@/components/group-switcher";
 import { HomeLink } from "@/components/home-link";
 import { LocaleSwitcher } from "@/components/locale-switcher";
 import { StickyHeader } from "@/components/sticky-header";
 import { getAccess, getAccountName } from "@/lib/data/access";
+import { getActivity } from "@/lib/data/activity";
 import { countGroupsCreatedBy } from "@/lib/data/groups";
 import { getPeerNames } from "@/lib/data/members";
 import { MAX_GROUPS_PER_ACCOUNT } from "@/lib/groups";
 import { isConfigured } from "@/lib/supabase";
+import type { Viewer } from "@/lib/types";
 
 /**
  * The bar at the top of every page. Mounted by the root layout, so a stranger
@@ -78,12 +81,28 @@ async function HeaderRight() {
   return (
     <div className="flex shrink-0 items-center gap-1 sm:gap-2">
       {groupless ? null : (
-        <GroupSwitcher
-          groups={viewer.groups}
-          canCreate={created < MAX_GROUPS_PER_ACCOUNT}
-        />
+        <>
+          {/*
+           * Its own boundary: `getActivity`'s four reads must not make the
+           * switcher and the avatar above wait on the feed. The fallback is
+           * the bell's own footprint, so nothing shifts when it resolves.
+           */}
+          <Suspense fallback={<div className="size-11 shrink-0" />}>
+            <ActivityBellSection viewer={viewer} />
+          </Suspense>
+          <GroupSwitcher
+            groups={viewer.groups}
+            canCreate={created < MAX_GROUPS_PER_ACCOUNT}
+          />
+        </>
       )}
       <AccountMenu name={name} groups={viewer.groups} />
     </div>
   );
+}
+
+/** Isolates `getActivity`'s round trip behind its own Suspense boundary. */
+async function ActivityBellSection({ viewer }: { viewer: Viewer }) {
+  const activity = await getActivity(viewer);
+  return <ActivityBell items={activity.items} unseen={activity.unseen} />;
 }

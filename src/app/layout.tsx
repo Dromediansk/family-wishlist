@@ -96,6 +96,7 @@ export const viewport: Viewport = {
  */
 const CLIENT_NAMESPACES = [
   "account",
+  "activity",
   "common",
   "groups",
   "install",

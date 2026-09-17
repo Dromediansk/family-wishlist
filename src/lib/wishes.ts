@@ -1,4 +1,4 @@
-import type { GroupId, UserId } from "@/lib/ids";
+import { asGroupId, type GroupId, type UserId } from "@/lib/ids";
 import { photoVersion } from "@/lib/images";
 import type { ClaimedWish, OwnerWish, ViewerWish } from "@/lib/types";
 import { liveWishGroups, revealClaimer } from "@/lib/visibility";
@@ -40,6 +40,18 @@ export const WISH_GROUPS_EMBED = "wish_groups(group_id)";
  * the embedded rows themselves. docs/decisions/wishes-claims-history.md#reading-a-list
  */
 export const WISH_GROUPS_SCOPE = "wish_groups!inner(group_id)";
+
+/** The `wish_groups` embed as PostgREST hands it back, ids not yet branded. */
+export type WishGroupsEmbed = { wish_groups: { group_id: string }[] };
+
+/**
+ * The one place a `wish_groups` embed becomes branded ids: read from a column
+ * that references `groups`, so this boundary is what can vouch for them. Used
+ * by both `data/wishes.ts` and `data/activity.ts`.
+ */
+export function embeddedGroupIds(embed: { group_id: string }[]): GroupId[] {
+  return embed.map((row) => asGroupId(row.group_id));
+}
 
 /*
  * The two id columns arrive branded: `src/lib/data/wishes.ts` reads them from
