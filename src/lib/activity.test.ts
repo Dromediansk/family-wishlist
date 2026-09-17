@@ -50,8 +50,8 @@ const NOW = new Date("2026-09-16T12:00:00.000Z");
 const WINDOW_START = activityWindowStart(NOW);
 
 describe("activityWindowStart", () => {
-  it("looks back thirty days", () => {
-    expect(activityWindowStart(NOW)).toBe("2026-08-17T12:00:00.000Z");
+  it("looks back seven days", () => {
+    expect(activityWindowStart(NOW)).toBe("2026-09-09T12:00:00.000Z");
   });
 });
 

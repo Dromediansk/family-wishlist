@@ -12,7 +12,7 @@ import { liveWishGroups, revealClaimer, wishGroupTags } from "@/lib/visibility";
  */
 
 /** How far back the feed looks, whatever the reader's last visit was. */
-const ACTIVITY_WINDOW_DAYS = 30;
+const ACTIVITY_WINDOW_DAYS = 7;
 
 /** The most rows the dropdown ever holds, so the badge cannot exceed it either. */
 export const ACTIVITY_LIMIT = 20;

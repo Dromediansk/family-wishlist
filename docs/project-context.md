@@ -120,7 +120,7 @@ Rationale, enforcement and the holes in full:
   keeps `0005_drop_claim_notices.sql` decided.
 - A reservation on your own list never appears in your own feed, and the
   claimer is named only to a reader who shares a group with them.
-- It looks back 30 days, holds at most 20 rows, and never looks past the moment
+- It looks back 7 days, holds at most 20 rows, and never looks past the moment
   you arrived. Whatever already existed when the feature shipped — or when you
   signed up — is not an event and never was one, so nobody opens the bell to a
   history they have already lived through.
