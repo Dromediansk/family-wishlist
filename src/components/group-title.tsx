@@ -59,13 +59,17 @@ export function GroupTitle({
        * name is the page's heading first, and a button in its place would take
        * the page out of the outline a screen reader navigates by.
        */}
-      <h1 className={HEADING}>
+      <h1 className={cn(HEADING, "-mx-2")}>
         <DropdownMenuTrigger
           className={cn(
             "hover:bg-secondary inline-flex max-w-full items-center gap-1.5 rounded-lg text-left transition-colors",
-            // Negative margins keep the name optically flush with the text
-            // below it while the padding gives the tap somewhere to land.
-            "-mx-2 -my-1 cursor-pointer px-2 py-1",
+            // The padding gives the tap somewhere to land; the heading's own
+            // `-mx-2` keeps it outside the text column, so the name stays
+            // optically flush with the paragraph below. That pull cannot sit
+            // here: it would narrow the heading the trigger shrinks to fit,
+            // and `max-w-full` measures against that — wrapping a name that
+            // had 1rem of room to spare.
+            "-my-1 cursor-pointer px-2 py-1",
           )}
           aria-label={t("current", { name })}
         >
