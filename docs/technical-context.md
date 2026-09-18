@@ -19,7 +19,7 @@ For what the app is for, see [Project context](project-context.md).
 | Live updates | Supabase Realtime broadcast |
 | Validation | Zod 4 |
 | Languages | next-intl 4, Slovak and English, locale in a cookie |
-| Tests | Vitest, node environment |
+| Tests | Vitest for pure functions; Playwright for journeys |
 | Hosting | Vercel. Nothing needs a long-running process, so any Next.js host would do |
 
 Next.js 16 has breaking changes from earlier versions. Read the relevant guide
@@ -199,6 +199,7 @@ to swap the way forward for the way out.
 npm run db:start                              # local Supabase stack in Docker
 npm run dev                                   # in another terminal
 npm run typecheck && npm run lint && npm test # before claiming work is done
+npm run test:e2e                              # journeys; needs db:start
 ```
 
 Nothing works until `db:start` is running.
@@ -211,7 +212,9 @@ Nothing works until `db:start` is running.
 - **Migrations reach production by hand**, pasted into the SQL editor in order.
   Never run `supabase link`, `db push`, `db pull` or `db reset --linked`: the CLI
   would read production as empty and replay `0003_auth.sql` and its `truncate`.
-- **Tests are pure functions only.** No mocks, no database.
+- **Unit tests are pure functions only.** No mocks, no database. Journeys live
+  in `e2e/` and run against the local stack.
+  [decisions/testing.md](decisions/testing.md)
 - **`AGENTS.md` is written by `next dev`, not by hand.** Commit it with the work.
 
 ## Dependency choices
