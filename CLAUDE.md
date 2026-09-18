@@ -117,8 +117,12 @@ to say.
   `Messages` type makes a key missing from English a compile error. Zod messages
   and `ActionResult.error` are **keys**, worded by `getErrorText()`
   (`src/i18n/errors.ts`) inside the action. Counts are ICU plurals — Slovak
-  needs `one`/`few`/`other`. `Intl.Collator("sk")` deliberately does *not*
-  follow the reader; `formatDate` does.
+  needs `one`/`few`/`other`. **No Slovak sentence may assume the reader's
+  gender** — the app never learns it, so past tense gets rewritten around the
+  agreement; indefinites like `kto` and `niekto` are already correct and stay.
+  [`docs/decisions/language.md`](docs/decisions/language.md#no-slovak-sentence-assumes-the-readers-gender)
+  `Intl.Collator("sk")` deliberately does *not* follow the reader; `formatDate`
+  does.
 - Path alias `@/*` → `./src/*`.
 - Tests cover **pure functions only** — no mocks, no DB. Keep new logic pure
   enough to test that way.
