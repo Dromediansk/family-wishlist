@@ -162,8 +162,9 @@ to swap the way forward for the way out.
 - **Enforcement points of the privacy rule carry a `PRIVACY-RULE:` tag** in
   their doc comment. `rg 'PRIVACY-RULE:'` lists every one. Add a site, add a
   tag; no document needs editing.
-- **Keep new logic pure enough to unit test** — no mocks, no database. Tests
-  cover pure functions only.
+- **Keep new logic pure enough to unit test** — no mocks, no database. Unit
+  tests are pure functions only; journeys are Playwright's job.
+  [decisions/testing.md](decisions/testing.md)
 - **Dialogs**: `Dialog` for forms (full-screen below `sm:`), `AlertDialog` for
   questions (centred at every size). Every child of a `*Content` must be a
   `*Header`, `*Body` or `*Footer`. Shared values go in
