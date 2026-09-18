@@ -44,55 +44,66 @@ export async function createAccount(
   if (createError) throw createError;
   const authUserId = created.user.id;
 
-  // handle_new_auth_user provisions this row; the test does not fake it.
-  const { data: rows, error: rowError } = await db
-    .from("app_users")
-    .select("id")
-    .eq("auth_user_id", authUserId);
-  if (rowError) throw rowError;
-  if (rows?.length !== 1) {
-    throw new Error(
-      `Expected one app_users row for ${email}, got ${rows?.length ?? 0}. ` +
-        "The provisioning trigger did not fire.",
-    );
-  }
+  // From here on, any throw leaves an orphaned auth user behind unless we
+  // clean it up ourselves — the caller has no Account yet to pass to
+  // deleteAccount. Every call site (this test, and Tasks 4/7's multi-account
+  // fixtures) is protected once here rather than in each caller's try/finally.
+  try {
+    // handle_new_auth_user provisions this row; the test does not fake it.
+    const { data: rows, error: rowError } = await db
+      .from("app_users")
+      .select("id")
+      .eq("auth_user_id", authUserId);
+    if (rowError) throw rowError;
+    if (rows?.length !== 1) {
+      throw new Error(
+        `Expected one app_users row for ${email}, got ${rows?.length ?? 0}. ` +
+          "The provisioning trigger did not fire.",
+      );
+    }
 
-  const { data: link, error: linkError } = await db.auth.admin.generateLink({
-    type: "magiclink",
-    email,
-  });
-  if (linkError) throw linkError;
+    const { data: link, error: linkError } = await db.auth.admin.generateLink({
+      type: "magiclink",
+      email,
+    });
+    if (linkError) throw linkError;
 
-  const jar = new Map<string, string>();
-  const ssr = createServerClient(url, anonKey, {
-    cookies: {
-      getAll: () => [...jar].map(([name, value]) => ({ name, value })),
-      setAll: (list) => {
-        for (const { name, value } of list) jar.set(name, value);
+    const jar = new Map<string, string>();
+    const ssr = createServerClient(url, anonKey, {
+      cookies: {
+        getAll: () => [...jar].map(([name, value]) => ({ name, value })),
+        setAll: (list) => {
+          for (const { name, value } of list) jar.set(name, value);
+        },
       },
-    },
-  });
+    });
 
-  const { error: verifyError } = await ssr.auth.verifyOtp({
-    token_hash: link.properties.hashed_token,
-    type: "email",
-  });
-  if (verifyError) throw verifyError;
+    const { error: verifyError } = await ssr.auth.verifyOtp({
+      token_hash: link.properties.hashed_token,
+      type: "email",
+    });
+    if (verifyError) throw verifyError;
 
-  // Every cookie, not the first: at ~2.7 KB the session is one long name away
-  // from @supabase/ssr splitting it into .0 and .1.
-  const cookies: Cookie[] = [...jar].map(([cookieName, value]) => ({
-    name: cookieName,
-    value,
-    domain: "127.0.0.1",
-    path: "/",
-    expires: -1,
-    httpOnly: false,
-    secure: false,
-    sameSite: "Lax" as const,
-  }));
+    // Every cookie, not the first: at ~2.7 KB the session is one long name
+    // away from @supabase/ssr splitting it into .0 and .1.
+    const cookies: Cookie[] = [...jar].map(([cookieName, value]) => ({
+      name: cookieName,
+      value,
+      domain: "127.0.0.1",
+      path: "/",
+      expires: -1,
+      httpOnly: false,
+      secure: false,
+      sameSite: "Lax" as const,
+    }));
 
-  return { authUserId, userId: rows[0].id as string, name, email, cookies };
+    return { authUserId, userId: rows[0].id as string, name, email, cookies };
+  } catch (err) {
+    // Best-effort: the original error is the diagnostic. A cleanup failure
+    // must not mask it, so it is swallowed rather than rethrown or combined.
+    await db.auth.admin.deleteUser(authUserId).catch(() => {});
+    throw err;
+  }
 }
 
 /** The cascade does the rest: app_users, memberships, wishes, notes, invites. */
