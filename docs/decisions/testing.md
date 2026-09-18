@@ -41,6 +41,10 @@ a real request, a real cookie or a real render.
 - **No Slovak sentence is written in a test file.** Locate by role, or import
   the key from `messages/sk.json`. A copied string forks the catalogue that
   [language](language.md) exists to keep single.
+- **The browser context is pinned to `sk-SK`.** Slovak is the app's fallback,
+  not what every browser sends — negotiation follows `Accept-Language`
+  ([language](language.md)) — so an unpinned run would pass or fail by the
+  operator's locale rather than the app's.
 - **No `waitForTimeout`.** A live update is an empty broadcast answered by
   `syncFromLive` ([live updates](live-updates.md)); only auto-retrying
   assertions are correct, and a sleep that passes on a fast machine is a
