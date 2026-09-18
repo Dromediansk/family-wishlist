@@ -12,10 +12,10 @@
     "wishAdded": "Nové želanie",
     "wishClaimed": "Rezervácia",
     "wishFulfilled": "Darované",
-    "memberJoined": "Nový člen",
+    "memberJoined": "Nové členstvo",
     "wishClaimedDetail": "Pre: {owner} · Rezervuje: {claimer}",
     "wishClaimedDetailHidden": "Pre: {owner} · Rezervované",
-    "wishFulfilledDetail": "Darca: {giver} · Pre: {owner}",
+    "wishFulfilledDetail": "Od: {giver} · Pre: {owner}",
     "unread": "— Neprečítané"
   },
   "buying": {
@@ -102,9 +102,9 @@
   },
   "given": {
     "back": "Čo kupujem",
-    "title": "Čo som daroval",
-    "description": "Darčeky, ktoré si už odovzdal. Zostávajú tu natrvalo.",
-    "empty": "Zatiaľ si nič nedaroval.",
+    "title": "Darčeky odo mňa",
+    "description": "Darčeky, ktoré už máš odovzdané. Zostávajú tu natrvalo.",
+    "empty": "Zatiaľ nemáš odovzdaný ani jeden darček.",
     "personLabel": "pre:"
   },
   "group": {
@@ -138,12 +138,12 @@
   "landing": {
     "eyebrow": "Pre rodinu, tím aj partiu priateľov",
     "headline": "Darčeky podľa želania. <hl>Prekvapenie zostáva.</hl>",
-    "sub": "Napíš si, čo by si chcel. Ostatní tajne rezervujú. Ty sa nedozvieš nič.",
+    "sub": "Napíš si, čo by ťa potešilo. Ostatní tajne rezervujú. Ty sa nedozvieš nič.",
     "trust": "Zadarmo · bez reklám · súkromné skupiny, len na pozvánku",
     "closingTitle": "Založ skupinu a pozvi členov",
     "beats": {
       "write": {
-        "title": "Napíš, čo by si chcel",
+        "title": "Napíš, čo by ťa potešilo",
         "body": "Názov stačí. Môžeš pridať fotku, odkaz aj poznámku. Ty vyberieš, aká skupina ho uvidí."
       },
       "reserve": {
@@ -228,7 +228,7 @@
         "title": "Čo o tebe ukladáme",
         "account": "<strong>Účet</strong> — e-mailová adresa a meno z tvojho Google účtu. Pri prihlásení žiadame od Googlu len rozsah <code>openid email profile</code>. Profilovú fotku z Googlu nečítame ani neukladáme.",
         "groupName": "<strong>Meno a rola v skupine</strong> — v každej skupine môžeš mať iné meno — „Miro“ pre rodinu, „Miroslav“ pre kolegov. Rola je <em>správca</em> alebo <em>člen</em>.",
-        "groups": "<strong>Skupiny</strong> — ktoré si vytvoril a do ktorých patríš.",
+        "groups": "<strong>Skupiny</strong> — tvoje vlastné aj tie, do ktorých patríš.",
         "wishes": "<strong>Želania</strong> — názov, popis, odkaz a nepovinná fotka, plus to, ktorým tvojim skupinám je želanie viditeľné.",
         "claims": "<strong>Rezervácie</strong> — kto ktoré želanie rezervoval a kedy.",
         "history": "<strong>História darov</strong> — po odovzdaní darčeka vzniká záznam s kópiou mien oboch strán, názvu a popisu želania, odkazu a názvov skupín."
@@ -240,12 +240,12 @@
       },
       "lawfulBasis": {
         "title": "Prečo ich spracúvame",
-        "contract": "<strong>Plnenie zmluvy</strong> (čl. 6 ods. 1 písm. b GDPR) — účet, členstvá, želania a rezervácie. Bez nich appka nevie robiť to, na čo si ju otvoril.",
+        "contract": "<strong>Plnenie zmluvy</strong> (čl. 6 ods. 1 písm. b GDPR) — účet, členstvá, želania a rezervácie. Bez nich appka nevie robiť to, na čo ju používaš.",
         "legitimate": "<strong>Oprávnený záujem</strong> (čl. 6 ods. 1 písm. f GDPR) — nemenná história darov. Záujem je na strane druhého účastníka: jeho záznam nemá zmiznúť preto, že ty odídeš."
       },
       "whoSees": {
         "title": "Kto tvoje údaje vidí",
-        "p1": "Tvoje želanie vidia iba členovia tých skupín, ktorým si ho priradil. Skupiny sa nedajú vyhľadať ani do nich požiadať o vstup — dostaneš sa do nej jedine cez pozvánkový odkaz.",
+        "p1": "Tvoje želanie vidia iba členovia tých skupín, ktorým ho máš priradené. Skupiny sa nedajú vyhľadať ani do nich požiadať o vstup — dostaneš sa do nej jedine cez pozvánkový odkaz.",
         "p2": "<strong>Kto ti rezervoval želanie, sa z appky nedozvieš — nikdy a nikde.</strong> Vo svojom vlastnom zozname rezervácie nevidíš. Tajomstvo skončí až vo chvíli, keď ten, kto darček kúpil, sám označí, že ti ho odovzdal.",
         "p3": "Prevádzkovateľ má z technických dôvodov prístup k databáze a k uloženým fotkám. Do údajov nazerá len vtedy, keď treba opraviť poruchu."
       },
@@ -261,8 +261,8 @@
         "p1": "Všetko nižšie je nevyhnutné na fungovanie appky — preto tu nie je žiadna lišta so súhlasom. Nič z toho ťa nesleduje.",
         "auth": "<code>sb-*-auth-token*</code> a <code>sb-*-code-verifier</code> — tvoje prihlásenie a bezpečné dokončenie prihlasovania cez Google. Prístupový token platí hodinu a obnovuje sa počas používania.",
         "returnTo": "<code>wishlist-return-to</code> — desať minút, neprístupné JavaScriptu. Prenesie otvorenú pozvánku cez prihlásenie a hneď po použití sa maže. Pozvánka takto neprechádza Googlom.",
-        "locale": "<code>wishlist-locale</code> — rok, neprístupné JavaScriptu. Pamätá si, ktorý jazyk si si vybral v menu. Kým si nevyberieš, appka sa riadi jazykom prehliadača a žiadne cookie nevzniká.",
-        "installPrompt": "<code>install_prompt_dismissed</code> v lokálnom úložisku — pamätá si, že si ponuku „pridať na plochu“ odmietol.",
+        "locale": "<code>wishlist-locale</code> — rok, neprístupné JavaScriptu. Pamätá si, ktorý jazyk máš vybratý v menu. Kým si nevyberieš, appka sa riadi jazykom prehliadača a žiadne cookie nevzniká.",
+        "installPrompt": "<code>install_prompt_dismissed</code> v lokálnom úložisku — pamätá si, že ponuka „pridať na plochu“ bola odmietnutá.",
         "p2": "Prihlásenie sa odbavuje celé na serveri, takže v lokálnom úložisku prehliadača nikdy neskončí žiadna prihlasovacia session."
       },
       "retention": {
@@ -359,9 +359,9 @@
     "everyone": "Všetci",
     "ownTitle": "Môj zoznam želaní",
     "peerTitle": "Toto si praje {name}",
-    "ownIntro": "Pridaj si čokoľvek, čo by si chcel. Nedozvieš sa, kto si čo vybral.",
+    "ownIntro": "Pridaj si čokoľvek, čo by ťa potešilo. Nedozvieš sa, kto si čo vybral.",
     "peerIntro": "Rezervuj si to, aby to nekúpil ešte niekto ďalší.",
-    "received": "Čo som dostal",
+    "received": "Darčeky pre mňa",
     "ownEmpty": "Tvoj zoznam je prázdny. Pridaj si vyššie prvé želanie.",
     "peerEmpty": "V tomto zozname zatiaľ nie sú žiadne želania."
   },
@@ -402,9 +402,9 @@
   },
   "received": {
     "back": "Môj zoznam",
-    "title": "Čo som dostal",
+    "title": "Darčeky pre mňa",
     "description": "Splnené želania a kto ti ich daroval.",
-    "empty": "Zatiaľ si nedostal žiadny darček.",
+    "empty": "Zatiaľ ti nikto nič nedaroval.",
     "personLabel": "od:"
   },
   "setup": {

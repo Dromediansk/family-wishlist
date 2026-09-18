@@ -94,6 +94,56 @@ The test moved with it: `createTranslator` renders a message with no React, no
 request and no database, so the plural forms are still covered by a pure test —
 and now in both languages.
 
+## No Slovak sentence assumes the reader's gender
+
+Slovak past tense agrees with its subject, so „Čo som daroval" and „Zatiaľ si
+nedostal žiadny darček" addressed roughly half the readership in the wrong
+gender. The app does not know who is reading, and deliberately never will.
+
+**Google does not supply it.** `gender` is not among the OIDC `profile` claims,
+so `user_metadata` will never carry it. The People API's `genders` field is,
+but behind `…/auth/user.gender.read` — a *sensitive* scope, which sends the
+consent screen back through review with a written justification and a demo
+video, annually, and puts an extra "see your gender" line in front of
+grandparents signing in to a wishlist. The field is optional besides, so
+everybody who left it blank would still need a neutral wording.
+
+**Asking costs more than it buys.** An `app_users` column is a hand-run
+migration; then a setting nobody wants to find, a privacy-page entry, and an
+ICU `select` threaded through every call site — for fourteen strings.
+
+So the sentences are written so the question never arises. Three devices have
+covered every case so far:
+
+- **A nominal phrase.** „Čo som daroval" → „Darčeky odo mňa".
+- **`máš` plus a participle**, which agrees with the object rather than with
+  the reader. „ktoré si už odovzdal" → „ktoré už máš odovzdané". This was
+  already the house idiom in `buying.description`.
+- **Neuter agreement with `čo`.** „čo by si chcel" → „čo by ťa potešilo".
+
+The indefinites are the exemption, not a miss: `kto`, `niekto`, `každý`,
+`ten kto`, `správca` and `darca` take masculine agreement in correct Slovak
+whoever they stand for. „Kto ti rezervoval želanie", „Ten, kto darček kúpil"
+and „aby to nekúpil ešte niekto ďalší" are right as they stand, and one of
+them is also a device — „Zatiaľ si nedostal žiadny darček" became „Zatiaľ ti
+nikto nič nedaroval".
+
+A label counts as a sentence when it sits next to a person. `activity`'s
+`memberJoined` read „Nový člen" directly above the new member's name, and
+`wishFulfilledDetail` read „Darca:" above the giver's; they name the event and
+the side now — „Nové členstvo", „Od:".
+
+Sweeping a change for regressions means looking at l-participles in the first
+or second person and judging each hit, since no rule can tell „si vytvoril"
+from „kto rezervoval":
+
+```
+rg '"[^"]*\b(si|som)\b[^"]{0,30}(al|ol|el|il|ul)\b' messages/sk.json
+```
+
+English carries no gender, so this is the one rule under which only `sk.json`
+ever changes.
+
 ## Sorting stays Slovak, dates do not
 
 `Intl.Collator("sk")` in `src/lib/members.ts` is **not** locale-aware. The names
