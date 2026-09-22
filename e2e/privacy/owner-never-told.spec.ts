@@ -118,6 +118,8 @@ test("a reserved wish is frozen, and the refusal does not say by whom", async ({
 
   // refusalFor's wording is unit-tested (src/lib/wishes.test.ts); what is
   // only checkable here is that the dialog renders it and nothing more.
+  // The first assertion is also the wait — a count of zero is true of a
+  // dialog that has not answered yet, so the second one needs it in front.
   await expect(dialog.getByRole("alert")).toHaveText(sk.errors.updateReserved);
   await expect(owner.getByText(world.giver.name)).toHaveCount(0);
 });
