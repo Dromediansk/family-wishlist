@@ -23,9 +23,9 @@ export type World = {
  *
  * docs/decisions/testing.md
  */
-async function makeGroup(runId: string, ownerUserId: string) {
+async function makeGroup(runId: string, ownerUserId: string, label = "E2E") {
   const db = adminClient();
-  const groupName = `E2E ${runId}`;
+  const groupName = `${label} ${runId}`;
 
   const { data: group, error } = await db
     .from("groups")
@@ -46,6 +46,45 @@ async function join(
   const { error } = await adminClient()
     .from("memberships")
     .insert({ group_id: groupId, user_id: userId, name, role });
+  if (error) throw error;
+}
+
+/** An account of its own, in a group of its own. */
+export type Outsider = { account: Account; groupId: string };
+
+/**
+ * The neighbour a group-scoped read must never answer: signed in, and a
+ * member somewhere — just not here.
+ *
+ * The group of their own is the point. An account in no group at all is turned
+ * away by `GroupLayout`'s `redirect("/start")` before `enterGroup` is ever
+ * asked, so it would prove only that the groupless branch works — and a
+ * regression handing every group to every signed-in account would pass. With a
+ * membership somewhere, the only thing left to refuse the URL is the
+ * membership check on the group in it.
+ */
+export async function createOutsider(runId: string): Promise<Outsider> {
+  const account = await createAccount(runId, "outsider", "Cudzia Pani");
+  try {
+    const { groupId } = await makeGroup(runId, account.userId, "E2E outsider");
+    await join(groupId, account.userId, account.name, "admin");
+    return { account, groupId };
+  } catch (err) {
+    await deleteAccount(account).catch(() => {});
+    throw err;
+  }
+}
+
+/** Their account, then their group — `created_by` is ON DELETE SET NULL. */
+export async function deleteOutsider({
+  account,
+  groupId,
+}: Outsider): Promise<void> {
+  await deleteAccount(account);
+  const { error } = await adminClient()
+    .from("groups")
+    .delete()
+    .eq("id", groupId);
   if (error) throw error;
 }
 
