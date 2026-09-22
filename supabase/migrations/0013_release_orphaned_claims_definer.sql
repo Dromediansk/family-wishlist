@@ -20,6 +20,18 @@
 -- auth.users trigger, under supabase_auth_admin. This function needs the
 -- same, so the release runs as its owner regardless of who deleted the
 -- membership. The body is unchanged from 0009.
+--
+-- No revoke/grant pair is owed, even though every new function owes one
+-- (docs/setup/database.md#row-level-security): `create or replace` at an
+-- unchanged signature keeps the trigger and the privileges the function
+-- already had, which is what 0010 says of wish_shares_group.
+--
+-- `set search_path = public` omits pg_temp, matching handle_new_auth_user
+-- (0003) — the other security definer function on an auth.users path. The two
+-- should only ever be tightened together, so the pair cannot drift.
+
+begin;
+
 create or replace function release_orphaned_claims()
 returns trigger
 language plpgsql
@@ -35,3 +47,5 @@ begin
   return old;
 end;
 $$;
+
+commit;
