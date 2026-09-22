@@ -1,29 +1,12 @@
 import sk from "../../messages/sk.json";
-import { addWish } from "../fixtures/wishes";
-import { expect, test, type World } from "../fixtures/world";
+import { addWish, fulfil, reserve } from "../fixtures/wishes";
+import { expect, test } from "../fixtures/world";
 
 /**
  * PRIVACY-RULE: the end-to-end half. Every enforcement site rg 'PRIVACY-RULE:'
  * lists is individually reviewed; these are what check that they compose.
  * docs/decisions/privacy-rule.md
  */
-
-/** Reserve `title` from the owner's list, as the giver. */
-async function reserve(world: World, title: string) {
-  const giver = world.giver.page;
-  await giver.goto(`/g/${world.groupId}/member/${world.owner.userId}`);
-  await giver
-    .getByRole("listitem")
-    .filter({ hasText: title })
-    .getByRole("button", { name: sk.wishes.claim })
-    .click();
-  await expect(
-    giver
-      .getByRole("listitem")
-      .filter({ hasText: title })
-      .getByRole("button", { name: sk.wishes.release }),
-  ).toBeVisible();
-}
 
 test("the owner's own list shows no claim, and names nobody", async ({
   world,
@@ -41,6 +24,33 @@ test("the owner's own list shows no claim, and names nobody", async ({
   await expect(
     owner.getByRole("button", { name: sk.wishes.release }),
   ).toHaveCount(0);
+
+  /*
+   * Not just what is drawn. The rule is about what the owner can *learn*, and
+   * a path that selected claimed_by_user_id and handed it to a client
+   * component would serialise the giver's id into the RSC flight payload,
+   * render nothing, and satisfy every assertion above.
+   *
+   * One row of that payload names the giver for a reason that is not a claim:
+   * the activity bell's `member-joined` item. The feed is the one owner-facing
+   * path allowed to name a peer, because its query filters the owner's own
+   * wishes out (docs/decisions/privacy-rule.md#the-activity-feed) — so it is
+   * excluded by that kind, and a `wish-claimed` item naming them would still
+   * be caught here.
+   */
+  const rows = (await owner.content()).split("\\n");
+
+  // Anchor the exclusion: the bell's item has to be its own row of the
+  // payload. If the framing ever changes, everything lands in one row and
+  // the filter below would quietly swallow the whole page.
+  const feed = rows.filter((row) => row.includes("member-joined"));
+  expect(feed).toHaveLength(1);
+  expect(feed[0]).not.toContain(title);
+
+  const leaks = rows.filter(
+    (row) => row.includes(world.giver.userId) && !row.includes("member-joined"),
+  );
+  expect(leaks).toEqual([]);
 });
 
 test("the owner's grid count does not betray the claim either", async ({
@@ -74,18 +84,8 @@ test("the owner's grid count does not betray the claim either", async ({
    * renders a plain Card with no container role to scope to, and adding a
    * scope hook would mean a data-testid in src/, which this suite does not
    * do. In this world the giver has no wishes, so the giver's own card also
-   * shows a bare count regardless — but the owner's card does not.
-   *
-   * Checked by hand: temporarily dropping the `viewerIsOwner` guard in
-   * member-card.tsx's `available` (so the owner's own card takes the
-   * non-owner branch) makes this assertion fail, with one match, whose text
-   * is "1 / 1" — not "0 / 1". `toMemberSummary` (src/lib/members.ts) never
-   * sets `availableCount` on the viewer's own card, so the mutated
-   * `available` is `undefined`, and `leadCount = available ?? wishCount`
-   * falls back to the bare `wishCount` (1) for both halves of the pair. The
-   * sr-only span leaks too in that mutation ("undefined / 1 želanie"), but
-   * doesn't match this regex (no digit before the slash), so it isn't what
-   * this assertion caught. Reverted after.
+   * shows a bare count regardless — but the owner's card does not. Dropping
+   * member-card.tsx's `viewerIsOwner` guard by hand makes this fail.
    *
    * Coverage limit: this regex watches the pair *shape* (two numbers around
    * a slash). A regression that instead rendered a bare `availableCount` —
@@ -93,6 +93,33 @@ test("the owner's grid count does not betray the claim either", async ({
    * still leak the claim and would not be caught here.
    */
   await expect(owner.getByText(/\d+\s*\/\s*\d+/)).toHaveCount(0);
+});
+
+test("a reserved wish is frozen, and the refusal does not say by whom", async ({
+  world,
+}) => {
+  const title = `Hrnček ${world.runId}`;
+  await addWish(world, title);
+  await reserve(world, title);
+
+  // The deliberate exception: nothing on the list is disabled or badged, so
+  // the owner opens the same form as always — and only the save is refused.
+  // docs/decisions/privacy-rule.md#the-deliberate-exception-a-reserved-wish-is-frozen
+  const owner = world.owner.page;
+  await owner.goto(`/g/${world.groupId}/member/${world.owner.userId}`);
+  await owner
+    .getByRole("listitem")
+    .filter({ hasText: title })
+    .getByRole("button", { name: sk.wishes.edit.trigger.replace("{title}", title) })
+    .click();
+
+  const dialog = owner.getByRole("dialog");
+  await dialog.getByRole("button", { name: sk.wishes.edit.submit }).click();
+
+  // refusalFor's wording is unit-tested (src/lib/wishes.test.ts); what is
+  // only checkable here is that the dialog renders it and nothing more.
+  await expect(dialog.getByRole("alert")).toHaveText(sk.errors.updateReserved);
+  await expect(owner.getByText(world.giver.name)).toHaveCount(0);
 });
 
 test("a hand-over live-syncs the owner's open tab, and the sync leaks nothing", async ({
@@ -112,20 +139,11 @@ test("a hand-over live-syncs the owner's open tab, and the sync leaks nothing", 
   await reserve(world, secret);
   await reserve(world, canary);
 
-  // Hand the canary over — same shape as e2e/journeys/giving.spec.ts. A
-  // hand-over deletes the wish, which is the only observable change a giver
-  // can cause on the owner's own list: a claim moves nothing there, not even
-  // the badge (docs/decisions/live-updates.md#why-the-owners-tab-refreshes-too).
-  const giver = world.giver.page;
-  await giver.goto("/buying");
-  await giver
-    .getByRole("listitem")
-    .filter({ hasText: canary })
-    .getByRole("button", { name: sk.wishes.fulfil.action })
-    .click();
-  const confirm = giver.getByRole("alertdialog");
-  await confirm.getByRole("button", { name: sk.wishes.fulfil.action }).click();
-  await expect(confirm).toBeHidden();
+  // Hand the canary over. A hand-over deletes the wish, which is the only
+  // observable change a giver can cause on the owner's own list: a claim
+  // moves nothing there, not even the badge
+  // (docs/decisions/live-updates.md#why-the-owners-tab-refreshes-too).
+  await fulfil(world, canary);
 
   // No goto, no reload: waiting for the canary to disappear is waiting for
   // this exact tab to have processed a live sync (the debounced broadcast +
