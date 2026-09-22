@@ -66,10 +66,31 @@ a real request, a real cookie or a real render.
   that follows such a redirect must put that actor's cookies on `localhost`
   and navigate there, not on `baseURL`'s `127.0.0.1`.
 
+## What nothing walks
+
+**Creating a group.** `world` inserts its group and both memberships with
+`service_role`, because the world has to exist before the first page loads. So
+`createGroup` (`src/app/actions/groups.ts`) is covered by neither suite: not by
+Vitest, which cannot reach a Server Action, and not here. That leaves its
+[creation cap](groups-and-invites.md#the-creation-cap), the admin membership it
+writes beside the group, and its Zod validation unexercised end to end.
+
+It is left that way on purpose — the scope above is journeys plus the one rule,
+and this is a fixture shortcut rather than a journey nobody thought of. If it is
+ever wanted, it is a journey of its own: `createAccount` a fresh, groupless
+person, land them on `/start`, create a group through the form, and assert the
+grid shows them as its admin.
+
 ## Running it
 
     npm run db:start
+    npx playwright install chromium   # once per machine
     npm run test:e2e
+
+`npm ci` installs `@playwright/test` but not the browser it drives, so a machine
+that has never run the suite fails with *Executable doesn't exist at
+…/chromium-…*. It is not a `postinstall` hook on purpose: a ~150 MB download on
+every install is a tax on everyone who never runs Playwright.
 
 `npm test` is Vitest alone, and the `typecheck && lint && test` gate stays that
 way — it has to keep working with Docker stopped.
