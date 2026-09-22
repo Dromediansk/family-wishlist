@@ -7,9 +7,10 @@ import { createAccount, deleteAccount } from "./session";
 test("a minted session lands a groupless account on /start", async ({
   browser,
 }) => {
-  // desktop and phone run this file in the same millisecond, so Date.now()
-  // alone collides on two accounts' emails; the suffix keeps them apart.
-  const runId = `sess${Date.now()}-${crypto.randomUUID().slice(0, 8)}`;
+  // Random, not derived from the clock, for the reason `world` spells out:
+  // desktop and phone run this file inside the same millisecond, and two
+  // identical emails are rejected on users_email_partial_key.
+  const runId = crypto.randomUUID().slice(0, 8);
   const account = await createAccount(runId, "solo", "Testovací Solo");
   const context = await browser.newContext();
 
@@ -28,9 +29,14 @@ test("a minted session lands a groupless account on /start", async ({
     await deleteAccount(account);
   }
 
-  const { data } = await adminClient()
+  // The one read the suite makes of a table. "Assert through the UI"
+  // (docs/decisions/testing.md) is about app behaviour; this checks the
+  // fixture's own teardown, which has no screen to assert on. The error is
+  // destructured so a query that failed is not read as an empty result.
+  const { data, error } = await adminClient()
     .from("app_users")
     .select("id")
     .eq("auth_user_id", account.authUserId);
+  expect(error).toBeNull();
   expect(data).toHaveLength(0);
 });

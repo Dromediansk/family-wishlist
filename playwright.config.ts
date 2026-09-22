@@ -64,7 +64,8 @@ export default defineConfig({
      */
     command: `npm run dev -- --port ${PORT} --hostname 127.0.0.1`,
     url: baseURL,
-    reuseExistingServer: true,
+    /* Locally, reuse whatever is already on :3100; on CI insist on our own. */
+    reuseExistingServer: !process.env.CI,
     timeout: 120_000,
   },
 });
