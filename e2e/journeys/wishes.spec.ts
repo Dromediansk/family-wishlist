@@ -1,15 +1,5 @@
-import sk from "../../messages/sk.json";
-import { expect, test, type World } from "../fixtures/world";
-
-async function addWish(world: World, title: string) {
-  const { page } = world.owner;
-  await page.goto(`/g/${world.groupId}`);
-  await page.getByRole("button", { name: sk.wishes.add.action }).click();
-  const dialog = page.getByRole("dialog");
-  await dialog.getByLabel(sk.wishes.form.title).fill(title);
-  await dialog.getByRole("button", { name: sk.wishes.add.action }).click();
-  await expect(dialog).toBeHidden();
-}
+import { addWish } from "../fixtures/wishes";
+import { expect, test } from "../fixtures/world";
 
 test("an owner adds a wish and finds it on their own list", async ({
   world,
