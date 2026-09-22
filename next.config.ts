@@ -27,15 +27,6 @@ const nextConfig: NextConfig = {
     "**/page": ["node_modules/next/dist/compiled/@vercel/og/**"],
   },
 
-  /**
-   * The dev server's default allowed origin is `localhost`, not `127.0.0.1` —
-   * so a request from Playwright's `baseURL` (`127.0.0.1:3100`, chosen so it
-   * never collides with a checkout's own `npm run dev` on `localhost:3000`)
-   * gets its dev-asset requests refused, and every client component stays
-   * inert. Dev-only: production serves no dev assets to gate.
-   */
-  allowedDevOrigins: ["127.0.0.1"],
-
   experimental: {
     /**
      * Holds failed navigations, prefetches and Server Actions and retries them

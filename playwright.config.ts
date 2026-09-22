@@ -46,7 +46,23 @@ export default defineConfig({
     { name: "phone", use: { ...devices["Pixel 7"] } },
   ],
   webServer: {
-    command: `npm run dev -- --port ${PORT}`,
+    /*
+     * `--hostname 127.0.0.1` matches `baseURL` above: the dev server's own
+     * default origin for its dev-asset allowlist becomes `127.0.0.1` rather
+     * than `localhost`, so `next.config.ts` no longer needs an
+     * `allowedDevOrigins` entry for it — every client component would
+     * otherwise stay inert, refused as cross-origin.
+     *
+     * It does *not*, however, reach every place Next's dev server stamps a
+     * hostname: the App Router dev bundler's own RouterServerContext hostname
+     * comes from `http://localhost:${port}` in
+     * node_modules/next/dist/server/lib/router-utils/setup-dev-bundler.js,
+     * ignoring `--hostname`. A Route Handler redirect built from
+     * `request.url` (`src/app/join/[token]/route.ts`) still lands on
+     * `localhost` regardless of this flag — see the comment in
+     * e2e/journeys/invites.spec.ts.
+     */
+    command: `npm run dev -- --port ${PORT} --hostname 127.0.0.1`,
     url: baseURL,
     reuseExistingServer: true,
     timeout: 120_000,

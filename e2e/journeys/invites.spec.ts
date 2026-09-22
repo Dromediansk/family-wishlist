@@ -2,9 +2,6 @@ import sk from "../../messages/sk.json";
 import { createAccount, deleteAccount } from "../fixtures/session";
 import { expect, test } from "../fixtures/world";
 
-// Clipboard permissions are per-origin and per-context; `playwright.config.ts`
-// grants clipboard-read/write for every project, and both `desktop` and
-// `phone` were confirmed to honor it here, so no restriction is needed.
 test("an admin mints a link and a stranger joins on it", async ({
   world,
   browser,
@@ -25,17 +22,20 @@ test("an admin mints a link and a stranger joins on it", async ({
   const context = await browser.newContext();
   try {
     /*
-     * `next dev` answers to the hostname it was initialized with —
-     * "localhost" by default — and `src/app/join/[token]/route.ts` builds its
-     * own redirect from `request.url`, so it resolves against that canonical
-     * host regardless of which alias the request arrived on. Playwright's
-     * baseURL is `127.0.0.1` (chosen so a checkout's own `npm run dev` on
-     * `localhost:3000` never collides — playwright.config.ts), so the join
-     * redirect lands the browser on `localhost`: a different origin from a
-     * `127.0.0.1`-scoped cookie. That split is a dev-server-only artifact —
-     * production serves one canonical domain — so the newcomer's session is
-     * addressed at `localhost` throughout, rather than weakening the test to
-     * stop short of the follow-through a real click would make.
+     * `src/app/join/[token]/route.ts` redirects via `new URL(path,
+     * request.url)`. Confirmed with `curl` (and by instrumenting
+     * node_modules/next's dev bundler, not by guessing): the App Router dev
+     * bundler's RouterServerContext hostname comes from
+     * `node_modules/next/dist/server/lib/router-utils/setup-dev-bundler.js`'s
+     * `appUrl = process.env.__NEXT_PRIVATE_ORIGIN ?? \`http://localhost:${port}\``
+     * — hardcoded to "localhost" and blind to `--hostname`, even though
+     * `playwright.config.ts` now pins `next dev` to `127.0.0.1` to match
+     * `baseURL`. So the join redirect still lands the browser on `localhost`,
+     * a different origin from the newcomer's `127.0.0.1`-scoped cookie — a
+     * dev-server-only artifact (one canonical domain in production), not a
+     * change to what this journey proves. The session is addressed at
+     * `localhost` throughout rather than stopping the test short of the
+     * follow-through a real click would make.
      */
     await context.addCookies(
       newcomer.cookies.map((cookie) => ({ ...cookie, domain: "localhost" })),
