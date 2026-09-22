@@ -106,7 +106,13 @@ export async function createAccount(
   }
 }
 
-/** The cascade does the rest: app_users, memberships, wishes, notes, invites. */
+/**
+ * The cascade does most of the rest: app_users, memberships, wishes, notes,
+ * invites. It deliberately spares `fulfilled_wishes`, whose two foreign keys
+ * are ON DELETE SET NULL (0008_multi_tenant.sql) so a handed-over gift
+ * outlives either party leaving — a caller that produced one has to delete it
+ * itself, by id, *before* calling this. See `world`'s teardown.
+ */
 export async function deleteAccount(account: Account): Promise<void> {
   const { error } = await adminClient().auth.admin.deleteUser(
     account.authUserId,

@@ -33,8 +33,15 @@ a real request, a real cookie or a real render.
 - **Every run is isolated by its group.** A group is already the boundary that
   decides who sees whom, so it is the boundary a test gets. Identifiers carry a
   run id; files run in parallel.
-- **Teardown deletes the accounts, not the rows.** The `on delete cascade`
-  chain takes everything with them, so a new table cannot be forgotten.
+- **Teardown deletes the accounts, not the rows** — with one exception it has
+  to name. The `on delete cascade` chain takes the memberships, the wishes, the
+  `wish_groups`, the notes and the invites with them. It does **not** take
+  `fulfilled_wishes`: both of that table's foreign keys are `on delete set
+  null` (`0008_multi_tenant.sql`), because a gift that changed hands has to
+  outlive either party leaving. So a test that hands a gift over deletes its
+  own history rows *before* the accounts go — afterwards both id columns are
+  null and the run's rows are indistinguishable from anyone else's. A table
+  added later with the same shape owes the same line.
 - **E2E only ever runs against loopback.** The fixtures hold `service_role`.
   They have to be incapable of reaching the hosted project, not merely unlikely
   to — the same guard `scripts/seed-dev.mjs` carries, for the same reason.

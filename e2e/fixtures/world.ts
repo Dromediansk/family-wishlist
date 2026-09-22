@@ -107,14 +107,55 @@ export const test = base.extend<{ world: World }>({
 
     await ownerContext.close();
     await giverContext.close();
-    // Deleting the accounts is the whole teardown: the cascade takes the
-    // memberships, the wishes, the wish_groups, the notes and the invites, so
-    // a table added later cannot be forgotten here.
-    await deleteAccount(ownerAccount);
-    await deleteAccount(giverAccount);
+
+    /*
+     * Every delete runs even if an earlier one throws — the same failure mode
+     * the setup block above guards against, and stranding the second account
+     * and the group is worse than one loud error. The first is rethrown once
+     * the rest have run.
+     */
+    const failures: unknown[] = [];
+    const attempt = async (step: () => Promise<unknown>) => {
+      try {
+        await step();
+      } catch (err) {
+        failures.push(err);
+      }
+    };
+
+    /*
+     * `fulfilled_wishes` first, while the ids still match. Deleting the
+     * accounts takes almost everything with it — the memberships, the wishes,
+     * the wish_groups, the notes and the invites all cascade — but both of
+     * this table's foreign keys are ON DELETE SET NULL
+     * (0008_multi_tenant.sql), deliberately: a gift that changed hands has to
+     * outlive either party leaving. So the cascade spares these rows, and
+     * after the account delete `owner_id` and `giver_id` are both NULL and
+     * the run's own rows can no longer be told from anybody else's.
+     */
+    const { userId: ownerId } = ownerAccount;
+    const { userId: giverId } = giverAccount;
+    await attempt(async () => {
+      const { error } = await adminClient()
+        .from("fulfilled_wishes")
+        .delete()
+        .or(`owner_id.eq.${ownerId},giver_id.eq.${giverId}`);
+      if (error) throw error;
+    });
+
+    await attempt(() => deleteAccount(ownerAccount));
+    await attempt(() => deleteAccount(giverAccount));
     // The group's created_by is ON DELETE SET NULL, so the row outlives its
     // creator and has to go by hand.
-    await adminClient().from("groups").delete().eq("id", groupId);
+    await attempt(async () => {
+      const { error } = await adminClient()
+        .from("groups")
+        .delete()
+        .eq("id", groupId);
+      if (error) throw error;
+    });
+
+    if (failures.length > 0) throw failures[0];
   },
 });
 
