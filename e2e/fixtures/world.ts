@@ -49,6 +49,33 @@ async function join(
   if (error) throw error;
 }
 
+/**
+ * Every step runs even if an earlier one throws, and the first error is
+ * rethrown once the last has. A teardown that gives up halfway strands
+ * exactly the rows it exists to remove.
+ */
+async function deleteAll(steps: readonly (() => Promise<unknown>)[]) {
+  const failures: unknown[] = [];
+  for (const step of steps) {
+    try {
+      await step();
+    } catch (err) {
+      failures.push(err);
+    }
+  }
+  if (failures.length > 0) throw failures[0];
+}
+
+/** By hand: `groups.created_by` is ON DELETE SET NULL, so a group outlives
+ * the account that made it. */
+async function deleteGroup(groupId: string) {
+  const { error } = await adminClient()
+    .from("groups")
+    .delete()
+    .eq("id", groupId);
+  if (error) throw error;
+}
+
 /** An account of its own, in a group of its own. */
 export type Outsider = { account: Account; groupId: string };
 
@@ -75,17 +102,13 @@ export async function createOutsider(runId: string): Promise<Outsider> {
   }
 }
 
-/** Their account, then their group — `created_by` is ON DELETE SET NULL. */
+/** Their account, then their group, and the group goes even if the account
+ * delete throws — otherwise it is stranded exactly as the world's was. */
 export async function deleteOutsider({
   account,
   groupId,
 }: Outsider): Promise<void> {
-  await deleteAccount(account);
-  const { error } = await adminClient()
-    .from("groups")
-    .delete()
-    .eq("id", groupId);
-  if (error) throw error;
+  await deleteAll([() => deleteAccount(account), () => deleteGroup(groupId)]);
 }
 
 export const test = base.extend<{ world: World }>({
@@ -148,21 +171,6 @@ export const test = base.extend<{ world: World }>({
     await giverContext.close();
 
     /*
-     * Every delete runs even if an earlier one throws — the same failure mode
-     * the setup block above guards against, and stranding the second account
-     * and the group is worse than one loud error. The first is rethrown once
-     * the rest have run.
-     */
-    const failures: unknown[] = [];
-    const attempt = async (step: () => Promise<unknown>) => {
-      try {
-        await step();
-      } catch (err) {
-        failures.push(err);
-      }
-    };
-
-    /*
      * `fulfilled_wishes` first, while the ids still match. Deleting the
      * accounts takes almost everything with it — the memberships, the wishes,
      * the wish_groups, the notes and the invites all cascade — but both of
@@ -174,27 +182,23 @@ export const test = base.extend<{ world: World }>({
      */
     const { userId: ownerId } = ownerAccount;
     const { userId: giverId } = giverAccount;
-    await attempt(async () => {
-      const { error } = await adminClient()
-        .from("fulfilled_wishes")
-        .delete()
-        .or(`owner_id.eq.${ownerId},giver_id.eq.${giverId}`);
-      if (error) throw error;
-    });
+    const worldGroupId = groupId;
 
-    await attempt(() => deleteAccount(ownerAccount));
-    await attempt(() => deleteAccount(giverAccount));
-    // The group's created_by is ON DELETE SET NULL, so the row outlives its
-    // creator and has to go by hand.
-    await attempt(async () => {
-      const { error } = await adminClient()
-        .from("groups")
-        .delete()
-        .eq("id", groupId);
-      if (error) throw error;
-    });
-
-    if (failures.length > 0) throw failures[0];
+    // All four run, and the first failure is rethrown after the last —
+    // stranding the second account and the group is worse than one loud
+    // error, the same reason the setup block above cleans up after itself.
+    await deleteAll([
+      async () => {
+        const { error } = await adminClient()
+          .from("fulfilled_wishes")
+          .delete()
+          .or(`owner_id.eq.${ownerId},giver_id.eq.${giverId}`);
+        if (error) throw error;
+      },
+      () => deleteAccount(ownerAccount),
+      () => deleteAccount(giverAccount),
+      () => deleteGroup(worldGroupId),
+    ]);
   },
 });
 

@@ -34,9 +34,10 @@ test("the owner's own list shows no claim, and names nobody", async ({
    * One row of that payload names the giver for a reason that is not a claim:
    * the activity bell's `member-joined` item. The feed is the one owner-facing
    * path allowed to name a peer, because its query filters the owner's own
-   * wishes out (docs/decisions/privacy-rule.md#the-activity-feed) — so it is
-   * excluded by that kind, and a `wish-claimed` item naming them would still
-   * be caught here.
+   * wishes out (docs/decisions/privacy-rule.md#the-activity-feed) — so that
+   * row is excluded below. The bell is handed its whole feed as a single
+   * prop, so a leaked `wish-claimed` item would ride in that same row and be
+   * excluded with it; the third assertion is what closes that path.
    */
   const rows = (await owner.content()).split("\\n");
 
@@ -46,6 +47,10 @@ test("the owner's own list shows no claim, and names nobody", async ({
   const feed = rows.filter((row) => row.includes("member-joined"));
   expect(feed).toHaveLength(1);
   expect(feed[0]).not.toContain(title);
+  // And the row being excluded carries no claim of its own — the two filters
+  // that hold that line are the query's .neq("owner_user_id", …) and the
+  // refusal in toClaimActivity (src/lib/activity.ts).
+  expect(feed[0]).not.toContain("wish-claimed");
 
   const leaks = rows.filter(
     (row) => row.includes(world.giver.userId) && !row.includes("member-joined"),
