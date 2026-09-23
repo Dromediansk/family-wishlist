@@ -60,11 +60,6 @@ a real request, a real cookie or a real render.
   `src/lib/data/`, which Vitest and the type system already hold.
 - **Nothing test-only goes in `src/`.** Sessions are minted out of band; see
   [identity and sessions](identity-and-sessions.md#sessions).
-- **A redirect built from `request.url` crosses hosts under `next dev`.** The
-  dev bundler hardcodes it to `localhost`, whatever host the request actually
-  arrived on — currently true only of `src/app/join/[token]/route.ts`. A test
-  that follows such a redirect must put that actor's cookies on `localhost`
-  and navigate there, not on `baseURL`'s `127.0.0.1`.
 
 ## What nothing walks
 

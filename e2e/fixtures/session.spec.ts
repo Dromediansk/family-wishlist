@@ -1,22 +1,16 @@
 import { expect, test } from "@playwright/test";
 
 import sk from "../../messages/sk.json";
-import { adminClient } from "./stack";
-import { createAccount, deleteAccount } from "./session";
+import { adminClient, newRunId } from "./stack";
+import { createAccount, deleteAccount, signIn } from "./session";
 
 test("a minted session lands a groupless account on /start", async ({
   browser,
 }) => {
-  // Random, not derived from the clock, for the reason `world` spells out:
-  // desktop and phone run this file inside the same millisecond, and two
-  // identical emails are rejected on users_email_partial_key.
-  const runId = crypto.randomUUID().slice(0, 8);
-  const account = await createAccount(runId, "solo", "Testovací Solo");
-  const context = await browser.newContext();
+  const account = await createAccount(newRunId(), "solo", "Testovací Solo");
+  const { context, page } = await signIn(browser, account);
 
   try {
-    await context.addCookies(account.cookies);
-    const page = await context.newPage();
     await page.goto("/");
 
     // An account in no group is a legal state, and /start is what it sees.

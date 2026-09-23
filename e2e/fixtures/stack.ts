@@ -1,5 +1,9 @@
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 
+/** Not 3000: a checkout's own `npm run dev` usually holds it. */
+export const PORT = 3100;
+export const BASE_URL = `http://localhost:${PORT}`;
+
 /**
  * The local stack's address and keys, and the guard that keeps them local.
  *
@@ -35,10 +39,24 @@ export function localStack() {
   return { url, serviceKey, anonKey };
 }
 
+let admin: SupabaseClient | undefined;
+
 /** service_role. Every fixture write goes through this. */
 export function adminClient(): SupabaseClient {
+  if (admin) return admin;
   const { url, serviceKey } = localStack();
-  return createClient(url, serviceKey, {
+  admin = createClient(url, serviceKey, {
     auth: { persistSession: false, autoRefreshToken: false },
   });
+  return admin;
+}
+
+/**
+ * Random, not derived from the clock: desktop and phone run the same file at
+ * once, a `Date.now()` id collides inside one millisecond, and GoTrue rejects
+ * the second identical email on `users_email_partial_key`. Worker index does
+ * not save it either — two projects can share one.
+ */
+export function newRunId(): string {
+  return crypto.randomUUID().slice(0, 8);
 }

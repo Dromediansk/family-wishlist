@@ -1,14 +1,18 @@
 import { test as base, expect, type Page } from "@playwright/test";
 
-import { adminClient } from "./stack";
-import { createAccount, deleteAccount, type Account } from "./session";
+import { adminClient, newRunId } from "./stack";
+import {
+  createAccount,
+  deleteAccount,
+  signIn,
+  type Account,
+} from "./session";
 
 export type Actor = Account & { page: Page };
 
 export type World = {
   runId: string;
   groupId: string;
-  groupName: string;
   owner: Actor;
   giver: Actor;
 };
@@ -24,17 +28,14 @@ export type World = {
  * docs/decisions/testing.md
  */
 async function makeGroup(runId: string, ownerUserId: string, label = "E2E") {
-  const db = adminClient();
-  const groupName = `${label} ${runId}`;
-
-  const { data: group, error } = await db
+  const { data: group, error } = await adminClient()
     .from("groups")
-    .insert({ name: groupName, created_by: ownerUserId })
+    .insert({ name: `${label} ${runId}`, created_by: ownerUserId })
     .select("id")
     .single();
   if (error) throw error;
 
-  return { groupId: group.id as string, groupName };
+  return group.id as string;
 }
 
 async function join(
@@ -54,7 +55,9 @@ async function join(
  * rethrown once the last has. A teardown that gives up halfway strands
  * exactly the rows it exists to remove.
  */
-async function deleteAll(steps: readonly (() => Promise<unknown>)[]) {
+type Step = () => Promise<unknown>;
+
+async function deleteAll(steps: readonly Step[]) {
   const failures: unknown[] = [];
   for (const step of steps) {
     try {
@@ -64,6 +67,34 @@ async function deleteAll(steps: readonly (() => Promise<unknown>)[]) {
     }
   }
   if (failures.length > 0) throw failures[0];
+}
+
+/**
+ * Runs `build`, handing it `undo` to register how to remove each thing it
+ * creates. If `build` throws, everything registered so far is removed — newest
+ * first, best effort, since the original error is the diagnostic — and the
+ * error rethrown. Otherwise the steps are returned for the caller's teardown.
+ */
+async function withUndo<T>(
+  build: (undo: (step: Step) => void) => Promise<T>,
+): Promise<[T, Step[]]> {
+  const steps: Step[] = [];
+  try {
+    return [await build((step) => steps.unshift(step)), steps];
+  } catch (err) {
+    await deleteAll(steps).catch(() => {});
+    throw err;
+  }
+}
+
+/** Creates the account and registers its removal. */
+async function tracked(
+  undo: (step: Step) => void,
+  ...args: Parameters<typeof createAccount>
+): Promise<Account> {
+  const account = await createAccount(...args);
+  undo(() => deleteAccount(account));
+  return account;
 }
 
 /** By hand: `groups.created_by` is ON DELETE SET NULL, so a group outlives
@@ -91,15 +122,14 @@ export type Outsider = { account: Account; groupId: string };
  * membership check on the group in it.
  */
 export async function createOutsider(runId: string): Promise<Outsider> {
-  const account = await createAccount(runId, "outsider", "Cudzia Pani");
-  try {
-    const { groupId } = await makeGroup(runId, account.userId, "E2E outsider");
+  const [outsider] = await withUndo(async (undo) => {
+    const account = await tracked(undo, runId, "outsider", "Cudzia Pani");
+    const groupId = await makeGroup(runId, account.userId, "E2E outsider");
+    undo(() => deleteGroup(groupId));
     await join(groupId, account.userId, account.name, "admin");
     return { account, groupId };
-  } catch (err) {
-    await deleteAccount(account).catch(() => {});
-    throw err;
-  }
+  });
+  return outsider;
 }
 
 /** Their account, then their group, and the group goes even if the account
@@ -113,92 +143,53 @@ export async function deleteOutsider({
 
 export const test = base.extend<{ world: World }>({
   world: async ({ browser }, use) => {
-    /*
-     * Random, not derived from the clock. `fullyParallel` runs the desktop and
-     * phone projects over the same file at once, and Task 3 proved a
-     * `Date.now()` id collides inside one millisecond — two identical emails,
-     * and GoTrue rejects the second on `users_email_partial_key`. Worker index
-     * does not save it either: two projects can share a worker index.
-     */
-    const runId = crypto.randomUUID().slice(0, 8);
+    const runId = newRunId();
 
-    let ownerAccount: Account | undefined;
-    let giverAccount: Account | undefined;
-    let groupId: string | undefined;
-    let groupName: string | undefined;
+    // Playwright never runs the code after use() when the code before it
+    // throws, so a half-built world is torn down by withUndo instead.
+    const [{ groupId, ownerAccount, giverAccount }, teardown] = await withUndo(
+      async (undo) => {
+        const ownerAccount = await tracked(undo, runId, "owner", "Oliver Obdarovaný");
+        const giverAccount = await tracked(undo, runId, "giver", "Gabika Darkyňa");
 
-    try {
-      ownerAccount = await createAccount(runId, "owner", "Oliver Obdarovaný");
-      giverAccount = await createAccount(runId, "giver", "Gabika Darkyňa");
+        const groupId = await makeGroup(runId, ownerAccount.userId);
+        undo(() => deleteGroup(groupId));
+        await join(groupId, ownerAccount.userId, ownerAccount.name, "admin");
+        await join(groupId, giverAccount.userId, giverAccount.name, "member");
 
-      ({ groupId, groupName } = await makeGroup(runId, ownerAccount.userId));
+        // First, while the ids still match: the account cascade spares
+        // `fulfilled_wishes` and nulls both its ids. docs/decisions/testing.md
+        undo(async () => {
+          const { error } = await adminClient()
+            .from("fulfilled_wishes")
+            .delete()
+            .or(
+              `owner_id.eq.${ownerAccount.userId},giver_id.eq.${giverAccount.userId}`,
+            );
+          if (error) throw error;
+        });
 
-      await join(groupId, ownerAccount.userId, ownerAccount.name, "admin");
-      await join(groupId, giverAccount.userId, giverAccount.name, "member");
-    } catch (err) {
-      // createAccount only self-cleans its own partial failure. A later step
-      // in this setup — the other account, the group, a membership — can
-      // still throw after an earlier one succeeded, and Playwright never runs
-      // the code after use() when the code before it throws. So whatever this
-      // block has already created has to be torn down here, or it leaks for
-      // every test in the suite.
-      if (groupId) {
-        try {
-          await adminClient().from("groups").delete().eq("id", groupId);
-        } catch {
-          // Best-effort: the original error below is the diagnostic.
-        }
-      }
-      if (giverAccount) await deleteAccount(giverAccount).catch(() => {});
-      if (ownerAccount) await deleteAccount(ownerAccount).catch(() => {});
-      throw err;
-    }
+        return { groupId, ownerAccount, giverAccount };
+      },
+    );
 
-    const ownerContext = await browser.newContext();
-    const giverContext = await browser.newContext();
-    await ownerContext.addCookies(ownerAccount.cookies);
-    await giverContext.addCookies(giverAccount.cookies);
-
-    const owner: Actor = { ...ownerAccount, page: await ownerContext.newPage() };
-    const giver: Actor = { ...giverAccount, page: await giverContext.newPage() };
+    const [ownerSession, giverSession] = await Promise.all([
+      signIn(browser, ownerAccount),
+      signIn(browser, giverAccount),
+    ]);
+    const owner: Actor = { ...ownerAccount, page: ownerSession.page };
+    const giver: Actor = { ...giverAccount, page: giverSession.page };
 
     // Playwright's fixture callback parameter is conventionally named `use`,
     // which react-hooks/rules-of-hooks mistakes for React 19's `use()` hook.
     // eslint-disable-next-line react-hooks/rules-of-hooks
-    await use({ runId, groupId, groupName, owner, giver });
+    await use({ runId, groupId, owner, giver });
 
-    await ownerContext.close();
-    await giverContext.close();
+    await ownerSession.context.close();
+    await giverSession.context.close();
 
-    /*
-     * `fulfilled_wishes` first, while the ids still match. Deleting the
-     * accounts takes almost everything with it — the memberships, the wishes,
-     * the wish_groups, the notes and the invites all cascade — but both of
-     * this table's foreign keys are ON DELETE SET NULL
-     * (0008_multi_tenant.sql), deliberately: a gift that changed hands has to
-     * outlive either party leaving. So the cascade spares these rows, and
-     * after the account delete `owner_id` and `giver_id` are both NULL and
-     * the run's own rows can no longer be told from anybody else's.
-     */
-    const { userId: ownerId } = ownerAccount;
-    const { userId: giverId } = giverAccount;
-    const worldGroupId = groupId;
-
-    // All four run, and the first failure is rethrown after the last —
-    // stranding the second account and the group is worse than one loud
-    // error, the same reason the setup block above cleans up after itself.
-    await deleteAll([
-      async () => {
-        const { error } = await adminClient()
-          .from("fulfilled_wishes")
-          .delete()
-          .or(`owner_id.eq.${ownerId},giver_id.eq.${giverId}`);
-        if (error) throw error;
-      },
-      () => deleteAccount(ownerAccount),
-      () => deleteAccount(giverAccount),
-      () => deleteGroup(worldGroupId),
-    ]);
+    // Every step runs, and the first failure is rethrown after the last.
+    await deleteAll(teardown);
   },
 });
 

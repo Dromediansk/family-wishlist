@@ -1,4 +1,5 @@
 import sk from "../../messages/sk.json";
+import { signIn } from "./session";
 import { createOutsider, deleteOutsider, expect, test } from "./world";
 
 test("both actors land in the same group and see each other", async ({
@@ -24,11 +25,8 @@ test("a signed-in member of another group is refused this one", async ({
   // left is enterGroup, which answers 404 rather than 403 so the URL says
   // nothing about which groups exist.
   const outsider = await createOutsider(world.runId);
-  const context = await browser.newContext();
+  const { context, page } = await signIn(browser, outsider.account);
   try {
-    await context.addCookies(outsider.account.cookies);
-    const page = await context.newPage();
-
     const response = await page.goto(`/g/${world.groupId}`);
     expect(response?.status()).toBe(404);
     await expect(page.getByText(sk.notFound.title)).toBeVisible();

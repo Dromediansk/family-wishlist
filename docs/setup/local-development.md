@@ -173,9 +173,5 @@ npx playwright install chromium   # once per machine
 npm run test:e2e
 ```
 
-`npm install` brings in `@playwright/test` but not the browser it drives, so
-without that first line the run stops at *Executable doesn't exist at
-…/chromium-…*. It is deliberately not a `postinstall` hook — see
+Why the browser is a separate step, and what belongs in which suite:
 [decisions/testing.md](../decisions/testing.md#running-it).
-
-[decisions/testing.md](../decisions/testing.md) says which is which.

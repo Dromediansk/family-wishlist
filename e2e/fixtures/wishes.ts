@@ -1,5 +1,14 @@
+import { createTranslator } from "next-intl";
+
 import sk from "../../messages/sk.json";
 import { expect, type World } from "./world";
+
+/** The catalogue, formatted the way the app formats it. */
+export const t = createTranslator({ locale: "sk", messages: sk });
+
+/** The owner's own list. */
+export const ownListPath = (world: World) =>
+  `/g/${world.groupId}/member/${world.owner.userId}`;
 
 /**
  * The three steps a gift passes through, each as one actor does it. They live
@@ -22,7 +31,7 @@ export async function addWish(world: World, title: string) {
 /** Reserve `title` from the owner's list, as the giver. */
 export async function reserve(world: World, title: string) {
   const giver = world.giver.page;
-  await giver.goto(`/g/${world.groupId}/member/${world.owner.userId}`);
+  await giver.goto(ownListPath(world));
   const row = giver.getByRole("listitem").filter({ hasText: title });
   await row.getByRole("button", { name: sk.wishes.claim }).click();
   // It is now the giver's to release or hand over.

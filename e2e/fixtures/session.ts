@@ -1,7 +1,7 @@
-import type { Cookie } from "@playwright/test";
+import type { Browser, Cookie } from "@playwright/test";
 import { createServerClient } from "@supabase/ssr";
 
-import { adminClient, localStack } from "./stack";
+import { adminClient, BASE_URL, localStack } from "./stack";
 
 export type Account = {
   /** auth.users.id — the handle teardown deletes by. */
@@ -9,7 +9,6 @@ export type Account = {
   /** app_users.id — what the app's own rows point at. */
   userId: string;
   name: string;
-  email: string;
   cookies: Cookie[];
 };
 
@@ -25,7 +24,6 @@ export type Account = {
  *
  * signInWithPassword is NOT an option: supabase/config.toml sets
  * enable_signup = false, which disables the email provider outright.
- * docs/superpowers/specs/2026-09-18-e2e-testing-design.md
  */
 export async function createAccount(
   runId: string,
@@ -46,8 +44,7 @@ export async function createAccount(
 
   // From here on, any throw leaves an orphaned auth user behind unless we
   // clean it up ourselves — the caller has no Account yet to pass to
-  // deleteAccount. Every call site (this test, and Tasks 4/7's multi-account
-  // fixtures) is protected once here rather than in each caller's try/finally.
+  // deleteAccount, so every call site is protected once, here.
   try {
     // handle_new_auth_user provisions this row; the test does not fake it.
     const { data: rows, error: rowError } = await db
@@ -89,15 +86,15 @@ export async function createAccount(
     const cookies: Cookie[] = [...jar].map(([cookieName, value]) => ({
       name: cookieName,
       value,
-      domain: "127.0.0.1",
+      domain: new URL(BASE_URL).hostname,
       path: "/",
       expires: -1,
       httpOnly: false,
       secure: false,
-      sameSite: "Lax" as const,
+      sameSite: "Lax",
     }));
 
-    return { authUserId, userId: rows[0].id as string, name, email, cookies };
+    return { authUserId, userId: rows[0].id as string, name, cookies };
   } catch (err) {
     // Best-effort: the original error is the diagnostic. A cleanup failure
     // must not mask it, so it is swallowed rather than rethrown or combined.
@@ -107,15 +104,19 @@ export async function createAccount(
 }
 
 /**
- * The cascade does most of the rest: app_users, memberships, wishes, notes,
- * invites. It deliberately spares `fulfilled_wishes`, whose two foreign keys
- * are ON DELETE SET NULL (0008_multi_tenant.sql) so a handed-over gift
- * outlives either party leaving — a caller that produced one has to delete it
- * itself, by id, *before* calling this. See `world`'s teardown.
+ * The cascade takes everything but `fulfilled_wishes` — a caller that produced
+ * one deletes it first, by id. docs/decisions/testing.md
  */
 export async function deleteAccount(account: Account): Promise<void> {
   const { error } = await adminClient().auth.admin.deleteUser(
     account.authUserId,
   );
   if (error) throw error;
+}
+
+/** A fresh browser context signed in as `account`. The caller closes it. */
+export async function signIn(browser: Browser, account: Account) {
+  const context = await browser.newContext();
+  await context.addCookies(account.cookies);
+  return { context, page: await context.newPage() };
 }

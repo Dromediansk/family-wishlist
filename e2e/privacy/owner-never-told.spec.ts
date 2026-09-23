@@ -1,5 +1,5 @@
 import sk from "../../messages/sk.json";
-import { addWish, fulfil, reserve } from "../fixtures/wishes";
+import { addWish, fulfil, ownListPath, reserve, t } from "../fixtures/wishes";
 import { expect, test } from "../fixtures/world";
 
 /**
@@ -16,7 +16,7 @@ test("the owner's own list shows no claim, and names nobody", async ({
   await reserve(world, title);
 
   const owner = world.owner.page;
-  await owner.goto(`/g/${world.groupId}/member/${world.owner.userId}`);
+  await owner.goto(ownListPath(world));
 
   await expect(owner.getByText(title)).toBeVisible();
   await expect(owner.getByText(world.giver.name)).toHaveCount(0);
@@ -71,8 +71,7 @@ test("the owner's grid count does not betray the claim either", async ({
   // Anchor first: both cards must actually be on the page, or the negative
   // assertion below would pass just as well for a page that rendered
   // nothing — a redirect, a notFound(), or MemberCard dropping its count
-  // entirely. The name is a Link inside the card's h2, src/components/
-  // member-card.tsx:57-62.
+  // entirely. The name is a Link inside the card's h2 (member-card.tsx).
   await expect(
     owner.getByRole("link", { name: world.owner.name }),
   ).toBeVisible();
@@ -85,17 +84,9 @@ test("the owner's grid count does not betray the claim either", async ({
    * the "available / all" pair, because on the owner's own list that pair
    * *is* the claim. src/components/member-card.tsx, docs/decisions/privacy-rule.md
    *
-   * Asserted page-wide rather than scoped to the owner's card: MemberCard
-   * renders a plain Card with no container role to scope to, and adding a
-   * scope hook would mean a data-testid in src/, which this suite does not
-   * do. In this world the giver has no wishes, so the giver's own card also
-   * shows a bare count regardless — but the owner's card does not. Dropping
-   * member-card.tsx's `viewerIsOwner` guard by hand makes this fail.
-   *
-   * Coverage limit: this regex watches the pair *shape* (two numbers around
-   * a slash). A regression that instead rendered a bare `availableCount` —
-   * a lone "0" on the owner's one-wish card, with no slash at all — would
-   * still leak the claim and would not be caught here.
+   * Page-wide, since MemberCard has no role to scope to and the giver's card
+   * (no wishes) shows a bare count anyway. It watches the pair's shape only: a
+   * regression rendering a lone `availableCount` would slip past.
    */
   await expect(owner.getByText(/\d+\s*\/\s*\d+/)).toHaveCount(0);
 });
@@ -111,11 +102,11 @@ test("a reserved wish is frozen, and the refusal does not say by whom", async ({
   // the owner opens the same form as always — and only the save is refused.
   // docs/decisions/privacy-rule.md#the-deliberate-exception-a-reserved-wish-is-frozen
   const owner = world.owner.page;
-  await owner.goto(`/g/${world.groupId}/member/${world.owner.userId}`);
+  await owner.goto(ownListPath(world));
   await owner
     .getByRole("listitem")
     .filter({ hasText: title })
-    .getByRole("button", { name: sk.wishes.edit.trigger.replace("{title}", title) })
+    .getByRole("button", { name: t("wishes.edit.trigger", { title }) })
     .click();
 
   const dialog = owner.getByRole("dialog");
@@ -138,7 +129,7 @@ test("a hand-over live-syncs the owner's open tab, and the sync leaks nothing", 
   await addWish(world, canary);
 
   const owner = world.owner.page;
-  await owner.goto(`/g/${world.groupId}/member/${world.owner.userId}`);
+  await owner.goto(ownListPath(world));
   await expect(owner.getByText(secret)).toBeVisible();
   await expect(owner.getByText(canary)).toBeVisible();
 
