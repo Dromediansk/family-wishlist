@@ -192,5 +192,7 @@ async function LiveChannels() {
   // Unconfigured means no database to ask — getViewer() would throw. An
   // anonymous or groupless visitor simply has nothing to subscribe to.
   const viewer = isConfigured() ? await getViewer() : null;
-  return <LiveRefresh groupIds={viewer?.groups.map((group) => group.id) ?? []} />;
+  return (
+    <LiveRefresh groupIds={viewer?.groups.map((group) => group.id) ?? []} />
+  );
 }

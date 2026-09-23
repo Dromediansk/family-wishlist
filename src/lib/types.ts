@@ -144,8 +144,7 @@ export type Displayable = Pick<
  * refusal is. docs/decisions/ui-patterns.md#a-refusal-ends-the-dialog
  */
 export type ActionResult =
-  | { ok: true }
-  | { ok: false; error: string; final?: boolean };
+  { ok: true } | { ok: false; error: string; final?: boolean };
 
 /** The failed half, for components that hold on to one to render it. */
 export type ActionFailure = Extract<ActionResult, { ok: false }>;

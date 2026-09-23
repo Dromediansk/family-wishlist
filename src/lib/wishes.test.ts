@@ -258,4 +258,3 @@ describe("wishPhotoUrl", () => {
     expect(before).not.toBe(after);
   });
 });
-

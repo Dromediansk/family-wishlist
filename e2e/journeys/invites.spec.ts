@@ -18,7 +18,11 @@ test("an admin mints a link and a stranger joins on it", async ({
   const link = await admin.evaluate(() => navigator.clipboard.readText());
   expect(link).toContain("/join/");
 
-  const newcomer = await createAccount(world.runId, "newcomer", "Nová Nováková");
+  const newcomer = await createAccount(
+    world.runId,
+    "newcomer",
+    "Nová Nováková",
+  );
   const { context, page } = await signIn(browser, newcomer);
   try {
     await page.goto(link);

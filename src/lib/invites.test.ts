@@ -20,15 +20,15 @@ describe("inviteUsable", () => {
   });
 
   it("refuses a revoked invite", () => {
-    expect(inviteUsable(invite({ revokedAt: "2026-08-19T00:00:00.000Z" }), NOW)).toBe(
-      false,
-    );
+    expect(
+      inviteUsable(invite({ revokedAt: "2026-08-19T00:00:00.000Z" }), NOW),
+    ).toBe(false);
   });
 
   it("refuses an expired invite", () => {
-    expect(inviteUsable(invite({ expiresAt: "2026-08-19T00:00:00.000Z" }), NOW)).toBe(
-      false,
-    );
+    expect(
+      inviteUsable(invite({ expiresAt: "2026-08-19T00:00:00.000Z" }), NOW),
+    ).toBe(false);
   });
 
   it("accepts an invite that never expires", () => {
@@ -44,9 +44,9 @@ describe("inviteUsable", () => {
   });
 
   it("treats the expiry instant itself as expired", () => {
-    expect(
-      inviteUsable(invite({ expiresAt: NOW.toISOString() }), NOW),
-    ).toBe(false);
+    expect(inviteUsable(invite({ expiresAt: NOW.toISOString() }), NOW)).toBe(
+      false,
+    );
   });
 });
 

@@ -197,7 +197,9 @@ export function ActivityBell({
           buttonVariants({ variant: "ghost", size: "icon" }),
           "relative rounded-full",
         )}
-        aria-label={unseen > 0 ? t("labelUnseen", { count: unseen }) : t("label")}
+        aria-label={
+          unseen > 0 ? t("labelUnseen", { count: unseen }) : t("label")
+        }
       >
         <BellIcon />
         {unseen > 0 ? (
@@ -210,12 +212,17 @@ export function ActivityBell({
         ) : null}
       </DropdownMenuTrigger>
 
-      <DropdownMenuContent align="end" className="max-h-96 w-80 overflow-y-auto">
+      <DropdownMenuContent
+        align="end"
+        className="max-h-96 w-80 overflow-y-auto"
+      >
         <DropdownMenuLabel>{t("label")}</DropdownMenuLabel>
         <DropdownMenuSeparator />
 
         {items.length === 0 ? (
-          <p className="text-muted-foreground px-2 py-3 text-sm">{t("empty")}</p>
+          <p className="text-muted-foreground px-2 py-3 text-sm">
+            {t("empty")}
+          </p>
         ) : (
           items.map((item, index) => (
             <Fragment key={activityKey(item)}>

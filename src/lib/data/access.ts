@@ -84,8 +84,7 @@ export const getViewer = cache(async (): Promise<Viewer | null> => {
    */
   const peerIds: UserId[] = [];
   for (const row of (peersResult.data ?? []) as
-    | { user_id?: string }[]
-    | string[]) {
+    { user_id?: string }[] | string[]) {
     const value = typeof row === "string" ? row : row.user_id;
     if (value) peerIds.push(asUserId(value));
   }

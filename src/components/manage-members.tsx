@@ -102,8 +102,7 @@ function MemberAdminRow({
   const renamed = name.trim() !== member.name && name.trim() !== "";
 
   // Below sm: the role button is its icon alone, so this carries the name.
-  const roleHint =
-    member.role === "admin" ? t("demoteHint") : t("promoteHint");
+  const roleHint = member.role === "admin" ? t("demoteHint") : t("promoteHint");
 
   return (
     <li className="flex flex-col gap-2 py-4">

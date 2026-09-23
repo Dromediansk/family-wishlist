@@ -59,11 +59,7 @@ const photoSchema = z.discriminatedUnion("kind", [
 ]);
 
 const wishInputSchema = z.object({
-  title: z
-    .string()
-    .trim()
-    .min(1, "titleRequired")
-    .max(120, "titleTooLong"),
+  title: z.string().trim().min(1, "titleRequired").max(120, "titleTooLong"),
   description: optionalText(1000, "descriptionTooLong"),
   url: z
     .string()
@@ -72,8 +68,7 @@ const wishInputSchema = z.object({
     .nullable()
     .optional()
     .refine(
-      (value) =>
-        value == null || /^https?:\/\/\S+$/i.test(value),
+      (value) => value == null || /^https?:\/\/\S+$/i.test(value),
       "urlScheme",
     ),
   groupIds: z.array(z.uuid()).min(1, "pickGroup"),
@@ -223,7 +218,12 @@ export async function addWish(input: WishInput): Promise<ActionResult> {
     };
   }
 
-  const photo = await attachPhoto(wishId, viewer.userId, parsed.data.photo, text);
+  const photo = await attachPhoto(
+    wishId,
+    viewer.userId,
+    parsed.data.photo,
+    text,
+  );
 
   revalidatePath("/", "layout");
   await notifyOwnerChanged(viewer.userId);
@@ -283,7 +283,12 @@ export async function updateWish(
     return lookUpRefusal(id.data, viewer.userId, "update", text);
   }
 
-  const photo = await attachPhoto(id.data, viewer.userId, parsed.data.photo, text);
+  const photo = await attachPhoto(
+    id.data,
+    viewer.userId,
+    parsed.data.photo,
+    text,
+  );
 
   revalidatePath("/", "layout");
   await notifyOwnerChanged(viewer.userId);

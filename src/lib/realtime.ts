@@ -11,7 +11,9 @@ import { getSupabase } from "@/lib/supabase";
  * why `postgres_changes` is unusable here.
  * docs/decisions/live-updates.md
  */
-export async function notifyChanged(groupIds: readonly GroupId[]): Promise<void> {
+export async function notifyChanged(
+  groupIds: readonly GroupId[],
+): Promise<void> {
   try {
     const supabase = getSupabase();
 
@@ -19,7 +21,9 @@ export async function notifyChanged(groupIds: readonly GroupId[]): Promise<void>
     // what a serverless Server Action needs.
     await Promise.all(
       groupIds.map((groupId) =>
-        supabase.channel(channelFor(groupId)).httpSend(LIVE_EVENT, LIVE_PAYLOAD),
+        supabase
+          .channel(channelFor(groupId))
+          .httpSend(LIVE_EVENT, LIVE_PAYLOAD),
       ),
     );
   } catch (error) {

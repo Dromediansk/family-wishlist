@@ -1,0 +1,11 @@
+# Generated, vendored or not ours to format.
+.claude/
+.agents/
+.superpowers/
+supabase/.temp/
+package-lock.json
+next-env.d.ts
+AGENTS.md
+
+# Hand-wrapped prose; Prettier would re-flow tables and list continuations.
+*.md

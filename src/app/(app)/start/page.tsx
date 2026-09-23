@@ -56,9 +56,7 @@ export default async function StartPage({
         <h1 className="text-2xl font-semibold text-balance">
           {hasGroup ? t("anotherGroup") : t("welcome")}
         </h1>
-        <p className="text-muted-foreground mt-1 max-w-[62ch]">
-          {t("intro")}
-        </p>
+        <p className="text-muted-foreground mt-1 max-w-[62ch]">{t("intro")}</p>
       </div>
 
       {error ? (

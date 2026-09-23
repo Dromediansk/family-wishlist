@@ -58,9 +58,7 @@ export const RETURN_TO_COOKIE = "wishlist-return-to";
 /** Base64url, the alphabet `insertInvite` mints its token from. */
 const RETURN_TO_PATTERN = /^\/join\/[A-Za-z0-9_-]{1,255}$/;
 
-export function safeReturnTo(
-  value: string | null | undefined,
-): string | null {
+export function safeReturnTo(value: string | null | undefined): string | null {
   if (!value) return null;
   return RETURN_TO_PATTERN.test(value) ? value : null;
 }

@@ -250,16 +250,23 @@ export const getActivity = cache(
     const since = activityWindowStart(new Date());
     const hasOthers = others.length > 0;
 
-    const [names, peerGroups, marks, fulfilledResult, joinedResult, addedResult, claimedResult] =
-      await Promise.all([
-        getPeerNames(viewer),
-        getPeerGroups(viewer),
-        activityMarks(viewer),
-        fulfilledGiftsQuery(viewer, since),
-        joinedMembersQuery(viewer, since),
-        hasOthers ? addedWishesQuery(viewer, since, others) : null,
-        hasOthers ? claimedWishesQuery(viewer, since, others) : null,
-      ]);
+    const [
+      names,
+      peerGroups,
+      marks,
+      fulfilledResult,
+      joinedResult,
+      addedResult,
+      claimedResult,
+    ] = await Promise.all([
+      getPeerNames(viewer),
+      getPeerGroups(viewer),
+      activityMarks(viewer),
+      fulfilledGiftsQuery(viewer, since),
+      joinedMembersQuery(viewer, since),
+      hasOthers ? addedWishesQuery(viewer, since, others) : null,
+      hasOthers ? claimedWishesQuery(viewer, since, others) : null,
+    ]);
 
     if (!marks) return EMPTY;
 
@@ -292,35 +299,39 @@ export const getActivity = cache(
         )
       : [];
 
-    const fulfilled = rowsOf<FulfilledActivityRow>(fulfilledResult).map((row) => ({
-      kind: "wish-fulfilled" as const,
-      id: row.id,
-      at: row.fulfilled_at,
-      title: row.title,
-      ownerName: row.owner_name,
-      giverName: row.giver_name,
-      groupNames: snapshotGroupNames(row),
-      viewerIsOwner: row.owner_id === viewer.userId,
-    }));
+    const fulfilled = rowsOf<FulfilledActivityRow>(fulfilledResult).map(
+      (row) => ({
+        kind: "wish-fulfilled" as const,
+        id: row.id,
+        at: row.fulfilled_at,
+        title: row.title,
+        ownerName: row.owner_name,
+        giverName: row.giver_name,
+        groupNames: snapshotGroupNames(row),
+        viewerIsOwner: row.owner_id === viewer.userId,
+      }),
+    );
 
     // Resolving an id to its `GroupRef`, not a second guard: the
     // `.in("group_id", …)` above is what guarantees every row names one of
     // these. Through a map rather than a `find` per row, same as `GroupTags`.
     const groupsById = new Map(viewer.groups.map((group) => [group.id, group]));
-    const joined = rowsOf<MembershipActivityRow>(joinedResult).flatMap((row) => {
-      const group = groupsById.get(asGroupId(row.group_id));
-      return group
-        ? [
-            {
-              kind: "member-joined" as const,
-              at: row.created_at,
-              // The membership row *is* the per-group label, so no name lookup.
-              member: { id: asUserId(row.user_id), name: row.name },
-              group,
-            },
-          ]
-        : [];
-    });
+    const joined = rowsOf<MembershipActivityRow>(joinedResult).flatMap(
+      (row) => {
+        const group = groupsById.get(asGroupId(row.group_id));
+        return group
+          ? [
+              {
+                kind: "member-joined" as const,
+                at: row.created_at,
+                // The membership row *is* the per-group label, so no name lookup.
+                member: { id: asUserId(row.user_id), name: row.name },
+                group,
+              },
+            ]
+          : [];
+      },
+    );
 
     const items = mergeActivity(
       [added, claimed, fulfilled, joined],

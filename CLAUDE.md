@@ -25,13 +25,16 @@ own names and roles. UI is **Slovak and English**; Slovak is the default.
 | `npm run build` | Production build |
 | `npm run typecheck` | `tsc --noEmit` |
 | `npm run lint` | ESLint |
+| `npm run format` / `format:check` | Prettier — write, or check as CI does |
 | `npm test` | Vitest (`src/**/*.test.ts`, node env) |
 | `npm run test:e2e` | Playwright journeys against the local stack (needs `db:start`) |
 | `npm run db:start` / `db:stop` / `db:status` | Local Supabase stack in Docker |
 | `npm run db:reset` | Rebuild the local DB from `supabase/migrations/` |
 | `npm run db:seed` | Fake family — run it *after* signing in |
 
-Run `npm run typecheck && npm run lint && npm test` before claiming work is done.
+Run `npm run typecheck && npm run lint && npm run format:check && npm test`
+before claiming work is done. CI runs the same, plus `test:e2e`, on every PR
+(`.github/workflows/pr-checks.yml`).
 Nothing works until `npm run db:start` is running.
 
 ## The one rule

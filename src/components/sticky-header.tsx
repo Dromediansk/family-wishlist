@@ -18,7 +18,8 @@ const BAR_LAYOUT =
  * out like the plain row it replaced (`pb-3` + `mb-5` is the old `mb-8`) while
  * the stuck bar still has room on both edges.
  */
-const BAR_INSET = "mt-[calc(var(--header-inset)*-1)] pt-(--header-inset) pb-3 mb-5";
+const BAR_INSET =
+  "mt-[calc(var(--header-inset)*-1)] pt-(--header-inset) pb-3 mb-5";
 
 /**
  * `translate` rather than `transform`: Tailwind 4 writes `translate-y-*` to the

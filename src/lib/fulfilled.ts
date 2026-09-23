@@ -63,6 +63,8 @@ export type FulfilledActivityRow = {
 };
 
 /** The pre-0010 repair, shared so the two readers cannot disagree about it. */
-export function snapshotGroupNames(row: { group_names: string[] | null }): string[] {
+export function snapshotGroupNames(row: {
+  group_names: string[] | null;
+}): string[] {
   return row.group_names ?? [];
 }
