@@ -86,11 +86,10 @@ describe("activityFloor", () => {
 describe("labelGroup", () => {
   it("picks the first shared group in the viewer's own order", () => {
     expect(
-      labelGroup(
-        [PRACA.id, RODINA.id],
-        new Set([PRACA.id, RODINA.id]),
-        [RODINA, PRACA],
-      ),
+      labelGroup([PRACA.id, RODINA.id], new Set([PRACA.id, RODINA.id]), [
+        RODINA,
+        PRACA,
+      ]),
     ).toEqual(RODINA);
   });
 

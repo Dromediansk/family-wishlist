@@ -35,7 +35,9 @@ export async function reserve(world: World, title: string) {
   const row = giver.getByRole("listitem").filter({ hasText: title });
   await row.getByRole("button", { name: sk.wishes.claim }).click();
   // It is now the giver's to release or hand over.
-  await expect(row.getByRole("button", { name: sk.wishes.release })).toBeVisible();
+  await expect(
+    row.getByRole("button", { name: sk.wishes.release }),
+  ).toBeVisible();
 }
 
 /** Hand `title` over from the giver's buying list, and confirm. */

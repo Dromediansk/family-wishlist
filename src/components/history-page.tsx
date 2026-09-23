@@ -68,10 +68,7 @@ export function HistoryPage({
                 key={wish.id}
                 wish={wish}
                 tags={
-                  <ArchivedGroupTags
-                    names={wish.groupNames}
-                    groups={groups}
-                  />
+                  <ArchivedGroupTags names={wish.groupNames} groups={groups} />
                 }
                 actionBeside
                 action={

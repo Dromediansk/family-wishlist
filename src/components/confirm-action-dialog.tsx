@@ -67,7 +67,9 @@ export function ConfirmActionDialog({
       <AlertDialogTrigger asChild>{trigger}</AlertDialogTrigger>
       <AlertDialogContent className="max-w-md">
         <AlertDialogHeader>
-          <AlertDialogTitle>{refused ? refusedTitle : question}</AlertDialogTitle>
+          <AlertDialogTitle>
+            {refused ? refusedTitle : question}
+          </AlertDialogTitle>
           <AlertDialogDescription role={refused ? "alert" : undefined}>
             {refused ? failure.error : description}
           </AlertDialogDescription>

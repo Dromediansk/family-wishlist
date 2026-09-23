@@ -42,7 +42,11 @@ export function EditWishDialog({
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="ghost" size="icon" aria-label={t("trigger", { title: wish.title })}>
+        <Button
+          variant="ghost"
+          size="icon"
+          aria-label={t("trigger", { title: wish.title })}
+        >
           <PencilIcon />
         </Button>
       </DialogTrigger>

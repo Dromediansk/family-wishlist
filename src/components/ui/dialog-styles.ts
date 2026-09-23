@@ -80,8 +80,7 @@ export const ANIMATION_CARD_SM =
  * `overflow-y-auto`. docs/decisions/ui-patterns.md#three-things-that-will-bite
  */
 
-export const HEADER =
-  "flex shrink-0 flex-col gap-1.5 px-6 pt-6 pb-3 text-left";
+export const HEADER = "flex shrink-0 flex-col gap-1.5 px-6 pt-6 pb-3 text-left";
 
 /** `overscroll-contain` stops a phone rubber-banding the page behind the panel. */
 export const BODY =

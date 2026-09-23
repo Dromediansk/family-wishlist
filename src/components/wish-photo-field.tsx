@@ -15,9 +15,7 @@ import { cn } from "@/lib/utils";
  * simply "no photo".
  */
 export type WishPhotoChoice =
-  | { kind: "unchanged" }
-  | { kind: "clear" }
-  | { kind: "set"; file: File };
+  { kind: "unchanged" } | { kind: "clear" } | { kind: "set"; file: File };
 
 type Props = {
   id: string;

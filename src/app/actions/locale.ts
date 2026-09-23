@@ -4,11 +4,7 @@ import { revalidatePath } from "next/cache";
 import { cookies } from "next/headers";
 import { z } from "zod";
 
-import {
-  LOCALE_COOKIE,
-  LOCALE_COOKIE_MAX_AGE,
-  LOCALES,
-} from "@/i18n/config";
+import { LOCALE_COOKIE, LOCALE_COOKIE_MAX_AGE, LOCALES } from "@/i18n/config";
 
 /**
  * Remember which language to render in.

@@ -48,7 +48,9 @@ const MS_PER_DAY = 86_400_000;
 
 /** The oldest moment the window reaches, as an ISO string a query can compare. */
 export function activityWindowStart(now: Date): string {
-  return new Date(now.getTime() - ACTIVITY_WINDOW_DAYS * MS_PER_DAY).toISOString();
+  return new Date(
+    now.getTime() - ACTIVITY_WINDOW_DAYS * MS_PER_DAY,
+  ).toISOString();
 }
 
 /**
@@ -158,7 +160,8 @@ export function mergeActivity(
   const items: ActivityItem[] = [];
   for (const source of sources) {
     // Strictly after: the moment of arrival is not itself something to report.
-    for (const item of source) if (item && Date.parse(item.at) > floor) items.push(item);
+    for (const item of source)
+      if (item && Date.parse(item.at) > floor) items.push(item);
   }
 
   return items

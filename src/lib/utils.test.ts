@@ -65,11 +65,15 @@ describe("formatDate", () => {
   });
 
   it("does not pad a single-digit day", () => {
-    expect(formatDate("2026-01-05T12:00:00.000Z", "sk")).toBe("5. januára 2026");
+    expect(formatDate("2026-01-05T12:00:00.000Z", "sk")).toBe(
+      "5. januára 2026",
+    );
   });
 
   it("reads a date on the year boundary as that year", () => {
-    expect(formatDate("2026-01-01T12:00:00.000Z", "sk")).toBe("1. januára 2026");
+    expect(formatDate("2026-01-01T12:00:00.000Z", "sk")).toBe(
+      "1. januára 2026",
+    );
   });
 
   it("writes an English date day-first, as it is read in Slovakia", () => {
@@ -82,7 +86,9 @@ describe("formatDate", () => {
     // Same answer whichever order the two languages are asked in — the cache
     // must be keyed by locale, not shared between them.
     expect(formatDate("2026-01-05T12:00:00.000Z", "en")).toBe("5 January 2026");
-    expect(formatDate("2026-01-05T12:00:00.000Z", "sk")).toBe("5. januára 2026");
+    expect(formatDate("2026-01-05T12:00:00.000Z", "sk")).toBe(
+      "5. januára 2026",
+    );
     expect(formatDate("2026-01-05T12:00:00.000Z", "en")).toBe("5 January 2026");
   });
 });

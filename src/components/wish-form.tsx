@@ -42,7 +42,10 @@ type Props = {
   onDone: () => void;
 };
 
-const EMPTY_TEXT: Pick<WishFormValues, "title" | "description" | "url" | "photo"> = {
+const EMPTY_TEXT: Pick<
+  WishFormValues,
+  "title" | "description" | "url" | "photo"
+> = {
   title: "",
   description: "",
   url: "",
@@ -226,7 +229,9 @@ export function WishForm({
             size="lg"
             className={ACTION_BUTTON}
             loading={pending}
-            disabled={values.title.trim() === "" || values.groupIds.length === 0}
+            disabled={
+              values.title.trim() === "" || values.groupIds.length === 0
+            }
           >
             {submitLabel}
           </Button>

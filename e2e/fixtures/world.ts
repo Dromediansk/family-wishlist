@@ -1,12 +1,7 @@
 import { test as base, expect, type Page } from "@playwright/test";
 
 import { adminClient, newRunId } from "./stack";
-import {
-  createAccount,
-  deleteAccount,
-  signIn,
-  type Account,
-} from "./session";
+import { createAccount, deleteAccount, signIn, type Account } from "./session";
 
 export type Actor = Account & { page: Page };
 
@@ -149,8 +144,18 @@ export const test = base.extend<{ world: World }>({
     // throws, so a half-built world is torn down by withUndo instead.
     const [{ groupId, ownerAccount, giverAccount }, teardown] = await withUndo(
       async (undo) => {
-        const ownerAccount = await tracked(undo, runId, "owner", "Oliver Obdarovaný");
-        const giverAccount = await tracked(undo, runId, "giver", "Gabika Darkyňa");
+        const ownerAccount = await tracked(
+          undo,
+          runId,
+          "owner",
+          "Oliver Obdarovaný",
+        );
+        const giverAccount = await tracked(
+          undo,
+          runId,
+          "giver",
+          "Gabika Darkyňa",
+        );
 
         const groupId = await makeGroup(runId, ownerAccount.userId);
         undo(() => deleteGroup(groupId));

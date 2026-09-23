@@ -4,12 +4,7 @@ import { getTranslations } from "next-intl/server";
 import { MockPanel } from "@/components/landing/mock/mock-card";
 import { buttonVariants } from "@/components/ui/button";
 import { BODY, FOOTER } from "@/components/ui/dialog-styles";
-import {
-  CHECKBOX,
-  INPUT,
-  LABEL,
-  TEXTAREA,
-} from "@/components/ui/field-styles";
+import { CHECKBOX, INPUT, LABEL, TEXTAREA } from "@/components/ui/field-styles";
 import {
   MOCK_GROUPS,
   TICKED_MOCK_GROUPS,

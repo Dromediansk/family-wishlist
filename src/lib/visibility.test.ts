@@ -49,7 +49,11 @@ describe("claimedByOther", () => {
   });
 
   it("says the viewer's own claim is not somebody else's", () => {
-    const mine: ClaimView = { kind: "taken-by", at: AT, by: { id: ME, name: "Ja" } };
+    const mine: ClaimView = {
+      kind: "taken-by",
+      at: AT,
+      by: { id: ME, name: "Ja" },
+    };
     expect(claimedByOther(mine, ME)).toBe(false);
   });
 
@@ -175,15 +179,15 @@ describe("wishVisibleTo", () => {
   });
 
   it("is invisible when the wish has no groups at all", () => {
-    expect(
-      wishVisibleTo(new Set(), new Set([FAMILY]), new Set([FAMILY])),
-    ).toBe(false);
+    expect(wishVisibleTo(new Set(), new Set([FAMILY]), new Set([FAMILY]))).toBe(
+      false,
+    );
   });
 
   it("is invisible when the viewer has no groups at all", () => {
-    expect(
-      wishVisibleTo(new Set([FAMILY]), new Set(), new Set([FAMILY])),
-    ).toBe(false);
+    expect(wishVisibleTo(new Set([FAMILY]), new Set(), new Set([FAMILY]))).toBe(
+      false,
+    );
   });
 
   it("is invisible when the tag is stale — the owner has since left that group", () => {

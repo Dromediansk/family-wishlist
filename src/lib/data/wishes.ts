@@ -3,7 +3,12 @@ import "server-only";
 import { getPeerGroups, getPeerNames, groupIdsOf } from "@/lib/data/members";
 import { asUserId, type UserId } from "@/lib/ids";
 import { getSupabase } from "@/lib/supabase";
-import type { ClaimedWish, GroupContext, Viewer, WishListView } from "@/lib/types";
+import type {
+  ClaimedWish,
+  GroupContext,
+  Viewer,
+  WishListView,
+} from "@/lib/types";
 import { canReadList, liveWishGroups, wishVisibleTo } from "@/lib/visibility";
 import {
   OWNER_WISH_COLUMNS,

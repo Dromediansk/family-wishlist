@@ -189,7 +189,8 @@ const clearPreviousSeed = async (me) => {
     wishes.length && `${wishes.length} of your wishes`,
   ].filter(Boolean);
 
-  if (removed.length) console.log(`Cleared from a previous seed: ${removed.join(", ")}.`);
+  if (removed.length)
+    console.log(`Cleared from a previous seed: ${removed.join(", ")}.`);
 };
 
 /**
@@ -297,7 +298,10 @@ const insertWishes = async (groupId, ownerId, wishes) => {
 const claim = async (wishId, claimerId) => {
   const { error } = await db
     .from("wishes")
-    .update({ claimed_by_user_id: claimerId, claimed_at: new Date().toISOString() })
+    .update({
+      claimed_by_user_id: claimerId,
+      claimed_at: new Date().toISOString(),
+    })
     .eq("id", wishId);
 
   if (error) throw error;
@@ -305,11 +309,15 @@ const claim = async (wishId, claimerId) => {
 
 const report = async (me, groupId) => {
   const counts = await Promise.all(
-    ["app_users", "groups", "memberships", "wishes", "wish_groups"].map(async (table) => {
-      const { count, error } = await db.from(table).select("*", { count: "exact", head: true });
-      if (error) throw error;
-      return `${count} ${table}`;
-    }),
+    ["app_users", "groups", "memberships", "wishes", "wish_groups"].map(
+      async (table) => {
+        const { count, error } = await db
+          .from(table)
+          .select("*", { count: "exact", head: true });
+        if (error) throw error;
+        return `${count} ${table}`;
+      },
+    ),
   );
 
   // Whole-table counts, not "rows this run inserted" — anything you added by hand is in
