@@ -12,6 +12,7 @@ own names and roles. UI is **Slovak and English**; Slovak is the default.
 | Writing code | [`docs/technical-context.md`](docs/technical-context.md) — patterns, standards, practices |
 | Touching an area | the matching file in [`docs/decisions/`](docs/decisions/README.md) |
 | Writing any user-facing string | [`docs/decisions/language.md`](docs/decisions/language.md) — two locales, one catalogue |
+| Writing a test | [`docs/decisions/testing.md`](docs/decisions/testing.md) — two suites, and what belongs in each |
 | Running or deploying | [`docs/setup/`](docs/setup/local-development.md) |
 
 **Do not restate those documents here or in code comments — link to them.**
@@ -25,6 +26,7 @@ own names and roles. UI is **Slovak and English**; Slovak is the default.
 | `npm run typecheck` | `tsc --noEmit` |
 | `npm run lint` | ESLint |
 | `npm test` | Vitest (`src/**/*.test.ts`, node env) |
+| `npm run test:e2e` | Playwright journeys against the local stack (needs `db:start`) |
 | `npm run db:start` / `db:stop` / `db:status` | Local Supabase stack in Docker |
 | `npm run db:reset` | Rebuild the local DB from `supabase/migrations/` |
 | `npm run db:seed` | Fake family — run it *after* signing in |
@@ -124,8 +126,9 @@ to say.
   `Intl.Collator("sk")` deliberately does *not* follow the reader; `formatDate`
   does.
 - Path alias `@/*` → `./src/*`.
-- Tests cover **pure functions only** — no mocks, no DB. Keep new logic pure
-  enough to test that way.
+- Unit tests cover **pure functions only** — no mocks, no DB. Keep new logic
+  pure enough to test that way. Journeys are covered by Playwright in `e2e/`;
+  [`docs/decisions/testing.md`](docs/decisions/testing.md) says which is which.
 - Comments explain what the code cannot say for itself, in a line or two.
   Longer reasoning belongs in `docs/decisions/`, linked from the comment.
 - Dialogs: `Dialog` for forms, `AlertDialog` for questions. Every child of a

@@ -12,6 +12,7 @@ what you are touching; these are linked from the code they explain.
 | [Live updates](live-updates.md) | The empty ping, per-group channels, keeping the socket alive, and the client cache |
 | [UI patterns](ui-patterns.md) | Dialogs, busy state, refusals, photos, group tags, layout, typography and the PWA |
 | [Language](language.md) | Why the locale is a cookie rather than a URL, how a first visit is guessed, what happens to error messages and plurals, and why the legal pages are messages |
+| [Testing](testing.md) | What belongs in e2e and what does not, how a test gets a session and its data, and why the suite can only reach loopback |
 
 ## Adding one
 

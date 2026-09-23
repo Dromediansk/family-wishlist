@@ -52,3 +52,9 @@ next-env.d.ts
 /docs/superpowers/
 
 /.superpowers/
+
+# playwright
+/test-results/
+/playwright-report/
+/blob-report/
+/.playwright/

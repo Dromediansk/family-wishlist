@@ -165,4 +165,13 @@ loopback. It writes fabricated data with a key that bypasses RLS, so it has to b
 npm run typecheck && npm run lint && npm test
 ```
 
-Tests are Vitest over **pure functions only** — no mocks, no database.
+Vitest covers pure functions only — no mocks, no database. Playwright covers
+journeys against this same stack:
+
+```bash
+npx playwright install chromium   # once per machine
+npm run test:e2e
+```
+
+Why the browser is a separate step, and what belongs in which suite:
+[decisions/testing.md](../decisions/testing.md#running-it).

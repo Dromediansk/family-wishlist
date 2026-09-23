@@ -126,6 +126,8 @@ same pair.**
 | `0009_wish_groups.sql` | Per-wish group visibility: `wish_groups`, its ownership guard, `wish_shares_group`, the two claim triggers sharpened onto it, and `update_wish` | no |
 | `0010_fulfilled_wish_groups.sql` | `fulfilled_wishes.group_names`, `shared_wish_groups`, and `fulfil_wish` rewritten to snapshot the tags both parties shared | no |
 | `0011_group_notes.sql` | `group_notes`: one private note per person per group, hung off `memberships` by a cascading composite foreign key | no |
+| `0012_activity_seen.sql` | The activity bell's two moments on `app_users`: `activity_from`, backfilled by its own default, and `activity_seen_at` | no |
+| `0013_release_orphaned_claims_definer.sql` | `release_orphaned_claims` becomes `security definer`, so the trigger survives a delete made by `supabase_auth_admin`. Body unchanged | no |
 
 **`0003_auth.sql` deletes every member and every wish.** Identity moved from "a
 name you picked" to "a Google account", and there is no way to tell which
@@ -146,7 +148,7 @@ drops a table at the end, and there is no way back from that without a snapshot.
 **In production: by hand**, pasted into the Supabase SQL editor, in order,
 skipping `0002`.
 
-**Locally:** `npm run db:reset` applies all eleven. It runs `0002` too, which is
+**Locally:** `npm run db:reset` applies all thirteen. It runs `0002` too, which is
 harmless — that file is entirely comments. The CLI accepts the `0001_`-style
 names; they need no timestamp prefix.
 
