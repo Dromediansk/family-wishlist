@@ -92,8 +92,8 @@ describe("formatDate", () => {
   });
 
   it("keeps a bare date on its own day, in every timezone", () => {
-    // Run this file under TZ=America/New_York too — new Date("2026-10-15")
-    // is UTC midnight, which is 14 October there.
+    // vitest.config.mts pins the suite west of UTC, where new Date("2026-10-15")
+    // — UTC midnight — is still 14 October.
     expect(formatDate("2026-10-15", "sk")).toBe("15. októbra 2026");
     expect(formatDate("2026-10-15", "en")).toBe("15 October 2026");
   });
