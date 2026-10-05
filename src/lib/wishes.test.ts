@@ -30,6 +30,7 @@ const claimedRow: ViewerWishRow = {
   url: "https://example.com/socks",
   photo_path: "11111111-1111-4111-8111-111111111111/abc123.webp",
   created_at: "2026-01-01T00:00:00.000Z",
+  needed_by: "2026-12-24",
   claimed_at: "2026-01-02T00:00:00.000Z",
   claimed_by_user_id: asUserId("22222222-2222-4222-8222-222222222222"),
 };
@@ -44,7 +45,13 @@ describe("toOwnerWish", () => {
       url: "https://example.com/socks",
       photo: claimedRow.photo_path,
       createdAt: claimedRow.created_at,
+      neededBy: "2026-12-24",
     });
+  });
+
+  it("carries the needed-by date, and null when there is none", () => {
+    expect(toOwnerWish(claimedRow).neededBy).toBe("2026-12-24");
+    expect(toOwnerWish({ ...claimedRow, needed_by: null }).neededBy).toBeNull();
   });
 
   it("carries no claim information, even from a fully claimed row", () => {
@@ -85,6 +92,7 @@ describe("toViewerWish", () => {
       url: null,
       photo_path: null,
       created_at: "2026-01-01T00:00:00.000Z",
+      needed_by: null,
       claimed_at: claimedBy ? "2026-02-01T00:00:00.000Z" : null,
       claimed_by_user_id: claimedBy,
     };
@@ -140,6 +148,7 @@ describe("toClaimedWish", () => {
     url: null,
     photo_path: null,
     created_at: "2026-01-01T00:00:00.000Z",
+    needed_by: null,
     owner_user_id: OWNER,
   };
 

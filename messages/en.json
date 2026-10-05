@@ -50,6 +50,8 @@
     "noteTooLong": "The note can be at most {max} characters.",
     "urlScheme": "The link must start with http:// or https://",
     "pickGroup": "Pick at least one group.",
+    "neededByInvalid": "That date doesn't look right.",
+    "neededByPast": "That day has passed. Pick today or a later day.",
     "photoUnreadable": "The photo could not be read.",
     "photoTooLarge": "The photo can be at most {max} MB.",
     "photoNotImage": "The photo must be an image (JPEG, PNG or WebP).",

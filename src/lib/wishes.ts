@@ -10,7 +10,7 @@ import { liveWishGroups, revealClaimer } from "@/lib/visibility";
 
 /** Columns selected when reading a list for its own owner. */
 export const OWNER_WISH_COLUMNS =
-  "id, title, description, url, photo_path, created_at";
+  "id, title, description, url, photo_path, created_at, needed_by";
 
 export type OwnerWishRow = {
   id: string;
@@ -19,6 +19,8 @@ export type OwnerWishRow = {
   url: string | null;
   photo_path: string | null;
   created_at: string;
+  /** A bare `yyyy-MM-dd`, as Postgres returns a `date`. */
+  needed_by: string | null;
 };
 
 /** Columns selected when reading someone else's list. */
@@ -81,6 +83,7 @@ export function toOwnerWish(row: OwnerWishRow): OwnerWish {
     url: row.url,
     photo: row.photo_path,
     createdAt: row.created_at,
+    neededBy: row.needed_by,
   };
 }
 

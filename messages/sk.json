@@ -50,6 +50,8 @@
     "noteTooLong": "Poznámka môže mať najviac {max} znakov.",
     "urlScheme": "Odkaz musí začínať na http:// alebo https://",
     "pickGroup": "Vyber aspoň jednu skupinu.",
+    "neededByInvalid": "Tento dátum nevyzerá správne.",
+    "neededByPast": "Tento deň už uplynul. Vyber dnešok alebo neskorší deň.",
     "photoUnreadable": "Fotku sa nepodarilo načítať.",
     "photoTooLarge": "Fotka môže mať najviac {max} MB.",
     "photoNotImage": "Fotka musí byť obrázok (JPEG, PNG alebo WebP).",
