@@ -9,6 +9,11 @@ import { getWishOwner } from "@/lib/data/wishes";
 import type { UserId } from "@/lib/ids";
 import { MAX_PHOTO_BYTES, MAX_PHOTO_MB, sniffImageType } from "@/lib/images";
 import {
+  isNeededByAcceptable,
+  isNeededByDate,
+  neededByColumn,
+} from "@/lib/needed-by";
+import {
   pruneWishPhotos,
   removeWishPhoto,
   uploadWishPhoto,
@@ -58,6 +63,23 @@ const photoSchema = z.discriminatedUnion("kind", [
   }),
 ]);
 
+/**
+ * The needed-by day, as three cases like the photo: an edit must be able to
+ * leave an overdue date alone, which "send the field's value" cannot say.
+ * Only a `set` date is checked against the calendar.
+ */
+const neededBySchema = z.discriminatedUnion("kind", [
+  z.object({ kind: z.literal("unchanged") }),
+  z.object({ kind: z.literal("clear") }),
+  z.object({
+    kind: z.literal("set"),
+    date: z
+      .string()
+      .refine(isNeededByDate, "neededByInvalid")
+      .refine((date) => isNeededByAcceptable(date), "neededByPast"),
+  }),
+]);
+
 const wishInputSchema = z.object({
   title: z.string().trim().min(1, "titleRequired").max(120, "titleTooLong"),
   description: optionalText(1000, "descriptionTooLong"),
@@ -73,6 +95,7 @@ const wishInputSchema = z.object({
     ),
   groupIds: z.array(z.uuid()).min(1, "pickGroup"),
   photo: photoSchema.optional().default({ kind: "unchanged" }),
+  neededBy: neededBySchema.optional().default({ kind: "unchanged" }),
 });
 
 export type WishInput = z.input<typeof wishInputSchema>;
@@ -191,6 +214,8 @@ export async function addWish(input: WishInput): Promise<ActionResult> {
       title: parsed.data.title,
       description: parsed.data.description ?? null,
       url: parsed.data.url ?? null,
+      // A new wish has nothing to keep, so `unchanged` and `clear` both store none.
+      needed_by: neededByColumn(parsed.data.neededBy).value,
     })
     // The id comes back because a photo is stored under it: the wish has to
     // exist before its picture has anywhere to go. `single` means a row that
@@ -268,6 +293,8 @@ export async function updateWish(
     return { ok: false, error: text("invalidGroup") };
   }
 
+  const neededBy = neededByColumn(parsed.data.neededBy);
+
   const supabase = getSupabase();
   const { data, error } = await supabase.rpc("update_wish", {
     p_wish_id: id.data,
@@ -276,6 +303,8 @@ export async function updateWish(
     p_description: parsed.data.description ?? null,
     p_url: parsed.data.url ?? null,
     p_group_ids: parsed.data.groupIds,
+    p_set_needed_by: neededBy.set,
+    p_needed_by: neededBy.value,
   });
 
   if (error) return { ok: false, error: error.message };

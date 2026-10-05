@@ -50,6 +50,8 @@ export type OwnerWish = {
   /** The Storage object key, not a URL. `wishPhotoUrl` turns it into one. */
   photo: string | null;
   createdAt: string;
+  /** Bare `yyyy-MM-dd`, informational only. `src/lib/needed-by.ts` */
+  neededBy: string | null;
 };
 
 /**

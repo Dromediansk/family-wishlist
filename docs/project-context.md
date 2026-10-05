@@ -94,6 +94,9 @@ Rationale, enforcement and the holes in full:
 
 - A wish belongs to one account and appears on exactly one list.
 - Only its owner may add, edit or delete it.
+- It may carry a **needed-by day**. It tells givers, and nothing else: it never
+  releases, fulfils, hides or reorders a wish, and it freezes with the rest of a
+  reserved one.
 - It must be tagged with **at least one** of its owner's groups, and only the
   owner chooses the tags.
 - It ends three ways and only three: the owner deletes it while unreserved; the

@@ -10,6 +10,7 @@ import {
   EditWishDialog,
 } from "@/components/edit-wish-dialog";
 import { GroupTags } from "@/components/group-tags";
+import { NeededBy } from "@/components/needed-by";
 import { SetupRequired } from "@/components/setup-required";
 import { WishRow } from "@/components/wish-row";
 import { Button } from "@/components/ui/button";
@@ -95,6 +96,7 @@ export default async function MemberPage({
                     tags={
                       <GroupTags groupIds={wish.groupIds} groups={ctx.groups} />
                     }
+                    neededBy={<NeededBy date={wish.neededBy} />}
                     action={
                       // A gap between two 44px targets, one of which deletes.
                       <div className="flex items-center gap-1">
@@ -111,6 +113,7 @@ export default async function MemberPage({
                     // Anything somebody else holds dims down, whether or not
                     // this viewer is told who that somebody is.
                     dimmed={claimedByOther(wish.claim, ctx.userId)}
+                    neededBy={<NeededBy date={wish.neededBy} />}
                     action={
                       <ClaimButton
                         wishId={wish.id}

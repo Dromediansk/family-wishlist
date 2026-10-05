@@ -5,6 +5,7 @@ import { getTranslations } from "next-intl/server";
 
 import { ClaimEndings } from "@/components/claim-button";
 import { GroupTags } from "@/components/group-tags";
+import { NeededBy } from "@/components/needed-by";
 import { SetupRequired } from "@/components/setup-required";
 import { WishRow } from "@/components/wish-row";
 import { Button } from "@/components/ui/button";
@@ -69,6 +70,7 @@ export default async function BuyingPage() {
                 tags={
                   <GroupTags groupIds={wish.groupIds} groups={viewer.groups} />
                 }
+                neededBy={<NeededBy date={wish.neededBy} />}
                 action={
                   <div className="flex flex-col gap-2 sm:items-end">
                     <span className="text-muted-foreground text-sm">

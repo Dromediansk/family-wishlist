@@ -73,6 +73,26 @@ delete a reserved wish. Three things take an item off it: releasing it,
 pressing **Darované**, and either of you being
 [removed from the group](groups-and-invites.md#removing-somebody) you share.
 
+## A needed-by date
+
+An owner who needs something soon, with no occasion coming, can say by when.
+It is a fact for givers and does nothing on its own: the one rule lets no date
+end the secret, so a passed day cannot release a claim, fulfil a wish, change
+who may claim it or tell the owner whether anybody did. Lists stay oldest
+first, so it is not a priority either — that remains a non-goal.
+
+It is a column under `update_wish`'s guard like any other, so a reserved wish's
+day freezes with it, and `/buying` still never changes underneath a giver.
+The form sends it as `unchanged`, `clear` or `set`, as the photo does: a guard
+in the `WHERE` would make a refused date indistinguishable from a reserved wish
+in `lookUpRefusal`, and the owner of an overdue wish must still be able to fix
+a typo without re-dating it.
+
+"Today" is Bratislava's. A day before it is refused, yesterday included, but
+only when it is newly set: nothing can be needed by a day already gone. The
+schema has no `CHECK` for it — a constraint cannot know what day it is — which
+makes this the one wish field validated once.
+
 ## Photos
 
 A wish may carry one picture — usually a screenshot of the page selling it,

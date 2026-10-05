@@ -50,6 +50,8 @@
     "noteTooLong": "The note can be at most {max} characters.",
     "urlScheme": "The link must start with http:// or https://",
     "pickGroup": "Pick at least one group.",
+    "neededByInvalid": "That date doesn't look right.",
+    "neededByPast": "That day has passed. Pick today or a later day.",
     "photoUnreadable": "The photo could not be read.",
     "photoTooLarge": "The photo can be at most {max} MB.",
     "photoNotImage": "The photo must be an image (JPEG, PNG or WebP).",
@@ -432,12 +434,19 @@
     "release": "I'm not buying this",
     "claimedBy": "{name} is buying this",
     "claimedBySomeone": "Somebody is already buying this",
+    "neededBy": {
+      "upcoming": "Needed by {date}",
+      "passed": "Was needed by {date}"
+    },
     "form": {
       "title": "Name",
       "titlePlaceholder": "e.g. Woollen socks, size 42",
       "description": "Description",
       "descriptionPlaceholder": "Colour, size or anything else worth knowing.",
       "url": "Link",
+      "neededBy": "Needed by",
+      "neededByHint": "If you need it by a certain day.",
+      "neededByClear": "Remove date",
       "visibleInGroups": "Visible in groups",
       "photo": "Photo"
     },

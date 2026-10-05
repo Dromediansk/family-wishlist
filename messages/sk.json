@@ -50,6 +50,8 @@
     "noteTooLong": "Poznámka môže mať najviac {max} znakov.",
     "urlScheme": "Odkaz musí začínať na http:// alebo https://",
     "pickGroup": "Vyber aspoň jednu skupinu.",
+    "neededByInvalid": "Tento dátum nevyzerá správne.",
+    "neededByPast": "Tento deň už uplynul. Vyber dnešok alebo neskorší deň.",
     "photoUnreadable": "Fotku sa nepodarilo načítať.",
     "photoTooLarge": "Fotka môže mať najviac {max} MB.",
     "photoNotImage": "Fotka musí byť obrázok (JPEG, PNG alebo WebP).",
@@ -432,12 +434,19 @@
     "release": "Toto nekupujem",
     "claimedBy": "Toto kupuje {name}",
     "claimedBySomeone": "Toto už niekto kupuje",
+    "neededBy": {
+      "upcoming": "Potrebné do {date}",
+      "passed": "Termín bol {date}"
+    },
     "form": {
       "title": "Názov",
       "titlePlaceholder": "napr. Vlnené ponožky, veľkosť 42",
       "description": "Popis",
       "descriptionPlaceholder": "Farba, veľkosť alebo čokoľvek iné, čo je dobré vedieť.",
       "url": "Odkaz",
+      "neededBy": "Potrebné do",
+      "neededByHint": "Ak to potrebuješ do určitého dňa.",
+      "neededByClear": "Odstrániť dátum",
       "visibleInGroups": "Viditeľné v skupinách",
       "photo": "Fotka"
     },

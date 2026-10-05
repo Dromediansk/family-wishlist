@@ -82,13 +82,19 @@ describe("formatDate", () => {
     );
   });
 
-  it("keeps one formatter per locale rather than one per call", () => {
-    // Same answer whichever order the two languages are asked in — the cache
-    // must be keyed by locale, not shared between them.
+  it("answers the same whichever language is asked first", () => {
+    // Each language keeps its own pattern; neither leaks into the other.
     expect(formatDate("2026-01-05T12:00:00.000Z", "en")).toBe("5 January 2026");
     expect(formatDate("2026-01-05T12:00:00.000Z", "sk")).toBe(
       "5. januára 2026",
     );
     expect(formatDate("2026-01-05T12:00:00.000Z", "en")).toBe("5 January 2026");
+  });
+
+  it("keeps a bare date on its own day, in every timezone", () => {
+    // vitest.config.mts pins the suite west of UTC, where new Date("2026-10-15")
+    // — UTC midnight — is still 14 October.
+    expect(formatDate("2026-10-15", "sk")).toBe("15. októbra 2026");
+    expect(formatDate("2026-10-15", "en")).toBe("15 October 2026");
   });
 });
