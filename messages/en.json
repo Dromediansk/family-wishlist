@@ -440,6 +440,9 @@
       "description": "Description",
       "descriptionPlaceholder": "Colour, size or anything else worth knowing.",
       "url": "Link",
+      "neededBy": "Needed by",
+      "neededByHint": "If you need it by a certain day.",
+      "neededByClear": "Remove date",
       "visibleInGroups": "Visible in groups",
       "photo": "Photo"
     },

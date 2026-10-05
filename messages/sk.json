@@ -440,6 +440,9 @@
       "description": "Popis",
       "descriptionPlaceholder": "Farba, veľkosť alebo čokoľvek iné, čo je dobré vedieť.",
       "url": "Odkaz",
+      "neededBy": "Potrebné do",
+      "neededByHint": "Ak to potrebuješ do určitého dňa.",
+      "neededByClear": "Odstrániť dátum",
       "visibleInGroups": "Viditeľné v skupinách",
       "photo": "Fotka"
     },

@@ -16,6 +16,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { WishForm } from "@/components/wish-form";
+import { neededByIntent } from "@/lib/needed-by";
 import type { GroupRef, OwnerWish, TaggedWish } from "@/lib/types";
 import { wishPhotoUrl } from "@/lib/wishes";
 
@@ -61,13 +62,19 @@ export function EditWishDialog({
             title: wish.title,
             description: wish.description ?? "",
             url: wish.url ?? "",
+            neededBy: wish.neededBy ?? "",
             groupIds: initialGroupIds,
             photo: { kind: "unchanged" },
           }}
           initialPhotoUrl={wishPhotoUrl(wish)}
           groups={groups}
           submitLabel={t("submit")}
-          onSubmit={(values) => updateWish(wish.id, values)}
+          onSubmit={(values) =>
+            updateWish(wish.id, {
+              ...values,
+              neededBy: neededByIntent(values.neededBy, wish.neededBy),
+            })
+          }
           onDone={() => setOpen(false)}
         />
       </DialogContent>

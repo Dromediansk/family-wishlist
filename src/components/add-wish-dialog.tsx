@@ -16,6 +16,7 @@ import {
 } from "@/components/ui/dialog";
 import { WishForm } from "@/components/wish-form";
 import type { GroupId } from "@/lib/ids";
+import { neededByIntent } from "@/lib/needed-by";
 import type { GroupRef } from "@/lib/types";
 
 type Props = {
@@ -58,7 +59,12 @@ export function AddWishDialog({
           groups={groups}
           defaultGroupIds={[currentGroupId]}
           submitLabel={t("action")}
-          onSubmit={(values) => addWish(values)}
+          onSubmit={(values) =>
+            addWish({
+              ...values,
+              neededBy: neededByIntent(values.neededBy, null),
+            })
+          }
           onDone={() => setOpen(false)}
         />
       </DialogContent>

@@ -21,6 +21,8 @@ export type WishFormValues = {
   title: string;
   description: string;
   url: string;
+  /** "" or `yyyy-MM-dd` — what a native date input holds. */
+  neededBy: string;
   groupIds: GroupId[];
   photo: WishPhotoChoice;
 };
@@ -44,11 +46,12 @@ type Props = {
 
 const EMPTY_TEXT: Pick<
   WishFormValues,
-  "title" | "description" | "url" | "photo"
+  "title" | "description" | "url" | "neededBy" | "photo"
 > = {
   title: "",
   description: "",
   url: "",
+  neededBy: "",
   // On a new wish there is nothing to change, which is the same as no photo.
   photo: { kind: "unchanged" },
 };
@@ -150,6 +153,38 @@ export function WishForm({
             onChange={(event) => update("url", event.target.value)}
             placeholder="https://…"
           />
+        </div>
+
+        <div className="flex flex-col gap-2">
+          <Label htmlFor="wish-needed-by">
+            {t("neededBy")}{" "}
+            <span className="text-muted-foreground">{common("optional")}</span>
+          </Label>
+          <p id="wish-needed-by-hint" className="text-muted-foreground text-sm">
+            {t("neededByHint")}
+          </p>
+          <div className="flex flex-wrap items-center gap-2">
+            {/* Native, so a phone opens its own picker — the easiest one for
+                a small screen and a tired eye. */}
+            <Input
+              id="wish-needed-by"
+              type="date"
+              className="w-auto"
+              value={values.neededBy}
+              onChange={(event) => update("neededBy", event.target.value)}
+              aria-describedby="wish-needed-by-hint"
+            />
+            {/* Native clearing is unreliable, iOS Safari's above all. */}
+            {values.neededBy !== "" ? (
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => update("neededBy", "")}
+              >
+                {t("neededByClear")}
+              </Button>
+            ) : null}
+          </div>
         </div>
 
         {groupsWorthNaming(groups) ? (
