@@ -1,4 +1,6 @@
 import { clsx, type ClassValue } from "clsx";
+import { format, parseISO, type Locale as DateFnsLocale } from "date-fns";
+import { enGB, sk } from "date-fns/locale";
 import { twMerge } from "tailwind-merge";
 
 import type { Locale } from "@/i18n/config";
@@ -16,33 +18,27 @@ export function initial(name: string): string {
 }
 
 /**
- * `en-GB` rather than `en`, which would give "December 12, 2025" — the app is
- * read in Slovakia, where the day comes first.
+ * Explicit patterns rather than date-fns's `PPP`, whose English is US-style
+ * ("December 12th, 2025") — the app is read in Slovakia, where the day comes
+ * first. Slovak `MMMM` in a formatting context is already the genitive.
  */
-const DATE_LOCALES: Record<Locale, string> = {
-  sk: "sk-SK",
-  en: "en-GB",
-};
-
-/**
- * One formatter per locale, built on first use and kept: constructing an
- * `Intl.DateTimeFormat` per row is the expensive half, and there are two
- * languages rather than a long tail of them, so this cannot grow past two.
- */
-const dateFormats: Partial<Record<Locale, Intl.DateTimeFormat>> = {};
+const DATE_FORMATS = {
+  sk: { pattern: "d. MMMM yyyy", locale: sk },
+  en: { pattern: "d MMMM yyyy", locale: enGB },
+} as const satisfies Record<Locale, { pattern: string; locale: DateFnsLocale }>;
 
 /**
  * A date the way the reader's language writes one — "12. decembra 2025" in
  * Slovak, "12 December 2025" in English.
  *
- * The dates this app displays: a gift's date in the two history pages, and the
- * legal pages' effective date. A claim's timestamp is deliberately never shown;
- * a gift's date is a memory rather than a hint.
+ * The dates this app displays: a gift's date in the two history pages, the
+ * legal pages' effective date, and a wish's needed-by date. A claim's timestamp
+ * is deliberately never shown; a gift's date is a memory rather than a hint.
+ *
+ * `parseISO` keeps a bare `yyyy-MM-dd` on its own calendar day; `new Date()`
+ * would read it as UTC midnight and show the day before west of UTC.
  */
 export function formatDate(iso: string, locale: Locale): string {
-  const format = (dateFormats[locale] ??= new Intl.DateTimeFormat(
-    DATE_LOCALES[locale],
-    { day: "numeric", month: "long", year: "numeric" },
-  ));
-  return format.format(new Date(iso));
+  const { pattern, locale: dateLocale } = DATE_FORMATS[locale];
+  return format(parseISO(iso), pattern, { locale: dateLocale });
 }
