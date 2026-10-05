@@ -88,9 +88,10 @@ in the `WHERE` would make a refused date indistinguishable from a reserved wish
 in `lookUpRefusal`, and the owner of an overdue wish must still be able to fix
 a typo without re-dating it.
 
-"Today" is Bratislava's, with a day of slack, and a past day is refused only
-when it is newly set. The schema has no `CHECK` for it — a constraint cannot
-know what day it is — which makes this the one wish field validated once.
+"Today" is Bratislava's. A day before it is refused, yesterday included, but
+only when it is newly set: nothing can be needed by a day already gone. The
+schema has no `CHECK` for it — a constraint cannot know what day it is — which
+makes this the one wish field validated once.
 
 ## Photos
 

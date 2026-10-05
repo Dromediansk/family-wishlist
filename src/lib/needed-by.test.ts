@@ -58,21 +58,19 @@ describe("isNeededByPast", () => {
 });
 
 describe("isNeededByAcceptable", () => {
-  it("allows yesterday — one day of slack for a reader ahead of the server", () => {
+  it("refuses yesterday, even just after Bratislava's midnight", () => {
+    // UTC is still on the day being refused; Bratislava has moved on.
     expect(isNeededByAcceptable("2026-10-02", JUST_AFTER_MIDNIGHT_CEST)).toBe(
-      true,
+      false,
     );
     expect(isNeededByAcceptable("2026-12-31", JUST_AFTER_MIDNIGHT_CET)).toBe(
-      true,
+      false,
     );
   });
 
-  it("refuses the day before yesterday", () => {
-    expect(isNeededByAcceptable("2026-10-01", JUST_AFTER_MIDNIGHT_CEST)).toBe(
-      false,
-    );
-    expect(isNeededByAcceptable("2026-12-30", JUST_AFTER_MIDNIGHT_CET)).toBe(
-      false,
+  it("allows today until it is over", () => {
+    expect(isNeededByAcceptable("2026-10-02", JUST_BEFORE_MIDNIGHT_CEST)).toBe(
+      true,
     );
   });
 

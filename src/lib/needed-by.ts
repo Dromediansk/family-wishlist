@@ -1,5 +1,5 @@
 import { TZDate } from "@date-fns/tz";
-import { format, isMatch, subDays } from "date-fns";
+import { format, isMatch } from "date-fns";
 
 /*
  * A wish's optional "needed by" day. Informational only — nothing reads it to
@@ -31,17 +31,17 @@ export function isNeededByDate(value: string): boolean {
  * Comparing a parsed bare date with a zoned instant would set the server's
  * midnight against Bratislava's.
  */
-function dayIn(now: Date, daysBack = 0): string {
-  return format(subDays(new TZDate(now, NEEDED_BY_ZONE), daysBack), DAY);
-}
-
-/** Today or later — with yesterday allowed for a reader ahead of the server. */
-export function isNeededByAcceptable(date: string, now = new Date()): boolean {
-  return date >= dayIn(now, 1);
+function today(now: Date): string {
+  return format(new TZDate(now, NEEDED_BY_ZONE), DAY);
 }
 
 export function isNeededByPast(date: string, now = new Date()): boolean {
-  return date < dayIn(now);
+  return date < today(now);
+}
+
+/** Today or later: a day that has already gone cannot be needed by. */
+export function isNeededByAcceptable(date: string, now = new Date()): boolean {
+  return !isNeededByPast(date, now);
 }
 
 /** What the form's field means, given what the wish carried when it opened. */
