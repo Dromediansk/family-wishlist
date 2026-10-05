@@ -14,6 +14,7 @@ export function WishRow({
   wish,
   action,
   tags,
+  neededBy,
   actionBeside = false,
   dimmed = false,
 }: {
@@ -25,6 +26,11 @@ export function WishRow({
    * is on purpose and the row still cannot reach claim state.
    */
   tags?: React.ReactNode;
+  /**
+   * The needed-by line — a slot like `tags`, so `Displayable` stays narrow and
+   * the history pages, which carry no date, draw none.
+   */
+  neededBy?: React.ReactNode;
   /**
    * Keep `action` beside the wish on a phone too. Two lines of small text fit
    * there; buttons do not, so they keep the default full-width row of their own.
@@ -68,6 +74,8 @@ export function WishRow({
                 {wish.description}
               </p>
             ) : null}
+            {/* Bare, like `tags`: `NeededBy` can render nothing. */}
+            {neededBy}
             {wish.url ? (
               <a
                 href={wish.url}

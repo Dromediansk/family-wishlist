@@ -434,6 +434,10 @@
     "release": "Toto nekupujem",
     "claimedBy": "Toto kupuje {name}",
     "claimedBySomeone": "Toto už niekto kupuje",
+    "neededBy": {
+      "upcoming": "Potrebné do {date}",
+      "passed": "Termín bol {date}"
+    },
     "form": {
       "title": "Názov",
       "titlePlaceholder": "napr. Vlnené ponožky, veľkosť 42",

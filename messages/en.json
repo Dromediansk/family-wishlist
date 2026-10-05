@@ -434,6 +434,10 @@
     "release": "I'm not buying this",
     "claimedBy": "{name} is buying this",
     "claimedBySomeone": "Somebody is already buying this",
+    "neededBy": {
+      "upcoming": "Needed by {date}",
+      "passed": "Was needed by {date}"
+    },
     "form": {
       "title": "Name",
       "titlePlaceholder": "e.g. Woollen socks, size 42",
