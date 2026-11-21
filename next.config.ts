@@ -3,6 +3,12 @@ import createNextIntlPlugin from "next-intl/plugin";
 
 const nextConfig: NextConfig = {
   /**
+   * Next 16.4 `next dev` writes an `AGENTS.md` when an AI agent runs it. Agent
+   * guidance lives in `CLAUDE.md` instead, so the generated file is turned off.
+   */
+  agentRules: false,
+
+  /**
    * Vercel charges Function Storage for every deployment it still retains, so a
    * byte in a bundle is paid for once per deploy rather than once. Two packages
    * were riding along that no route here can reach.

@@ -216,7 +216,8 @@ Nothing works until `db:start` is running.
 - **Unit tests are pure functions only.** No mocks, no database. Journeys live
   in `e2e/` and run against the local stack.
   [decisions/testing.md](decisions/testing.md)
-- **`AGENTS.md` is written by `next dev`, not by hand.** Commit it with the work.
+- **No `AGENTS.md`.** `agentRules: false` in `next.config.ts` stops `next dev`
+  writing one; agent guidance lives in `CLAUDE.md`.
 
 ## Dependency choices
 

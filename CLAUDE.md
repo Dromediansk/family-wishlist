@@ -143,7 +143,8 @@ to say.
   never vary pin themselves back to `force-static`. It also owns the whole
   shell — header, the one `<main className="flex-1">`, footer — so no page
   brings its own. [`docs/decisions/ui-patterns.md`](docs/decisions/ui-patterns.md#layout-contract)
-- `AGENTS.md` is written by `next dev`, not by you. Commit it with your work.
+- `agentRules: false` in `next.config.ts` keeps `next dev` from writing
+  `AGENTS.md`. Don't re-enable it — this file is where agent guidance lives.
 
 ## Documentation
 
@@ -151,12 +152,9 @@ Adding a feature usually needs **no documentation change**. Update a doc only
 when a rule or a decision changed — not to describe new code. See
 [`docs/README.md`](docs/README.md#what-goes-where).
 
-<!-- BEGIN:nextjs-agent-rules -->
-
 # This is NOT the Next.js you know
 
-This version has breaking changes — APIs, conventions, and file structure may all differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` (resolved from this file's directory; in monorepos the `next` package may not be visible from the repo root) before writing any code. Heed deprecation notices.
-
-This block is written and re-added by `next dev` — verify at `node_modules/next/dist/server/lib/generate-agent-files.js`. Removing it from a diff only re-creates the uncommitted change; committing it with your work keeps the tree clean.
-
-<!-- END:nextjs-agent-rules -->
+This version has breaking changes — APIs, conventions, and file structure may
+all differ from your training data. Read the relevant guide in
+`node_modules/next/dist/docs/` before writing any code. Heed deprecation
+notices.
