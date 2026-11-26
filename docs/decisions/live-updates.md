@@ -76,11 +76,13 @@ a claim indistinguishable from someone adding a wish.
 
 ## Keeping the socket alive
 
-- **One Supabase client for the life of the page**, not one per effect run.
+- **One Realtime client for the life of the page**, not one per effect run.
   Creating it inside the effect made a fresh client with its own WebSocket every
   time, and `removeChannel` only unsubscribes the channel — so sockets
   accumulated across React's double-invoked effects and hot reloads.
-- **The heartbeat runs in a web worker** (`realtime: { worker: true }`).
+- **The heartbeat runs in a web worker** (`worker: true` on the
+  `RealtimeClient`). The browser imports `@supabase/realtime-js` alone, not
+  `supabase-js`, which would ship auth, PostgREST and Storage to every page.
   Browsers throttle timers in background tabs hard enough to starve it, and
   background tabs are the normal case for this app.
 - **Bursts are debounced** to 250 ms.

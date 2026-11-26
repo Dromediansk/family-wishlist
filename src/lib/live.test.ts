@@ -1,7 +1,13 @@
 import { describe, expect, it } from "vitest";
 
 import { asGroupId } from "@/lib/ids";
-import { channelFor, LIVE_EVENT, LIVE_PAYLOAD, LIVE_TOPIC } from "@/lib/live";
+import {
+  channelFor,
+  LIVE_EVENT,
+  LIVE_PAYLOAD,
+  LIVE_TOPIC,
+  realtimeEndpoint,
+} from "@/lib/live";
 
 /**
  * A broadcast goes to every open tab, including the tab of the person whose
@@ -43,5 +49,28 @@ describe("channelFor", () => {
     expect(a).not.toBe(b);
     expect(a).toContain("aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa");
     expect(b).toContain("bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb");
+  });
+});
+
+describe("realtimeEndpoint", () => {
+  it("opens a secure socket on a hosted project", () => {
+    expect(realtimeEndpoint("https://abc.supabase.co")).toBe(
+      "wss://abc.supabase.co/realtime/v1",
+    );
+  });
+
+  it("keeps the path of a project served under one", () => {
+    expect(realtimeEndpoint("https://example.com/supabase")).toBe(
+      "wss://example.com/supabase/realtime/v1",
+    );
+    expect(realtimeEndpoint("https://example.com/supabase/")).toBe(
+      "wss://example.com/supabase/realtime/v1",
+    );
+  });
+
+  it("uses a plain socket for the local stack", () => {
+    expect(realtimeEndpoint(" http://127.0.0.1:54421 ")).toBe(
+      "ws://127.0.0.1:54421/realtime/v1",
+    );
   });
 });

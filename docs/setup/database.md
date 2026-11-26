@@ -75,7 +75,7 @@ application code because it has to be **unavoidable**.
 | `check_wish_group_owner` | `before insert` on `wish_groups` | Refuses a group tag the wish's owner does not belong to |
 | `shared_wish_groups` | `stable` sql, `setof uuid` | *Which* groups a wish reaches that both of two people stand in |
 | `wish_shares_group` | `stable` sql | The same question as a yes/no — `exists` over `shared_wish_groups`, so the insert guard and the release sweep cannot drift apart |
-| `peer_user_ids` | `stable` sql, `setof uuid` | Every account a viewer may see. Returns **nothing** for an account in no group, so the caller seeds the viewer's own id |
+| `peer_user_ids` | `stable` sql, `setof uuid` | Every account a viewer may see. Returns **nothing** for an account in no group, so the caller seeds the viewer's own id. Unused by the app since `getViewer` reads the same set off its one roster query; kept, since migrations reach production by hand |
 | `check_claim_peer` | `before insert or update` on `wishes` | Refuses a claim unless claimer **and** owner both belong to a group *this wish* is tagged with |
 | `release_orphaned_claims` | `after delete` on `memberships` | Releases a claim once claimer and owner no longer both belong to a group the wish is tagged with |
 | `update_wish` | plpgsql | Rewrites a wish's text and its group tags in one guarded statement |

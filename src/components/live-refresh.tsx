@@ -1,11 +1,11 @@
 "use client";
 
 import { startTransition, useEffect } from "react";
-import { createClient, type SupabaseClient } from "@supabase/supabase-js";
+import { RealtimeClient } from "@supabase/realtime-js";
 
 import { syncFromLive } from "@/app/actions/live";
 import type { GroupId } from "@/lib/ids";
-import { channelFor, LIVE_EVENT } from "@/lib/live";
+import { channelFor, LIVE_EVENT, realtimeEndpoint } from "@/lib/live";
 
 /**
  * Keeps every open tab in step: listens for the content-free ping on each of
@@ -24,20 +24,28 @@ const DISCONNECTED_POLL_MS = 30_000;
  * One client for the lifetime of the page, not one per effect run —
  * `removeChannel` unsubscribes the channel but leaves the socket, so a
  * per-effect client accumulates sockets across React's double-invoked effects.
+ *
+ * `realtime-js` on its own rather than `supabase-js`: a broadcast socket is all
+ * this tab needs, and the full client would put auth, PostgREST and Storage —
+ * some 37 kB gzipped — on every page for nothing. Built the way `supabase-js`
+ * builds it, so the socket the server sees is the same.
  */
-let client: SupabaseClient | null = null;
+let client: RealtimeClient | null = null;
 
-function getClient(): SupabaseClient | null {
+function getClient(): RealtimeClient | null {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
   if (!url || !key) return null;
 
-  client ??= createClient(url, key, {
-    auth: { persistSession: false, autoRefreshToken: false },
-    // Background tabs are the normal case here, and browsers throttle timers
-    // hard enough to starve the heartbeat. A worker keeps it ticking.
-    realtime: { worker: true },
-  });
+  if (!client) {
+    client = new RealtimeClient(realtimeEndpoint(url), {
+      params: { apikey: key },
+      accessToken: async () => key,
+      // Background tabs are the normal case here, and browsers throttle timers
+      // hard enough to starve the heartbeat. A worker keeps it ticking.
+      worker: true,
+    });
+  }
 
   return client;
 }
@@ -49,8 +57,8 @@ export function LiveRefresh({ groupIds }: { groupIds: readonly GroupId[] }) {
   const key = groupIds.join(",");
 
   useEffect(() => {
-    const supabase = getClient();
-    if (!supabase || groupIds.length === 0) return;
+    const realtime = getClient();
+    if (!realtime || groupIds.length === 0) return;
 
     let timer: ReturnType<typeof setTimeout> | undefined;
     // Which of the viewer's group channels are currently subscribed — a partial
@@ -84,7 +92,7 @@ export function LiveRefresh({ groupIds }: { groupIds: readonly GroupId[] }) {
     };
 
     const channels = groupIds.map((groupId, index) =>
-      supabase
+      realtime
         .channel(channelFor(groupId))
         .on("broadcast", { event: LIVE_EVENT }, refresh)
         .subscribe((status) => {
@@ -116,7 +124,7 @@ export function LiveRefresh({ groupIds }: { groupIds: readonly GroupId[] }) {
       clearInterval(poll);
       document.removeEventListener("visibilitychange", catchUpIfDeaf);
       // Leaves the shared client connected, ready for the next mount.
-      for (const channel of channels) void supabase.removeChannel(channel);
+      for (const channel of channels) void realtime.removeChannel(channel);
     };
     // `key` is the stable serialization of `groupIds` — re-running on the
     // array reference itself would resubscribe every channel on every

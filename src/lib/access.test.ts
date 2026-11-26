@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest";
 
-import { resolveAccess, seedPeers } from "@/lib/access";
+import { foldRoster, resolveAccess, seedPeers } from "@/lib/access";
 import { isGroupAdmin } from "@/lib/visibility";
-import { asGroupId, asUserId } from "@/lib/ids";
+import { asGroupId, asMembershipId, asUserId } from "@/lib/ids";
 import type { GroupRef, Viewer } from "@/lib/types";
 
 /**
@@ -21,7 +21,12 @@ const family: GroupRef = {
 };
 
 function viewer(groups: GroupRef[]): Viewer {
-  return { userId: USER_ID, peers: new Set([USER_ID]), groups };
+  return {
+    userId: USER_ID,
+    peers: new Set([USER_ID]),
+    groups,
+    peerNames: new Map(),
+  };
 }
 
 describe("resolveAccess", () => {
@@ -87,7 +92,7 @@ describe("resolveAccess", () => {
 
 /**
  * The seed is what keeps a groupless account out of the one trap this shape has:
- * `peer_user_ids` returns nothing for them, and an empty `peers` set would make
+ * `foldRoster` finds no members for them, and an empty `peers` set would make
  * `canReadList` refuse them their own list.
  */
 describe("seedPeers", () => {
@@ -118,5 +123,64 @@ describe("isGroupAdmin", () => {
 
   it("refuses an ordinary member", () => {
     expect(isGroupAdmin({ ...family, role: "member" })).toBe(false);
+  });
+});
+
+/**
+ * One query's rows become the parts of a `Viewer`: the groups in join order,
+ * and what each person in them is called in each group.
+ */
+describe("foldRoster", () => {
+  const work = {
+    membershipId: asMembershipId("44444444-4444-4444-8444-444444444444"),
+    groupId: asGroupId("55555555-5555-4555-8555-555555555555"),
+    groupName: "Práca",
+    role: "member" as const,
+    members: [
+      { userId: USER_ID, name: "Miro" },
+      { userId: PEER_ID, name: "Ondrej z práce" },
+    ],
+  };
+  const home = {
+    membershipId: asMembershipId("66666666-6666-4666-8666-666666666666"),
+    groupId: family.id,
+    groupName: family.name,
+    role: family.role,
+    members: [
+      { userId: USER_ID, name: "Miroslav" },
+      { userId: PEER_ID, name: "Ondrej" },
+    ],
+  };
+
+  it("keeps the groups in the order the memberships arrived", () => {
+    expect(foldRoster([work, home]).groups.map((group) => group.name)).toEqual([
+      "Práca",
+      family.name,
+    ]);
+  });
+
+  it("names each person once per group they share with the viewer", () => {
+    const { peerNames } = foldRoster([work, home]);
+    expect([...peerNames.keys()]).toEqual([USER_ID, PEER_ID]);
+    expect(peerNames.get(PEER_ID)).toEqual(
+      new Map([
+        [work.groupId, "Ondrej z práce"],
+        [home.groupId, "Ondrej"],
+      ]),
+    );
+  });
+
+  it("hands back the membership that proves each group", () => {
+    expect(foldRoster([work, home]).membershipIds.get(home.groupId)).toBe(
+      home.membershipId,
+    );
+  });
+
+  it("holds nobody for a groupless viewer, which seedPeers makes up for", () => {
+    const { groups, peerNames } = foldRoster([]);
+    expect(groups).toEqual([]);
+    expect(seedPeers(USER_ID, [...peerNames.keys()])).toEqual(
+      new Set([USER_ID]),
+    );
   });
 });

@@ -223,8 +223,8 @@ export type ActivityItem =
  * Who is looking, and everyone they are allowed to see.
  *
  * `peers` always contains the viewer's own id, even when they belong to no
- * group at all — `peer_user_ids` derives self-membership from a join and
- * returns nothing for a groupless user, and a `peers` set missing its own
+ * group at all — peers are read off the members of the viewer's groups, which
+ * is nothing for a groupless user, and a `peers` set missing its own
  * owner would lock them out of their own list.
  *
  * `groups` is ordered by the viewer's own `memberships.created_at`, ascending.
@@ -234,6 +234,12 @@ export type Viewer = {
   userId: UserId;
   peers: ReadonlySet<UserId>;
   groups: readonly GroupRef[];
+  /**
+   * What each peer is called in each of the viewer's groups — read in the same
+   * query as `groups`, so no screen pays a second trip for names.
+   * `getPeerNames` resolves it to one name apiece.
+   */
+  peerNames: ReadonlyMap<UserId, ReadonlyMap<GroupId, string>>;
 };
 
 /**
