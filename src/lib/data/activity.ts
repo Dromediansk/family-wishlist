@@ -250,23 +250,17 @@ export const getActivity = cache(
     const since = activityWindowStart(new Date());
     const hasOthers = others.length > 0;
 
-    const [
-      names,
-      peerGroups,
-      marks,
-      fulfilledResult,
-      joinedResult,
-      addedResult,
-      claimedResult,
-    ] = await Promise.all([
-      getPeerNames(viewer),
-      getPeerGroups(viewer),
-      activityMarks(viewer),
-      fulfilledGiftsQuery(viewer, since),
-      joinedMembersQuery(viewer, since),
-      hasOthers ? addedWishesQuery(viewer, since, others) : null,
-      hasOthers ? claimedWishesQuery(viewer, since, others) : null,
-    ]);
+    const names = getPeerNames(viewer);
+    const peerGroups = getPeerGroups(viewer);
+
+    const [marks, fulfilledResult, joinedResult, addedResult, claimedResult] =
+      await Promise.all([
+        activityMarks(viewer),
+        fulfilledGiftsQuery(viewer, since),
+        joinedMembersQuery(viewer, since),
+        hasOthers ? addedWishesQuery(viewer, since, others) : null,
+        hasOthers ? claimedWishesQuery(viewer, since, others) : null,
+      ]);
 
     if (!marks) return EMPTY;
 

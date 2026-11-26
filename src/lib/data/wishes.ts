@@ -97,18 +97,15 @@ export async function getWishListFor(
     };
   }
 
-  const [listResult, names] = await Promise.all([
-    supabase
-      .from("wishes")
-      // The embed is the filter and nothing else — `!inner` is what makes the
-      // `.eq` below drop a wish tagged for one of the owner's other groups,
-      // rather than hand it over with an empty embed. Its rows are never read.
-      .select(`${VIEWER_WISH_COLUMNS}, ${WISH_GROUPS_SCOPE}`)
-      .eq("owner_user_id", ownerId)
-      .eq("wish_groups.group_id", ctx.groupId)
-      .order("created_at", { ascending: true }),
-    getPeerNames(ctx, ctx.groupId),
-  ]);
+  const listResult = await supabase
+    .from("wishes")
+    // The embed is the filter and nothing else — `!inner` is what makes the
+    // `.eq` below drop a wish tagged for one of the owner's other groups,
+    // rather than hand it over with an empty embed. Its rows are never read.
+    .select(`${VIEWER_WISH_COLUMNS}, ${WISH_GROUPS_SCOPE}`)
+    .eq("owner_user_id", ownerId)
+    .eq("wish_groups.group_id", ctx.groupId)
+    .order("created_at", { ascending: true });
 
   if (listResult.error) throw listResult.error;
 
@@ -118,6 +115,7 @@ export async function getWishListFor(
    * for them. Same for getClaimedBy below.
    */
   const viewerRows = (listResult.data ?? []) as unknown as ViewerWishRow[];
+  const names = getPeerNames(ctx, ctx.groupId);
 
   return {
     viewerIsOwner: false,
@@ -136,23 +134,22 @@ export async function getWishListFor(
  * and the owner both stand in. docs/decisions/wishes-claims-history.md#what-im-buying
  */
 export async function getClaimedBy(viewer: Viewer): Promise<ClaimedWish[]> {
-  const [result, names, peerGroups] = await Promise.all([
-    getSupabase()
-      .from("wishes")
-      // A plain embed, not WISH_GROUPS_SCOPE: here the rows are read rather
-      // than used as a filter, and the claim is already proof of reachability.
-      .select(`${OWNER_WISH_COLUMNS}, owner_user_id, ${WISH_GROUPS_EMBED}`)
-      .eq("claimed_by_user_id", viewer.userId)
-      // Newest first. Ordering needs no projection, and no date is displayed.
-      .order("claimed_at", { ascending: false }),
-    getPeerNames(viewer),
-    getPeerGroups(viewer),
-  ]);
+  const result = await getSupabase()
+    .from("wishes")
+    // A plain embed, not WISH_GROUPS_SCOPE: here the rows are read rather
+    // than used as a filter, and the claim is already proof of reachability.
+    .select(`${OWNER_WISH_COLUMNS}, owner_user_id, ${WISH_GROUPS_EMBED}`)
+    .eq("claimed_by_user_id", viewer.userId)
+    // Newest first. Ordering needs no projection, and no date is displayed.
+    .order("claimed_at", { ascending: false });
 
   if (result.error) throw result.error;
 
   const rows = (result.data ?? []) as unknown as (ClaimedWishRow &
     WishGroupsEmbed)[];
+
+  const names = getPeerNames(viewer);
+  const peerGroups = getPeerGroups(viewer);
 
   return rows.map(({ wish_groups, ...row }) =>
     toClaimedWish(row, names, embeddedGroupIds(wish_groups), peerGroups),

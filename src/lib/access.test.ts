@@ -127,8 +127,8 @@ describe("isGroupAdmin", () => {
 });
 
 /**
- * One query's rows become the whole `Viewer`: the groups in join order, every
- * member of those groups as a peer, and what each is called in each group.
+ * One query's rows become the parts of a `Viewer`: the groups in join order,
+ * and what each person in them is called in each group.
  */
 describe("foldRoster", () => {
   const work = {
@@ -153,17 +153,16 @@ describe("foldRoster", () => {
   };
 
   it("keeps the groups in the order the memberships arrived", () => {
-    const { viewer } = foldRoster(USER_ID, [work, home]);
-    expect(viewer.groups.map((group) => group.name)).toEqual([
+    expect(foldRoster([work, home]).groups.map((group) => group.name)).toEqual([
       "Práca",
       family.name,
     ]);
   });
 
-  it("names each peer once per group they share with the viewer", () => {
-    const { viewer } = foldRoster(USER_ID, [work, home]);
-    expect(viewer.peers).toEqual(new Set([USER_ID, PEER_ID]));
-    expect(viewer.peerNames.get(PEER_ID)).toEqual(
+  it("names each person once per group they share with the viewer", () => {
+    const { peerNames } = foldRoster([work, home]);
+    expect([...peerNames.keys()]).toEqual([USER_ID, PEER_ID]);
+    expect(peerNames.get(PEER_ID)).toEqual(
       new Map([
         [work.groupId, "Ondrej z práce"],
         [home.groupId, "Ondrej"],
@@ -172,13 +171,16 @@ describe("foldRoster", () => {
   });
 
   it("hands back the membership that proves each group", () => {
-    const { membershipIds } = foldRoster(USER_ID, [work, home]);
-    expect(membershipIds.get(home.groupId)).toBe(home.membershipId);
+    expect(foldRoster([work, home]).membershipIds.get(home.groupId)).toBe(
+      home.membershipId,
+    );
   });
 
-  it("still counts a groupless viewer among their own peers", () => {
-    const { viewer } = foldRoster(USER_ID, []);
-    expect(viewer.peers).toEqual(new Set([USER_ID]));
-    expect(viewer.groups).toEqual([]);
+  it("holds nobody for a groupless viewer, which seedPeers makes up for", () => {
+    const { groups, peerNames } = foldRoster([]);
+    expect(groups).toEqual([]);
+    expect(seedPeers(USER_ID, [...peerNames.keys()])).toEqual(
+      new Set([USER_ID]),
+    );
   });
 });

@@ -1,10 +1,14 @@
 import "server-only";
 
 import { cache } from "react";
-import { z } from "zod";
 
 import { getErrorText, type ErrorKey } from "@/i18n/errors";
-import { foldRoster, resolveAccess, type Access } from "@/lib/access";
+import {
+  foldRoster,
+  resolveAccess,
+  seedPeers,
+  type Access,
+} from "@/lib/access";
 import { asGroupId, asMembershipId, asUserId } from "@/lib/ids";
 import { getSupabase } from "@/lib/supabase";
 import { getAuthUser } from "@/lib/supabase-auth";
@@ -34,6 +38,8 @@ type RosterRow = {
 };
 
 /**
+ * The only place a `Viewer` is built.
+ *
  * Who is looking, in one round trip: the account, its memberships in join
  * order, and every member of each of those groups. That last embed is
  * everything the viewer may see — the same set `peer_user_ids` derives — and the
@@ -61,9 +67,9 @@ const loadViewer = cache(async () => {
   if (!data) return null;
 
   const account = data as { id: string; memberships: RosterRow[] };
+  const userId = asUserId(account.id);
 
-  return foldRoster(
-    asUserId(account.id),
+  const { groups, peerNames, membershipIds } = foldRoster(
     account.memberships.map((row) => {
       const group = embedded(row.groups);
       return {
@@ -78,12 +84,19 @@ const loadViewer = cache(async () => {
       };
     }),
   );
+
+  const viewer: Viewer = {
+    userId,
+    peers: seedPeers(userId, [...peerNames.keys()]),
+    groups,
+    peerNames,
+  };
+  return { viewer, membershipIds };
 });
 
-/** The only place a `Viewer` is built. */
-export const getViewer = cache(
-  async (): Promise<Viewer | null> => (await loadViewer())?.viewer ?? null,
-);
+export async function getViewer(): Promise<Viewer | null> {
+  return (await loadViewer())?.viewer ?? null;
+}
 
 export const getAccess = cache(async (): Promise<Access> => {
   const user = await getAuthUser();
@@ -106,54 +119,20 @@ export const enterGroup = cache(
 
     /*
      * The membership rows `loadViewer` read in this request are the proof, so
-     * the common case costs no trip. Only a group not among them is asked
-     * about: a 404 in the making, or one the caller has just joined or created
-     * after the viewer was read.
+     * this costs no trip. A group not among them is not the viewer's — or does
+     * not exist, which is the same answer on purpose; a malformed id simply
+     * matches nothing.
      */
     const group = viewer.groups.find((ref) => ref.id === groupId);
     const membershipId = group && membershipIds.get(group.id);
-    if (group && membershipId) {
-      return {
-        ...viewer,
-        groupId: group.id,
-        groupName: group.name,
-        membershipId,
-        role: group.role,
-      };
-    }
+    if (!group || !membershipId) return null;
 
-    // Arbitrary text arrives here from a URL, and Postgres answers a malformed
-    // uuid with an error rather than an empty result. Typed nonsense deserves
-    // the same "not your group" as a real id belonging to somebody else.
-    if (!z.uuid().safeParse(groupId).success) return null;
-
-    const { data, error } = await getSupabase()
-      .from("memberships")
-      .select("id, group_id, role, groups (name)")
-      .eq("user_id", viewer.userId)
-      .eq("group_id", groupId)
-      .maybeSingle();
-
-    if (error) throw error;
-    if (!data) return null;
-
-    /*
-     * Proof only. `peers`, `groups` and `peerNames` are the viewer as read
-     * before this membership existed, so none of them know this group: a
-     * caller may notify it, but must not read its members off this context.
-     */
-    const row = data as {
-      id: string;
-      group_id: string;
-      role: string;
-      groups: Embedded<{ name: string }>;
-    };
     return {
       ...viewer,
-      groupId: asGroupId(row.group_id),
-      groupName: embedded(row.groups).name,
-      membershipId: asMembershipId(row.id),
-      role: toRole(row.role),
+      groupId: group.id,
+      groupName: group.name,
+      membershipId,
+      role: group.role,
     };
   },
 );

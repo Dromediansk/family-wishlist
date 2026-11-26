@@ -20,7 +20,7 @@ import {
   type Role,
   type Viewer,
 } from "@/lib/types";
-import { canReadList, preferredName } from "@/lib/visibility";
+import { preferredName } from "@/lib/visibility";
 import { WISH_GROUPS_SCOPE } from "@/lib/wishes";
 
 const MEMBERSHIP_COLUMNS = "id, user_id, name, role, created_at";
@@ -211,18 +211,16 @@ export async function getMembershipRole(
  * two; `preferredName` picks which one this screen uses, and the whole map is
  * resolved through the same group so one screen stays self-consistent.
  */
-export const getPeerNames = cache(
-  async (
-    viewer: Viewer,
-    currentGroupId?: GroupId,
-  ): Promise<ReadonlyMap<UserId, string>> => {
-    const resolved = new Map<UserId, string>();
-    for (const [user, byGroup] of viewer.peerNames) {
-      resolved.set(user, preferredName(byGroup, viewer.groups, currentGroupId));
-    }
-    return resolved;
-  },
-);
+export function getPeerNames(
+  viewer: Viewer,
+  currentGroupId?: GroupId,
+): ReadonlyMap<UserId, string> {
+  const resolved = new Map<UserId, string>();
+  for (const [user, byGroup] of viewer.peerNames) {
+    resolved.set(user, preferredName(byGroup, viewer.groups, currentGroupId));
+  }
+  return resolved;
+}
 
 /**
  * Which of the *viewer's* groups each person they can see is standing in right
@@ -233,17 +231,15 @@ export const getPeerNames = cache(
  * says the membership behind it is still there.
  * docs/decisions/privacy-rule.md#where-two-groups-meet
  */
-export const getPeerGroups = cache(
-  async (
-    viewer: Viewer,
-  ): Promise<ReadonlyMap<UserId, ReadonlySet<GroupId>>> => {
-    const byUser = new Map<UserId, ReadonlySet<GroupId>>();
-    for (const [user, byGroup] of viewer.peerNames) {
-      byUser.set(user, new Set(byGroup.keys()));
-    }
-    return byUser;
-  },
-);
+export function getPeerGroups(
+  viewer: Viewer,
+): ReadonlyMap<UserId, ReadonlySet<GroupId>> {
+  const byUser = new Map<UserId, ReadonlySet<GroupId>>();
+  for (const [user, byGroup] of viewer.peerNames) {
+    byUser.set(user, new Set(byGroup.keys()));
+  }
+  return byUser;
+}
 
 /**
  * Every group a user belongs to. A wish or a claim is visible throughout the
@@ -273,8 +269,6 @@ export const groupIdsOf = cache(async (userId: UserId): Promise<GroupId[]> => {
  * places them in that group. This is the check that stands between a guessed id
  * and somebody else's list; the page turns the null into a 404.
  *
- * The peers check comes first: nothing but a real user id is ever in that set.
- *
  * The roster `getViewer` read in this request already holds that membership
  * row — scoped to this group, it *is* the name through this group, which is
  * what makes the heading and the wishes below it agree — so this asks nothing
@@ -285,8 +279,6 @@ export function getGroupPeerUser(
   userId: string,
 ): PeerUser | null {
   const id = asUserId(userId);
-  if (!canReadList(ctx.peers, id)) return null;
-
   const name = ctx.peerNames.get(id)?.get(ctx.groupId);
   return name === undefined ? null : { id, name };
 }

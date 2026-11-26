@@ -6,12 +6,11 @@ import { z } from "zod";
 
 import { firstIssue, getErrorText } from "@/i18n/errors";
 import {
-  enterGroup,
   getAccountName,
   getViewer,
   requireGroupAdmin,
 } from "@/lib/data/access";
-import { countGroupsCreatedBy } from "@/lib/data/groups";
+import { countGroupsCreatedBy, readBackNewGroup } from "@/lib/data/groups";
 import { MAX_GROUPS_PER_ACCOUNT } from "@/lib/groups";
 import { notifyChanged } from "@/lib/realtime";
 import { getSupabase } from "@/lib/supabase";
@@ -100,8 +99,8 @@ export async function createGroup(
   // Reads the fresh membership back rather than branding `groupId` here —
   // that stays a job for src/lib/data/, where a value read from the database
   // is known to be what it claims. docs/decisions/live-updates.md
-  const ctx = await enterGroup(groupId);
-  if (ctx) await notifyChanged([ctx.groupId]);
+  const created = await readBackNewGroup(viewer, groupId);
+  if (created) await notifyChanged([created]);
   return { ok: true, groupId };
 }
 

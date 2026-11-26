@@ -36,7 +36,7 @@ export function resolveAccess(input: {
  * all for an account that belongs to no group. A peers set missing its own
  * owner makes `canReadList` false for the one list the viewer certainly owns,
  * which locks a groupless account out of its own wishes — hence the seed, which
- * happens whatever the query returned.
+ * happens whatever the roster held.
  * docs/decisions/privacy-rule.md#reading-a-list
  */
 export function seedPeers(
@@ -55,19 +55,23 @@ export type RosterMembership = {
   members: readonly { userId: UserId; name: string }[];
 };
 
+/** What `foldRoster` makes of one query: the parts a `Viewer` is built from. */
+export type Roster = {
+  groups: readonly GroupRef[];
+  peerNames: ReadonlyMap<UserId, ReadonlyMap<GroupId, string>>;
+  /** The membership `enterGroup` proves each group with. */
+  membershipIds: ReadonlyMap<GroupId, MembershipId>;
+};
+
 /**
  * Fold the viewer's memberships — each carrying its group's member list — into
- * a `Viewer`, plus the membership ids `enterGroup` proves a group with. One
- * query feeds all of it, so a page waits on one trip for who is looking rather
- * than three in a row.
+ * the parts of a `Viewer`. One query feeds all of it, so a page waits on one
+ * trip for who is looking rather than three in a row.
  *
  * `memberships` must arrive in the viewer's join order: `groups` keeps it, and
  * `preferredName` and the switcher both depend on it.
  */
-export function foldRoster(
-  userId: UserId,
-  memberships: readonly RosterMembership[],
-): { viewer: Viewer; membershipIds: ReadonlyMap<GroupId, MembershipId> } {
+export function foldRoster(memberships: readonly RosterMembership[]): Roster {
   const groups: GroupRef[] = [];
   const membershipIds = new Map<GroupId, MembershipId>();
   const peerNames = new Map<UserId, Map<GroupId, string>>();
@@ -90,13 +94,5 @@ export function foldRoster(
     }
   }
 
-  return {
-    viewer: {
-      userId,
-      peers: seedPeers(userId, [...peerNames.keys()]),
-      groups,
-      peerNames,
-    },
-    membershipIds,
-  };
+  return { groups, peerNames, membershipIds };
 }

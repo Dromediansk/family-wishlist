@@ -77,7 +77,7 @@ async function HeaderRight() {
   const [name, created] = await Promise.all([
     groupless
       ? getAccountName(viewer)
-      : getPeerNames(viewer).then((names) => names.get(viewer.userId) ?? "?"),
+      : (getPeerNames(viewer).get(viewer.userId) ?? "?"),
     countGroupsCreatedBy(viewer),
   ]);
 
