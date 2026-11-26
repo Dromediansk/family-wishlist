@@ -59,8 +59,8 @@ async function HeaderRight() {
    * account that cannot sign out is stuck.
    *
    * Two name sources because a groupless account has no per-group label at all:
-   * `getPeerNames` reads memberships and hands back nothing for them, so the
-   * seed name is the only one there is.
+   * `getPeerNames` reads the roster `foldRoster` built from their memberships,
+   * which holds nobody for them, so the seed name is the only one there is.
    */
   const groupless = access.kind === "groupless";
 

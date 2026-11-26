@@ -137,6 +137,11 @@ export const enterGroup = cache(
     if (error) throw error;
     if (!data) return null;
 
+    /*
+     * Proof only. `peers`, `groups` and `peerNames` are the viewer as read
+     * before this membership existed, so none of them know this group: a
+     * caller may notify it, but must not read its members off this context.
+     */
     const row = data as {
       id: string;
       group_id: string;

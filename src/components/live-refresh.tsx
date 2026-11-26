@@ -5,7 +5,7 @@ import { RealtimeClient } from "@supabase/realtime-js";
 
 import { syncFromLive } from "@/app/actions/live";
 import type { GroupId } from "@/lib/ids";
-import { channelFor, LIVE_EVENT } from "@/lib/live";
+import { channelFor, LIVE_EVENT, realtimeEndpoint } from "@/lib/live";
 
 /**
  * Keeps every open tab in step: listens for the content-free ping on each of
@@ -38,9 +38,7 @@ function getClient(): RealtimeClient | null {
   if (!url || !key) return null;
 
   if (!client) {
-    const endpoint = new URL("realtime/v1", url);
-    endpoint.protocol = endpoint.protocol.replace("http", "ws");
-    client = new RealtimeClient(endpoint.href, {
+    client = new RealtimeClient(realtimeEndpoint(url), {
       params: { apikey: key },
       accessToken: async () => key,
       // Background tabs are the normal case here, and browsers throttle timers

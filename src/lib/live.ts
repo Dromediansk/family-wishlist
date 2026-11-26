@@ -30,3 +30,15 @@ export const LIVE_PAYLOAD: Record<string, never> = {};
 export function channelFor(groupId: GroupId): string {
   return `${LIVE_TOPIC}:${groupId}`;
 }
+
+/**
+ * The Realtime socket for a project URL, resolved the way `supabase-js` does it:
+ * trimmed and given a trailing slash first, so a project served under a path
+ * keeps that path rather than having `realtime/v1` replace its last segment.
+ */
+export function realtimeEndpoint(supabaseUrl: string): string {
+  const base = supabaseUrl.trim().replace(/\/?$/, "/");
+  const endpoint = new URL("realtime/v1", base);
+  endpoint.protocol = endpoint.protocol.replace("http", "ws");
+  return endpoint.href;
+}

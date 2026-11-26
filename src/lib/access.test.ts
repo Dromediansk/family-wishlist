@@ -92,7 +92,7 @@ describe("resolveAccess", () => {
 
 /**
  * The seed is what keeps a groupless account out of the one trap this shape has:
- * `peer_user_ids` returns nothing for them, and an empty `peers` set would make
+ * `foldRoster` finds no members for them, and an empty `peers` set would make
  * `canReadList` refuse them their own list.
  */
 describe("seedPeers", () => {
