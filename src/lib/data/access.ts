@@ -4,16 +4,11 @@ import { cache } from "react";
 import { z } from "zod";
 
 import { getErrorText, type ErrorKey } from "@/i18n/errors";
-import { resolveAccess, seedPeers, type Access } from "@/lib/access";
-import { asGroupId, asMembershipId, asUserId, type UserId } from "@/lib/ids";
+import { foldRoster, resolveAccess, type Access } from "@/lib/access";
+import { asGroupId, asMembershipId, asUserId } from "@/lib/ids";
 import { getSupabase } from "@/lib/supabase";
 import { getAuthUser } from "@/lib/supabase-auth";
-import {
-  toRole,
-  type GroupContext,
-  type GroupRef,
-  type Viewer,
-} from "@/lib/types";
+import { toRole, type GroupContext, type Viewer } from "@/lib/types";
 import { isGroupAdmin } from "@/lib/visibility";
 
 /**
@@ -27,70 +22,68 @@ function embedded<Row>(value: Embedded<Row>): Row {
   return Array.isArray(value) ? value[0] : value;
 }
 
+/** One of the viewer's memberships, with everybody in that group embedded. */
+type RosterRow = {
+  id: string;
+  group_id: string;
+  role: string;
+  groups: Embedded<{
+    name: string;
+    memberships: { user_id: string; name: string }[];
+  }>;
+};
+
 /**
- * The only place a `Viewer` is built.
+ * Who is looking, in one round trip: the account, its memberships in join
+ * order, and every member of each of those groups. That last embed is
+ * everything the viewer may see — the same set `peer_user_ids` derives — and the
+ * names screens label people with, so neither costs a trip of its own.
  *
  * Two clients on purpose: the session comes from Supabase Auth, the rows from
  * service_role, and the link between them is `auth_user_id`, which the visitor
  * cannot influence. docs/decisions/privacy-rule.md
  */
-export const getViewer = cache(async (): Promise<Viewer | null> => {
+const loadViewer = cache(async () => {
   const user = await getAuthUser();
   if (!user) return null;
 
-  const supabase = getSupabase();
-
-  const { data: account, error: accountError } = await supabase
+  const { data, error } = await getSupabase()
     .from("app_users")
-    .select("id")
+    .select(
+      "id, memberships (id, group_id, role, groups (name, memberships (user_id, name)))",
+    )
     .eq("auth_user_id", user.id)
+    // preferredName and the switcher both depend on this order.
+    .order("created_at", { referencedTable: "memberships", ascending: true })
     .maybeSingle();
 
-  if (accountError) throw accountError;
-  if (!account) return null;
+  if (error) throw error;
+  if (!data) return null;
 
-  const userId = asUserId((account as { id: string }).id);
+  const account = data as { id: string; memberships: RosterRow[] };
 
-  const [membershipsResult, peersResult] = await Promise.all([
-    supabase
-      .from("memberships")
-      .select("group_id, role, groups (name)")
-      .eq("user_id", userId)
-      // preferredName and the switcher both depend on this order.
-      .order("created_at", { ascending: true }),
-    supabase.rpc("peer_user_ids", { p_user_id: userId }),
-  ]);
-
-  if (membershipsResult.error) throw membershipsResult.error;
-  if (peersResult.error) throw peersResult.error;
-
-  const groups: GroupRef[] = (
-    (membershipsResult.data ?? []) as {
-      group_id: string;
-      role: string;
-      groups: Embedded<{ name: string }>;
-    }[]
-  ).map((row) => ({
-    id: asGroupId(row.group_id),
-    name: embedded(row.groups).name,
-    role: toRole(row.role),
-  }));
-
-  /*
-   * A `returns setof uuid` function comes back as bare strings from some
-   * PostgREST versions and as wrapped objects from others, so both are read
-   * rather than guessed at. `seedPeers` is what guarantees the viewer's own id
-   * is in the set even when this query found nothing.
-   */
-  const peerIds: UserId[] = [];
-  for (const row of (peersResult.data ?? []) as
-    { user_id?: string }[] | string[]) {
-    const value = typeof row === "string" ? row : row.user_id;
-    if (value) peerIds.push(asUserId(value));
-  }
-
-  return { userId, peers: seedPeers(userId, peerIds), groups };
+  return foldRoster(
+    asUserId(account.id),
+    account.memberships.map((row) => {
+      const group = embedded(row.groups);
+      return {
+        membershipId: asMembershipId(row.id),
+        groupId: asGroupId(row.group_id),
+        groupName: group.name,
+        role: toRole(row.role),
+        members: group.memberships.map((member) => ({
+          userId: asUserId(member.user_id),
+          name: member.name,
+        })),
+      };
+    }),
+  );
 });
+
+/** The only place a `Viewer` is built. */
+export const getViewer = cache(
+  async (): Promise<Viewer | null> => (await loadViewer())?.viewer ?? null,
+);
 
 export const getAccess = cache(async (): Promise<Access> => {
   const user = await getAuthUser();
@@ -107,8 +100,27 @@ export const getAccess = cache(async (): Promise<Access> => {
  */
 export const enterGroup = cache(
   async (groupId: string): Promise<GroupContext | null> => {
-    const viewer = await getViewer();
-    if (!viewer) return null;
+    const loaded = await loadViewer();
+    if (!loaded) return null;
+    const { viewer, membershipIds } = loaded;
+
+    /*
+     * The membership rows `loadViewer` read in this request are the proof, so
+     * the common case costs no trip. Only a group not among them is asked
+     * about: a 404 in the making, or one the caller has just joined or created
+     * after the viewer was read.
+     */
+    const group = viewer.groups.find((ref) => ref.id === groupId);
+    const membershipId = group && membershipIds.get(group.id);
+    if (group && membershipId) {
+      return {
+        ...viewer,
+        groupId: group.id,
+        groupName: group.name,
+        membershipId,
+        role: group.role,
+      };
+    }
 
     // Arbitrary text arrives here from a URL, and Postgres answers a malformed
     // uuid with an error rather than an empty result. Typed nonsense deserves

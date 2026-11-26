@@ -205,49 +205,6 @@ export async function getMembershipRole(
 }
 
 /**
- * Everyone the viewer can see, and what each of them is called in each of the
- * viewer's groups. The one fold both readers below start from, the same reason
- * `groupMemberships` above exists — `cache` makes them share one trip.
- *
- * Scoped to the viewer's own groups, so nothing read off it can name a group
- * they are not in.
- */
-const peerNamesByGroup = cache(
-  async (
-    viewer: Viewer,
-  ): Promise<ReadonlyMap<UserId, Map<GroupId, string>>> => {
-    const namesByUser = new Map<UserId, Map<GroupId, string>>();
-    if (viewer.groups.length === 0) return namesByUser;
-
-    const { data, error } = await getSupabase()
-      .from("memberships")
-      .select("user_id, group_id, name")
-      .in(
-        "group_id",
-        viewer.groups.map((group) => group.id),
-      );
-
-    if (error) throw error;
-
-    for (const row of (data ?? []) as {
-      user_id: string;
-      group_id: string;
-      name: string;
-    }[]) {
-      const user = asUserId(row.user_id);
-      let byGroup = namesByUser.get(user);
-      if (!byGroup) {
-        byGroup = new Map();
-        namesByUser.set(user, byGroup);
-      }
-      byGroup.set(asGroupId(row.group_id), row.name);
-    }
-
-    return namesByUser;
-  },
-);
-
-/**
  * What to call each person the viewer can see, one name apiece.
  *
  * A name is a per-group label, so somebody in two of the viewer's groups has
@@ -260,7 +217,7 @@ export const getPeerNames = cache(
     currentGroupId?: GroupId,
   ): Promise<ReadonlyMap<UserId, string>> => {
     const resolved = new Map<UserId, string>();
-    for (const [user, byGroup] of await peerNamesByGroup(viewer)) {
+    for (const [user, byGroup] of viewer.peerNames) {
       resolved.set(user, preferredName(byGroup, viewer.groups, currentGroupId));
     }
     return resolved;
@@ -281,7 +238,7 @@ export const getPeerGroups = cache(
     viewer: Viewer,
   ): Promise<ReadonlyMap<UserId, ReadonlySet<GroupId>>> => {
     const byUser = new Map<UserId, ReadonlySet<GroupId>>();
-    for (const [user, byGroup] of await peerNamesByGroup(viewer)) {
+    for (const [user, byGroup] of viewer.peerNames) {
       byUser.set(user, new Set(byGroup.keys()));
     }
     return byUser;
@@ -316,29 +273,20 @@ export const groupIdsOf = cache(async (userId: UserId): Promise<GroupId[]> => {
  * places them in that group. This is the check that stands between a guessed id
  * and somebody else's list; the page turns the null into a 404.
  *
- * The peers check comes first, which is also what keeps a malformed id out of
- * the query: nothing but a real user id is ever in that set.
+ * The peers check comes first: nothing but a real user id is ever in that set.
  *
- * The row that proves the membership carries the name to show, so this asks
- * once: a `memberships` row scoped to this group *is* the name through this
- * group, which is what makes the heading and the wishes below it agree.
+ * The roster `getViewer` read in this request already holds that membership
+ * row — scoped to this group, it *is* the name through this group, which is
+ * what makes the heading and the wishes below it agree — so this asks nothing
+ * of the database.
  */
-export async function getGroupPeerUser(
+export function getGroupPeerUser(
   ctx: GroupContext,
   userId: string,
-): Promise<PeerUser | null> {
+): PeerUser | null {
   const id = asUserId(userId);
   if (!canReadList(ctx.peers, id)) return null;
 
-  const { data, error } = await getSupabase()
-    .from("memberships")
-    .select("user_id, name")
-    .eq("group_id", ctx.groupId)
-    .eq("user_id", id)
-    .maybeSingle();
-
-  if (error) throw error;
-  if (!data) return null;
-
-  return { id, name: (data as { name: string }).name };
+  const name = ctx.peerNames.get(id)?.get(ctx.groupId);
+  return name === undefined ? null : { id, name };
 }

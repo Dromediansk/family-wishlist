@@ -1,5 +1,5 @@
-import type { UserId } from "@/lib/ids";
-import type { Viewer } from "@/lib/types";
+import type { GroupId, MembershipId, UserId } from "@/lib/ids";
+import type { GroupRef, Role, Viewer } from "@/lib/types";
 
 /**
  * Who is looking. Every page routes off this and nothing else. Pure, with no
@@ -32,8 +32,8 @@ export function resolveAccess(input: {
 /**
  * Everyone a viewer may see, seeded with the viewer themselves.
  *
- * `peer_user_ids` derives self-membership from a join, so it hands back nothing
- * at all for an account that belongs to no group. A peers set missing its own
+ * Peers are read off the members of the viewer's groups, so there are none at
+ * all for an account that belongs to no group. A peers set missing its own
  * owner makes `canReadList` false for the one list the viewer certainly owns,
  * which locks a groupless account out of its own wishes — hence the seed, which
  * happens whatever the query returned.
@@ -44,4 +44,59 @@ export function seedPeers(
   peerIds: readonly UserId[],
 ): ReadonlySet<UserId> {
   return new Set<UserId>([ownerId, ...peerIds]);
+}
+
+/** One of the viewer's own memberships, with everybody else in that group. */
+export type RosterMembership = {
+  membershipId: MembershipId;
+  groupId: GroupId;
+  groupName: string;
+  role: Role;
+  members: readonly { userId: UserId; name: string }[];
+};
+
+/**
+ * Fold the viewer's memberships — each carrying its group's member list — into
+ * a `Viewer`, plus the membership ids `enterGroup` proves a group with. One
+ * query feeds all of it, so a page waits on one trip for who is looking rather
+ * than three in a row.
+ *
+ * `memberships` must arrive in the viewer's join order: `groups` keeps it, and
+ * `preferredName` and the switcher both depend on it.
+ */
+export function foldRoster(
+  userId: UserId,
+  memberships: readonly RosterMembership[],
+): { viewer: Viewer; membershipIds: ReadonlyMap<GroupId, MembershipId> } {
+  const groups: GroupRef[] = [];
+  const membershipIds = new Map<GroupId, MembershipId>();
+  const peerNames = new Map<UserId, Map<GroupId, string>>();
+
+  for (const membership of memberships) {
+    groups.push({
+      id: membership.groupId,
+      name: membership.groupName,
+      role: membership.role,
+    });
+    membershipIds.set(membership.groupId, membership.membershipId);
+
+    for (const member of membership.members) {
+      let byGroup = peerNames.get(member.userId);
+      if (!byGroup) {
+        byGroup = new Map();
+        peerNames.set(member.userId, byGroup);
+      }
+      byGroup.set(membership.groupId, member.name);
+    }
+  }
+
+  return {
+    viewer: {
+      userId,
+      peers: seedPeers(userId, [...peerNames.keys()]),
+      groups,
+      peerNames,
+    },
+    membershipIds,
+  };
 }

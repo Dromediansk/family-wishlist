@@ -36,11 +36,13 @@ export default async function MemberPage({
 
   // The id in the URL is a claim, not proof: this is what turns it into a
   // member of this group the viewer is allowed to see, or a 404.
-  const owner = await getGroupPeerUser(ctx, userId);
+  const owner = getGroupPeerUser(ctx, userId);
   if (!owner) notFound();
 
-  const list = await getWishListFor(ctx, owner.id);
-  const t = await getTranslations("list");
+  const [list, t] = await Promise.all([
+    getWishListFor(ctx, owner.id),
+    getTranslations("list"),
+  ]);
 
   return (
     <div className="space-y-6">
